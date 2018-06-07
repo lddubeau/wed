@@ -602,6 +602,23 @@ function *ghPages() {
   yield exec(`make -C ${merged} html`);
 
   yield exec(`cp -rp ${merged}/_build/html/* build/api ${dest}`);
+
+  const destBuild = `${dest}/build`;
+  yield mkdirp(destBuild);
+  yield cprpdir(["build/samples", "build/schemas", "build/standalone",
+                 "build/packed"], destBuild);
+
+  for (const tree of ["standalone", "packed"]) {
+    const globalConfig = `${dest}/build/${tree}/lib/global-config.js`;
+    yield fs.move(globalConfig, `${globalConfig}.t`);
+    yield exec("node misc/modify_config.js -d config.ajaxlog -d config.save " +
+               `${globalConfig}.t > ${globalConfig}`);
+
+    yield del([`${globalConfig}.t`,
+               `${dest}/build/${tree}/test.html`,
+               `${dest}/build/${tree}/mocha_frame.html`,
+               `${dest}/build/${tree}/wed_test.html`]);
+  }
 }
 
 gulp.task("gh-pages", ["gh-pages-check", "default", "doc"],
