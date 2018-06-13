@@ -137,7 +137,6 @@
     "wed-metadata": "./bin/wed-metadata"
   },
   "scripts": {
-    "test": "make test",
     "commitmsg": "commitlint -e $GIT_PARAMS"
   }
 }
