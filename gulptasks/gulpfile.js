@@ -431,7 +431,7 @@ npmCopyTask("rxjs/**", "external/rxjs", { wrapAmd: true });
 
 npmCopyTask("ajv/dist/ajv.min.js");
 
-npmCopyTask("diff/diff.js");
+npmCopyTask("diff/dist/diff.min.js");
 
 gulp.task("build-info", Promise.coroutine(function *task() {
   const dest = "build/standalone/lib/wed/build-info.js";

@@ -34,7 +34,7 @@ require.config({
     "bluejax.try": "external/bluejax.try",
     slug: "external/slug",
     ajv: "external/ajv.min",
-    diff: "external/diff",
+    diff: "external/diff.min",
   },
   packages: [
     {

@@ -67,7 +67,7 @@
     "corejs-typeahead": "^1.2.1",
     "del": "^3.0.0",
     "dexie": "^2.0.0-beta.11",
-    "diff": "https://registry.npmjs.org/diff/-/diff-1.4.0.tgz",
+    "diff": "^3.5.0",
     "eslint": "^4.19.1",
     "eslint-config-lddubeau-base": "^2.0.1",
     "event-stream": ">=3.3.1 <4",
