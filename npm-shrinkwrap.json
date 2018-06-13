@@ -6396,8 +6396,9 @@
       }
     },
     "interactjs": {
-      "version": "https://github.com/lddubeau/interact.js/tarball/fix/typescript-definitions.tgz",
-      "integrity": "sha512-MDv8aounmZUFX1yVtyB9U+QV3yU429BddSkK/VPQZYtit3JQfCDMxhqnQE79BJ6fybWUuLVMVM8OaGJ3H0LNXA==",
+      "version": "1.3.4",
+      "resolved": "https://registry.npmjs.org/interactjs/-/interactjs-1.3.4.tgz",
+      "integrity": "sha512-AQ2CdPEyHqiEEQ1FFgMBj79UEsU1+rUwSXuhOkflvB65p4iECft28SN/PvhD/Y9OtNge8aH1qTibjAi+RXQMqQ==",
       "dev": true
     },
     "interpret": {
