@@ -477,17 +477,12 @@ gulp.task("generate-mode-map", Promise.coroutine(function *task() {
   yield fs.writeFile(dest, `define(${JSON.stringify(exporting)});`);
 }));
 
-function htmlTask(suffix) {
-  gulp.task(`build-html${suffix}`, () => {
-    const dest = `build/standalone${suffix}`;
-    return gulp.src("web/*.html", { base: "web" })
-      .pipe(gulpNewer(dest))
-      .pipe(gulp.dest(dest));
-  });
-}
-
-htmlTask("");
-htmlTask("-optimized");
+gulp.task("build-html", () => {
+  const dest = "build/standalone";
+  return gulp.src("web/*.html", { base: "web" })
+    .pipe(gulpNewer(dest))
+    .pipe(gulp.dest(dest));
+});
 
 gulp.task("build-standalone",
           [].concat(
