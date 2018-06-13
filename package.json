@@ -103,6 +103,7 @@
     "less": ">=2 <3",
     "localforage": ">=1.2.4 <2",
     "lodash-amd": ">=4 <5",
+    "log4javascript": "^1.4.15",
     "merge-options": "0.0.64",
     "mocha": "^5.1.1",
     "morgan": ">=1.5.0 <2",

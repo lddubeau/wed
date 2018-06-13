@@ -93,8 +93,5 @@ exports.options = {};
  * a local configuration file or through command line options.
  */
 exports.internals = {
-  log4javascriptUrl:
-  "https://downloads.sourceforge.net/project/log4javascript/" +
-    "1.4.13/log4javascript-1.4.13.zip",
   stampDir: "build/stamps",
 };

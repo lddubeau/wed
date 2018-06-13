@@ -57,6 +57,7 @@
       "version": "7.0.1",
       "resolved": "https://registry.npmjs.org/@commitlint/config-angular/-/config-angular-7.0.1.tgz",
       "integrity": "sha1-VZ22aIVQdv5+hFpx7UkOrLcxSQM=",
+      "dev": true,
       "requires": {
         "@commitlint/config-angular-type-enum": "^7.0.0"
       }
@@ -64,7 +65,8 @@
     "@commitlint/config-angular-type-enum": {
       "version": "7.0.0",
       "resolved": "https://registry.npmjs.org/@commitlint/config-angular-type-enum/-/config-angular-type-enum-7.0.0.tgz",
-      "integrity": "sha1-aXArqApWo9i6s8wyiY5JYEXRMyM="
+      "integrity": "sha1-aXArqApWo9i6s8wyiY5JYEXRMyM=",
+      "dev": true
     },
     "@commitlint/ensure": {
       "version": "7.0.0",
@@ -7883,6 +7885,12 @@
           }
         }
       }
+    },
+    "log4javascript": {
+      "version": "1.4.15",
+      "resolved": "https://registry.npmjs.org/log4javascript/-/log4javascript-1.4.15.tgz",
+      "integrity": "sha1-haxi6UawJMayViFghOEGAdVjBgQ=",
+      "dev": true
     },
     "log4js": {
       "version": "2.6.1",

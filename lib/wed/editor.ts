@@ -7,6 +7,7 @@
 import Ajv from "ajv";
 import "bootstrap";
 import $ from "jquery";
+import * as log4javascript from "log4javascript";
 import { Observable } from "rxjs";
 import { filter } from "rxjs/operators";
 import * as salve from "salve";

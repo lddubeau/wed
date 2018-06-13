@@ -433,6 +433,8 @@ npmCopyTask("ajv/dist/ajv.min.js");
 
 npmCopyTask("diff/dist/diff.min.js");
 
+npmCopyTask("log4javascript/log4javascript.js");
+
 gulp.task("build-info", Promise.coroutine(function *task() {
   const dest = "build/standalone/lib/wed/build-info.js";
   yield mkdirp(path.dirname(dest));
@@ -490,7 +492,6 @@ gulp.task("build-standalone",
             "build-standalone-web",
             "build-standalone-wed-less",
             "build-standalone-wed-config",
-            "copy-log4javascript",
             "copy-bin",
             copyTasks,
             "build-schemas",
