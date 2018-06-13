@@ -1,11 +1,12 @@
 const gulp = require("gulp");
 const log = require("fancy-log");
 const path = require("path");
-const glob = require("glob");
 const shell = require("shell-quote");
 const eslint = require("gulp-eslint");
 const versync = require("versync");
 const Promise = require("bluebird");
+
+const glob = Promise.promisify(require("glob"));
 
 const { options } = require("./config");
 const {
@@ -13,53 +14,36 @@ const {
   sequence, spawn,
 } = require("./util");
 
-const convertXMLDirs = glob.sync("lib/tests/*_test_data")
-        .filter(x => x !== "lib/tests/convert_test_data");
+const xsl = "lib/tests/xml-to-xml-tei.xsl";
+gulp.task(
+  "convert-xml-test-files",
+  () => Promise.all(
+    glob("lib/tests/!(convert)_test_data/**", { nodir: true })
+      .then(files => files.map(Promise.coroutine(function *dataPromise(file) {
+        const ext = path.extname(file);
+        const dest =
+              `${path.join(
+                      "build/standalone",
+                      file.substring(0, file.length - ext.length))
+}_converted.xml`;
 
-gulp.task("convert-xml-test-files", (callback) => {
-  const promises = [];
-  gulp.src(convertXMLDirs.map(x => `${x}/**`),
-           { base: "lib/tests", read: false, nodir: true })
-    .on("data", (file) => {
-      const p = Promise.coroutine(function *dataPromise() {
-        const ext = path.extname(file.relative);
-        const destName = path.join(
-          "build/standalone/lib/tests",
-          file.relative.substring(0, file.relative.length - ext.length));
-        const dest = `${destName}_converted.xml`;
+        const tei =
+              yield existsInFile(file,
+                                 /http:\/\/www.tei-c.org\/ns\/1.0/);
 
-        const tei = yield existsInFile(file.path,
-                                       /http:\/\/www.tei-c.org\/ns\/1.0/);
-
-        let isNewer;
-        let xsl;
-        if (tei) {
-          xsl = "lib/tests/xml-to-xml-tei.xsl";
-          isNewer = yield newer([file.path, xsl], dest);
-        }
-        else {
-          isNewer = yield newer(file.path, dest);
-        }
-
+        const isNewer = yield newer(tei ? [file, xsl] : file, dest);
         if (!isNewer) {
           return;
         }
 
         if (tei) {
-          yield checkOutputFile(options.xsltproc,
-                                ["-o", dest, xsl, file.path]);
+          yield checkOutputFile(options.xsltproc, ["-o", dest, xsl, file]);
         }
         else {
           yield mkdirp(path.dirname(dest));
-          yield cprp(file.path, dest);
+          yield cprp(file, dest);
         }
-      })();
-      promises.push(p);
-    })
-    .on("end", () => {
-      Promise.all(promises).asCallback(callback);
-    });
-});
+      })))));
 
 gulp.task("build-test-files", ["convert-xml-test-files"]);
 
