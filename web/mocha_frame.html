@@ -62,9 +62,9 @@
       };
 
       require(["jquery", "mocha/mocha", "chai", "tests/global",
-      "wed/onerror", "urijs/URI", "last-resort"], start);
+      "wed/onerror", "last-resort"], start);
 
-      function start($, mocha, chai, global, onerror, URI, lr) {
+      function start($, mocha, chai, global, onerror, lr) {
           var assert = chai.assert;
 
           // Reset the server before doing anything.

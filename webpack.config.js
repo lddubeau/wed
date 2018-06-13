@@ -18,7 +18,6 @@ const externals = {};
  "bootbox",
  "typeahead",
  "bloodhound",
- "urijs",
  "interactjs",
  "merge-options",
  "is-plain-obj",

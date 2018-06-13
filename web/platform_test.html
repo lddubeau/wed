@@ -24,13 +24,11 @@
       </div>
     </div>
     <script>
-      require(["urijs/URI"], function (URI) {
-          var uri = new URI();
-          var query = uri.query(true);
-          window.test_platform = query.platform;
-          window.test_browser = query.browser;
-          window.test_version = query.version;
-      });
+      var url = new URL(window.location.href);
+      var query = url.searchParams;
+      window.test_platform = query.get("platform");
+      window.test_browser = query.get("browser");
+      window.test_version = query.get("version");
     </script>
   </body>
 </html>

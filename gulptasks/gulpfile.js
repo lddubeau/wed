@@ -372,21 +372,6 @@ npmCopyTask("localforage/dist/localforage.js");
 
 npmCopyTask("bootbox/bootbox*.js");
 
-npmCopyTask("urijs/src/**", "external/urijs",
-            {
-              map: (file, callback) => {
-                // Sigh... the punycode version included with the latest urijs
-                // hardcodes its name.
-                if (file.path.endsWith("punycode.js")) {
-                  file.contents =
-                    Buffer.from(file.contents.toString()
-                                .replace(/define\('punycode',\s*/, "define("));
-                }
-
-                callback(null, file);
-              },
-            });
-
 npmCopyTask("lodash", "lodash-amd/{modern/**,main.js,package.json}",
             "external/lodash");
 

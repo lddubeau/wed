@@ -11,7 +11,6 @@ define(function f(require) {
 
   var wed = require("wed");
   var $ = require("jquery");
-  var URI = require("urijs/URI");
   var lr = require("last-resort");
   var onerror = require("wed/onerror");
   var globalConfig = require("global-config");
@@ -22,13 +21,13 @@ define(function f(require) {
   var onError = lr.install(window);
   onError.register(onerror.handler);
 
-  var uri = new URI();
-  var query = uri.query(true);
-  var mode = query.mode;
-  var file = query.file;
-  var schema = query.schema;
-  var options_param = query.options;
-  var fetchOptions = query.fetchOptions;
+  var url = new URL(window.location.href);
+  var query = url.searchParams;
+  var mode = query.get("mode");
+  var file = query.get("file");
+  var schema = query.get("schema");
+  var options_param = query.get("options");
+  var fetchOptions = query.get("fetchOptions");
 
   function fetched(options) {
     if (mode) {
