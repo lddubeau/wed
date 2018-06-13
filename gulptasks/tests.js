@@ -80,10 +80,8 @@ function runTslint(tsconfig) {
   // We do not need to pass the path to the tslint.json because when tslint
   // lints a file it automatically looks up for the tslint.json file that
   // governs it. (Looks up the directory chain.)
-  return spawn(
-    "./node_modules/.bin/tslint",
-    ["--type-check", "--project", tsconfig, "-t", "verbose"],
-    { stdio: "inherit" });
+  return spawn("./node_modules/.bin/tslint",
+               ["--project", tsconfig, "-t", "verbose"], { stdio: "inherit" });
 }
 
 gulp.task("tslint-wed", ["generate-ts"], () => runTslint("lib/tsconfig.json"));
