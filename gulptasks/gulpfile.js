@@ -242,21 +242,6 @@ gulp.task("copy-bin", () => gulp.src("bin/**/*")
           .pipe(replace("../build/", "../"))
           .pipe(gulp.dest("build/bin")));
 
-gulp.task("npm", ["stamp-dir"], Promise.coroutine(function *task() {
-  const stamp = stampPath("npm");
-
-  const isNewer = yield newer(["package.json", "npm-shrinkwrap.json"], stamp);
-
-  if (!isNewer) {
-    log("Skipping npm.");
-    return;
-  }
-
-  yield mkdirp("node_modules");
-  yield exec("npm install");
-  yield touch(stamp);
-}));
-
 const copyTasks = [];
 function npmCopyTask(...args) {
   // Package is reserved. So `pack`.
@@ -338,7 +323,7 @@ function npmCopyTask(...args) {
 
   const fullName = `copy-${name}`;
   const stamp = stampPath(fullName);
-  gulp.task(fullName, ["stamp-dir", "npm"], (callback) => {
+  gulp.task(fullName, ["stamp-dir"], (callback) => {
     let stream = gulp.src([pack].concat(completeSrc), {
       allowEmpty: false,
     });
