@@ -26,10 +26,6 @@ exports.optionDefinitions = {
     help: "Path to jsdoc.",
     defaultValue: "node_modules/.bin/jsdoc",
   },
-  wget: {
-    help: "Path to wget.",
-    defaultValue: "wget",
-  },
   rst2html: {
     help: "Path to rst2html.",
     defaultValue: "rst2html",
