@@ -105,7 +105,7 @@ browser-dependent test suite, is located in
 Please see the :github:`package.json`, :github:`config/requirejs-config-dev.js`,
 :github:`Makefile` and :github:`build.mk` files for details regarding run-time
 and development dependencies. Running the test suite also requires that `saxon
-<http://saxon.sourceforge.net/>`_ be installed.
+<http://saxon.sourceforge.net/>`_ and ``xsltproc`` be installed.
 
 Wed works with jQuery 3.x and 2.x. We strongly recommend using jQuery
 3.x. jQuery 2.x is no longer maintained by its development team and thus no

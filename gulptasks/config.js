@@ -22,6 +22,10 @@ exports.optionDefinitions = {
     help: "Path to saxon.",
     defaultValue: "saxon",
   },
+  xsltproc: {
+    help: "Path to xsltproc.",
+    defaultValue: "xsltproc",
+  },
   jsdoc3: {
     help: "Path to jsdoc.",
     defaultValue: "node_modules/.bin/jsdoc",

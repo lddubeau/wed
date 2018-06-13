@@ -100,6 +100,3 @@ Other
 
 * Investigate web workers to replace timeouts as the main parallelism
   mechanism for running validation in the background.
-
-* Dump XSLT altogether in favor of something faster? Loading saxon to
-  process XSLT 2.0 has a non-negligible cost.
