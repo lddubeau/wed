@@ -649,7 +649,8 @@
     "amd-loader": {
       "version": "0.0.8",
       "resolved": "https://registry.npmjs.org/amd-loader/-/amd-loader-0.0.8.tgz",
-      "integrity": "sha1-ECKSgEDlZ+jmpvtYvaBS+BkYkgY="
+      "integrity": "sha1-ECKSgEDlZ+jmpvtYvaBS+BkYkgY=",
+      "dev": true
     },
     "amdefine": {
       "version": "1.0.1",
