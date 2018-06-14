@@ -410,12 +410,6 @@
       "integrity": "sha1-2sLyjNzlTDCVvE1VVbTonLfFBjw=",
       "dev": true
     },
-    "@types/lodash": {
-      "version": "4.14.108",
-      "resolved": "https://registry.npmjs.org/@types/lodash/-/lodash-4.14.108.tgz",
-      "integrity": "sha512-WD2vUOKfBBVHxWUV9iMR9RMfpuf8HquxWeAq2yqGVL7Nc4JW2+sQama0pREMqzNI3Tutj0PyxYUJwuoxxvX+xA==",
-      "dev": true
-    },
     "@types/marked": {
       "version": "0.3.0",
       "resolved": "https://registry.npmjs.org/@types/marked/-/marked-0.3.0.tgz",
@@ -7611,12 +7605,6 @@
       "version": "4.17.10",
       "resolved": "https://registry.npmjs.org/lodash/-/lodash-4.17.10.tgz",
       "integrity": "sha512-UejweD1pDoXu+AD825lWwp4ZGtSwgnpZxb3JDViD7StjQz+Nb/6l093lx4OQ0foGWNRoc19mWy7BzL+UAK2iVg==",
-      "dev": true
-    },
-    "lodash-amd": {
-      "version": "4.17.10",
-      "resolved": "https://registry.npmjs.org/lodash-amd/-/lodash-amd-4.17.10.tgz",
-      "integrity": "sha512-MDaTI1DITaZ7VHtMXmciM/d4yNdqsAOLKTc3iQ2BEscqDFracVs737rNjvQ/isxdgtCF9m345zx80M5Z1nLmpw==",
       "dev": true
     },
     "lodash._basecopy": {

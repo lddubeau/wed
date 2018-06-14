@@ -4,8 +4,6 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import _ from "lodash";
-
 import { assertSummarily } from "./object-check";
 
 const template = {
@@ -32,7 +30,7 @@ export class Preferences {
     }
 
     this._validatePrefs(initial);
-    this.prefs = _.extend(Object.create(null), initial);
+    this.prefs = Object.assign(Object.create(null), initial);
   }
 
   /**

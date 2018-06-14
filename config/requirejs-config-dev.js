@@ -35,12 +35,6 @@ require.config({
     ajv: "external/ajv.min",
     diff: "external/diff.min",
   },
-  packages: [
-    {
-      name: "lodash",
-      location: "external/lodash",
-    },
-  ],
   map: {
     "*": {
       // This is needed due to the disconnect between the hardcoded name

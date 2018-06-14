@@ -27,7 +27,6 @@
     "import-name": [true, {
       "jquery": "$",
       "ajv": "Ajv",
-      "lodash": "_",
       "interactjs": "interact"
     }]
   }

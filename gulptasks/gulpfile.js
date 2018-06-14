@@ -372,9 +372,6 @@ npmCopyTask("localforage/dist/localforage.js");
 
 npmCopyTask("bootbox/bootbox*.js");
 
-npmCopyTask("lodash", "lodash-amd/{modern/**,main.js,package.json}",
-            "external/lodash");
-
 npmCopyTask("classlist", "classlist-polyfill/src/index.js",
             { rename: "classList.js" });
 

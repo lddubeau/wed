@@ -5,7 +5,6 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 
-import _ from "lodash";
 import { ObjectUnsubscribedError, Subject } from "rxjs";
 
 import { Action } from "./action";
@@ -18,7 +17,10 @@ import * as icon from "./gui/icon";
 import { EditorAPI } from "./mode-api";
 import { TreeUpdater } from "./tree-updater";
 
-const TYPE_TO_KIND = _.extend(Object.create(null), {
+const TYPE_TO_KIND: { [key: string]: string } = {
+  // Ideally the next line would be uncommented but TS goes off the rails
+  // if that line is there. (Type inference gets stupid).
+  // __proto__: null,
   // These are not actually type names. It is possible to use a kind name as a
   // type name if the transformation is not more specific. In this case the kind
   // === type.
@@ -41,9 +43,12 @@ const TYPE_TO_KIND = _.extend(Object.create(null), {
   unwrap: "unwrap",
   "add-attribute": "add",
   "delete-attribute": "delete",
-});
+};
 
-const TYPE_TO_NODE_TYPE = _.extend(Object.create(null), {
+const TYPE_TO_NODE_TYPE: { [key: string]: string } = {
+  // Ideally the next line would be uncommented but TS goes off the rails
+  // if that line is there. (Type inference gets stupid).
+  // __proto__: null,
   // These are not actually type names. These are here to handle the
   // case where the type is actually a kind name. Since they are not
   // more specific, the node type is set to "other". Note that
@@ -69,7 +74,7 @@ const TYPE_TO_NODE_TYPE = _.extend(Object.create(null), {
   unwrap: "element",
   "add-attribute": "attribute",
   "delete-attribute": "attribute",
-});
+};
 
 /**
  * Data passed to the transformation handler. The transformation types expect
