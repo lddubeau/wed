@@ -31,7 +31,6 @@ require.config({
     dexie: "external/dexie.min",
     bluejax: "external/bluejax",
     "bluejax.try": "external/bluejax.try",
-    slug: "external/slug",
     ajv: "external/ajv.min",
     diff: "external/diff.min",
   },

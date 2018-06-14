@@ -407,8 +407,6 @@ npmCopyTask("bluejax/index.js", { rename: "bluejax.js" });
 
 npmCopyTask("bluejax.try/index.js", { rename: "bluejax.try.js" });
 
-npmCopyTask("slug/slug-browser.js", { rename: "slug.js" });
-
 npmCopyTask("rxjs/**", "external/rxjs", { wrapAmd: true });
 
 npmCopyTask("ajv/dist/ajv.min.js");

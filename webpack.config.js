@@ -32,7 +32,6 @@ const externals = {};
  "dexie",
  "bluejax",
  "bluejax.try",
- "slug",
  "ajv",
  // onerror must be loadable outside wed...
  "onerror",
