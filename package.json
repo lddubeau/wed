@@ -123,7 +123,7 @@
     "typeahead.js-bootstrap-css": "^1.2.1",
     "typedoc": "^0.11.1",
     "typescript": "^2.7.1",
-    "versync": "^3.1.0",
+    "versync": "^4.0.0",
     "vinyl-file": "^3.0.0",
     "webpack": "^3.8.1",
     "zone.js": "^0.8.10"

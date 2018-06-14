@@ -111,7 +111,6 @@ exports.test = sequence("test", lint, testKarma, testKarmaWebpack,
                         function *done() {
                           if (!options.skip_semver) {
                             yield versync.run({
-                              verify: true,
                               onMessage: log,
                             });
                           }
