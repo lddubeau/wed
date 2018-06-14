@@ -10,7 +10,6 @@ const Promise = require("bluebird");
 const path = require("path");
 const log = require("fancy-log");
 const requireDir = require("require-dir");
-const wrapAmd = require("gulp-wrap-amd");
 const replace = require("gulp-replace");
 const argparse = require("argparse");
 const touch = require("touch");
@@ -340,7 +339,15 @@ function npmCopyTask(...args) {
       // Wrapping makes sense only for .js files.
       const jsFilter = gulpFilter("**/*.js", { restore: true });
       stream = stream.pipe(jsFilter)
-        .pipe(wrapAmd({ exports: "module.exports" }))
+        .pipe(es.mapSync((file) => {
+          file.contents = Buffer.from(`\
+define(function (require, exports, module) {
+${file.contents}
+return module.exports;
+});`);
+
+          return file;
+        }))
         .pipe(jsFilter.restore);
     }
 
