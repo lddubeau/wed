@@ -26,11 +26,7 @@ export interface ModeValidator {
  */
 export class Validator extends BaseValidator {
   /**
-   * @param schema A path to the schema to pass to salve for validation. This is
-   * a path that will be interpreted by RequireJS. The schema must have already
-   * been prepared for use by salve. See salve's documentation. Or this can be a
-   * ``Grammar`` object that has already been produced from ``salve``'s
-   * ``constructTree``.
+   * @param schema The schema to use for validating.
    *
    * @param root The root of the DOM tree to validate. This root contains the
    * document to validate but is not **part** of it.
