@@ -129,7 +129,7 @@ export class WedServer {
   private readonly oldUseFilters: boolean;
     // tslint:disable-next-line:no-any
   private readonly oldFilters: any[];
-  private readonly xhr: sinon.SinonFakeXMLHttpRequest;
+  private readonly xhr: sinon.SinonFakeXMLHttpRequestStatic;
 
   emptyResponseOnSave: boolean = false;
   failOnSave: boolean = false;
@@ -138,7 +138,7 @@ export class WedServer {
 
   constructor(server: sinon.SinonFakeServer) {
     // tslint:disable-next-line:no-any
-    const xhr = (server as any).xhr as sinon.SinonFakeXMLHttpRequest;
+    const xhr = (server as any).xhr as sinon.SinonFakeXMLHttpRequestStatic;
     this.xhr = xhr;
 
     // We must save and restore the filter state ourselves because Sinon does
