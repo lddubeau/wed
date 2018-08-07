@@ -2,7 +2,6 @@
 
 /* global __dirname */
 
-const webpack = require("webpack");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 
 const buildDir = "build/standalone/lib/";
@@ -42,12 +41,12 @@ const externals = {};
 });
 
 module.exports = {
+  mode: "production",
   resolve: {
     modules: [buildDir, "node_modules"],
   },
   entry: {
     wed: "wed.js",
-    "wed.min": "wed.js",
   },
   externals,
   devtool: "source-map",
@@ -59,10 +58,6 @@ module.exports = {
     libraryTarget: "amd",
   },
   plugins: [
-    new webpack.optimize.UglifyJsPlugin({
-      sourceMap: true,
-      include: /\.min\.js$/,
-    }),
     new CopyWebpackPlugin([
       "wed/{glue,patches,polyfills,modes,savers}/**/*",
       "{requirejs,external}/*", "{requirejs,external}/!(rxjs)/**/*",
