@@ -25,7 +25,7 @@
     "ajv": "^6.5.0",
     "argparse": ">=1.0.3 <2",
     "js-yaml": "^3.8.4",
-    "salve": "^7.0.2"
+    "salve": "^8.0.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^7.0.0",
@@ -109,7 +109,7 @@
     "requirejs": "^2.3.4",
     "requirejs-text": ">=2.0.12 <3",
     "rxjs": "^6.2.0",
-    "salve-dom": "^3.0.0",
+    "salve-dom": "^4.0.0",
     "semver": ">=5 <6",
     "serve-static": ">=1.7.1 <2",
     "shell-quote": ">=1.4.3 <2",
