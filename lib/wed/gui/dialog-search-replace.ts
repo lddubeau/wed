@@ -113,14 +113,14 @@ export class DialogSearchReplace {
     makeResizable(dialog);
     makeDraggable(dialog);
     const directionItems = body.elements
-      .namedItem("direction") as HTMLCollectionOf<HTMLInputElement>;
-    this.forwardRadioButton = directionItems[0];
-    this.backwardRadioButton = directionItems[1];
+      .namedItem("direction") as RadioNodeList;
+    this.forwardRadioButton = directionItems[0] as HTMLInputElement;
+    this.backwardRadioButton = directionItems[1] as HTMLInputElement;
 
     const contextItems = body.elements
-      .namedItem("context") as HTMLCollectionOf<HTMLInputElement>;
-    this.textRadioButton = contextItems[0];
-    this.attributeRadioButton = contextItems[1];
+      .namedItem("context") as RadioNodeList;
+    this.textRadioButton = contextItems[0] as HTMLInputElement;
+    this.attributeRadioButton = contextItems[1] as HTMLInputElement;
 
     let toCheck: HTMLInputElement;
     switch (direction) {
