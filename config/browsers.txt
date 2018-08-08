@@ -5,27 +5,24 @@
 #
 # Perform these first because they are extremely cheap to perform.
 #
-Linux,CH,60
-
+Linux,CH,68
 
 #
 # Perform these next because MS browsers compatibility is a major issue. Finding
 # problems early pays.
 #
-Windows 10,Edge,15,Remote
-# Edge 16 does not seem to pass yet...
-# Windows 10,Edge,16,Remote
+Windows 10,Edge,17,Remote
 
 #
 # Perform these next because OS X compatibility is an issue. Again, we want to
 # find problems early.
 #
-OS X 10.12,CH,60,Remote
+OS X 10.13,CH,68,Remote
 
 #
 # The rest is unlikely to fail if the previous tests passed.
 #
-Windows 8.1,CH,60,Remote
+Windows 10,CH,68,Remote
 
 # FF support is still suspended.
 # ESR

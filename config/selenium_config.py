@@ -92,7 +92,7 @@ if REMOTE_SERVICE == "saucelabs":
     # # As of 2017-12-19, it seems using Selenium greater than 3.6.0 causes
     # # problems on IE.
 
-    # selenium_version = "2.53.1"
+    selenium_version = "2.53.1"
     caps.update({
         "selenium-version": selenium_version,
         "chromedriver-version": "2.32",
