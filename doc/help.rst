@@ -1160,6 +1160,12 @@ We're hoping that the lack of Firefox support is going to be temporary. The
 paragraphs below give the state of Firefox support, in reverse chronological
 order (most recent on top):
 
+Update August 2018: Firefox support is still suspended. Geckodriver is plagued
+by asinine regressions like `this one
+<https://github.com/SeleniumHQ/selenium/issues/5621>`__ Returning DOM elements
+is supported on all browsers and has been supported by Selenium since time
+immemorial, but they managed to screw it up. *sigh*
+
 Update November 2017: Firefox support is still suspended. The Marionette driver
 has been released. However it is so buggy that there's no way we can run our
 tests with it. And yes, we do mean "buggy" with the full force of that word. For
