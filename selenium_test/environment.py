@@ -382,7 +382,7 @@ def before_scenario(context, scenario):
 
 
 def after_scenario(context, scenario):
-    if "skip" in scenario.status:
+    if scenario.status == "skipped":
         return
 
     driver = context.driver
