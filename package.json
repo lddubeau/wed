@@ -96,7 +96,7 @@
     "less": ">=2 <3",
     "localforage": "^1.7.2",
     "log4javascript": "^1.4.15",
-    "merge-options": "0.0.64",
+    "merge-options": "^1.0.1",
     "mocha": "^5.2.0",
     "morgan": ">=1.5.0 <2",
     "qs": "^6.5.1",
