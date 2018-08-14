@@ -6,8 +6,8 @@ const log = require("fancy-log");
 const fs = require("fs-extra");
 const _del = require("del");
 const path = require("path");
-const { internals } = require("./config");
 const { execFile } = require("child-process-promise");
+const { internals } = require("./config");
 
 exports.fs = fs;
 

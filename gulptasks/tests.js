@@ -72,9 +72,9 @@ gulp.task("tslint-wed", ["generate-ts"], () => runTslint("lib/tsconfig.json"));
 
 gulp.task("tslint", ["tslint-wed"]);
 
-gulp.task("eslint", () =>
-          gulp.src(["lib/**/*.js", "*.js", "bin/**", "config/**/*.js",
-                    "web/**/*.js", "gulptasks/**/*.js", "misc/**/*.js"])
+gulp.task("eslint",
+          () => gulp.src(["lib/**/*.js", "*.js", "bin/**", "config/**/*.js",
+                          "web/**/*.js", "gulptasks/**/*.js", "misc/**/*.js"])
           .pipe(eslint())
           .pipe(eslint.format())
           .pipe(eslint.failAfterError()));

@@ -77,12 +77,12 @@ gulp.task("config", () => {
   const configPath = "config";
   const localConfigPath = "local_config";
   return gulp.src(path.join(configPath, "**"), { nodir: true })
-    .pipe(es.map((file, callback) =>
-                 vinylFile.read(
-                   path.join(localConfigPath, file.relative),
-                   { base: localConfigPath })
-                 .then(override => callback(null, override),
-                       () => callback(null, file))))
+    .pipe(es.map(
+      (file, callback) => vinylFile.read(
+        path.join(localConfigPath, file.relative),
+        { base: localConfigPath })
+        .then(override => callback(null, override),
+              () => callback(null, file))))
   // We do not use newer here as it would sometimes have
   // unexpected effects.
     .pipe(changed(dest, { hasChanged: changed.compareContents }))
@@ -178,8 +178,8 @@ function convertJSONSchemaToTS(srcPath, destBaseName) {
     });
 }
 
-gulp.task("generate-ts", () =>
-          Promise.all([
+gulp.task("generate-ts",
+          () => Promise.all([
             convertJSONSchemaToTS("lib/wed/modes/generic/metadata-schema.json",
                                   "metadata-as-json.d.ts"),
             convertJSONSchemaToTS(
@@ -519,12 +519,12 @@ gulp.task("build-bundled-doc", ["build-standalone"],
             yield touch(stamp);
           }));
 
-gulp.task("webpack", ["build-standalone"], () =>
-          execFileAndReport("./node_modules/.bin/webpack", ["--color"],
-                            { maxBuffer: 300 * 1024 }));
+gulp.task("webpack", ["build-standalone"],
+          () => execFileAndReport("./node_modules/.bin/webpack", ["--color"],
+                                  { maxBuffer: 300 * 1024 }));
 
-gulp.task("rst-doc", () =>
-          gulp.src("*.rst", { read: false })
+gulp.task("rst-doc",
+          () => gulp.src("*.rst", { read: false })
           // eslint-disable-next-line array-callback-return
           .pipe(es.map((file, callback) => {
             const dest = `${file.path.substr(

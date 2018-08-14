@@ -7,8 +7,9 @@ const { del, newer, checkOutputFile, exec, mkdirp } = require("./util");
 
 gulp.task("wed-metadata-prereq", ["copy-bin", "tsc-wed"]);
 
-gulp.task("copy-schemas", () =>
-          gulp.src("schemas/*.js", { base: "." }).pipe(gulp.dest("build")));
+gulp.task("copy-schemas",
+          () => gulp.src("schemas/*.js", { base: "." })
+          .pipe(gulp.dest("build")));
 
 const jsonTasks = [];
 function xmlToJsonChain(name, dest) {
