@@ -115,7 +115,6 @@
     "touch": "^3.1.0",
     "tslint": "^5.11.0",
     "tslint-config-lddubeau": "^2.0.1",
-    "tslint-microsoft-contrib": "^5.2.0",
     "typeahead.js-bootstrap-css": "^1.2.1",
     "typedoc": "^0.11.1",
     "typescript": "^3.0.1",
