@@ -5,6 +5,19 @@ there.
 Only salient changes are recorded here. Releases that contain only the
 odd bug fix may not get mentioned here at all.
 
+* 3.0.0:
+
+  - Upgrade to salve 9.x. Immediate benefits are faster validation, and a
+    smaller salve bundle. Breaking change: salve 8 and over do not support IE
+    any longer, and Safari version 9 or older. This means wed no longer suports
+    them either.
+
+  - We no longer depend on Lodash. The minified bundle was immediately reduced
+    in size by 10%.
+
+  - Breaking change: the ``packed`` distribution no longer contains a
+    non-minified bundle.
+
 * 2.0.0:
 
   - Upgrade to salve 7.x. Faster validation.
