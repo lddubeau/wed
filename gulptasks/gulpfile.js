@@ -430,42 +430,6 @@ gulp.task("build-info", Promise.coroutine(function *task() {
              `--module > ${dest}`);
 }));
 
-function *generateModes(x) {
-  const common = `wed/modes/${x}/`;
-  for (const ext of ["js", "ts"]) {
-    yield `${common}${x}.${ext}`;
-    yield `${common}${x}-mode.${ext}`;
-    yield `${common}${x}_mode.${ext}`;
-  }
-}
-
-gulp.task("generate-mode-map", Promise.coroutine(function *task() {
-  const dest = "build/standalone/lib/wed/mode-map.js";
-  const isNewer = yield newer(["lib/wed/modes/**", "!**/*_flymake.*"], dest);
-  if (!isNewer) {
-    return;
-  }
-
-  yield mkdirp(path.dirname(dest));
-
-  const modeDirs = yield fs.readdir("lib/wed/modes");
-  const modes = {};
-  modeDirs.forEach((x) => {
-    for (const mode of generateModes(x)) {
-      try {
-        fs.accessSync(path.join("./lib", mode));
-        modes[x] = mode.replace(/\..*$/, "");
-        break;
-      }
-      catch (e) {} // eslint-disable-line no-empty
-    }
-  });
-
-  const exporting = { modes };
-
-  yield fs.writeFile(dest, `define(${JSON.stringify(exporting)});`);
-}));
-
 gulp.task("build-html", () => {
   const dest = "build/standalone";
   return gulp.src("web/*.html", { base: "web" })
@@ -484,8 +448,7 @@ gulp.task("build-standalone",
             "build-schemas",
             "build-samples",
             "build-html",
-            "build-info",
-            "generate-mode-map"),
+            "build-info"),
           () => mkdirp("build/ajax"));
 
 gulp.task("build-bundled-doc", ["build-standalone"],
