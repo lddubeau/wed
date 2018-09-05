@@ -26,10 +26,6 @@ exports.optionDefinitions = {
     help: "Path to xsltproc.",
     defaultValue: "xsltproc",
   },
-  jsdoc3: {
-    help: "Path to jsdoc.",
-    defaultValue: "node_modules/.bin/jsdoc",
-  },
   rst2html: {
     help: "Path to rst2html.",
     defaultValue: "rst2html",
