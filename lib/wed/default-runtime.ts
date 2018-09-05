@@ -7,10 +7,12 @@
 
 import * as bluejax from "bluejax";
 import { Dexie } from "dexie";
+import { inject, injectable } from "inversify";
 import mergeOptions from "merge-options";
-import { Options } from "./options";
 
 import { make as ajax } from "./ajax";
+import { Options } from "./options";
+import { EDITOR_OPTIONS } from "./tokens";
 import * as util from "./util";
 
 // We "hide" the require call under a different name. It prevents Webpack from
@@ -25,13 +27,14 @@ const req = (window as any)["require"] as RequireJSCall;
  * An object representing the runtime environment in which an editor is
  * running. In particular it allows loading external resources.
  */
-export class Runtime {
+@injectable()
+export class DefaultRuntime {
   readonly options: Options;
 
   public readonly ajax: bluejax.AjaxCall;
   public readonly ajax$: bluejax.AjaxCall$;
 
-  constructor(options: Options) {
+  constructor(@inject(EDITOR_OPTIONS) options: Options) {
     // Make a deep copy.
     options = mergeOptions({}, options);
     this.options = options;

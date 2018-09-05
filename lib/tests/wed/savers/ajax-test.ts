@@ -5,8 +5,9 @@ import * as sinon from "sinon";
 
 const expect = chai.expect;
 
+import { Runtime } from "wed/client-api";
+import { DefaultRuntime } from "wed/default-runtime";
 import { DLocRoot } from "wed/dloc";
-import { Runtime } from "wed/runtime";
 import { Saver } from "wed/savers/ajax";
 import { TreeUpdater } from "wed/tree-updater";
 
@@ -19,7 +20,7 @@ describe("ajax", () => {
     sandbox = sinon.createSandbox({ useFakeServer: true });
     // We use any here to cheat a bit.
     // tslint:disable-next-line:no-any
-    rt = new Runtime({} as any);
+    rt = new DefaultRuntime({} as any);
     new DLocRoot(document);
     server = sandbox.server;
     server.respondImmediately = true;

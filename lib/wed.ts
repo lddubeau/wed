@@ -4,30 +4,37 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import { EditorInstance } from "./wed/client-api";
+import { Container } from "inversify";
+
+import { EditorInstance, GrammarLoader, Runtime } from "./wed/client-api";
 import * as convert from "./wed/convert";
+import { DefaultRuntime } from "./wed/default-runtime";
 import * as domtypeguards from "./wed/domtypeguards";
 import * as domutil from "./wed/domutil";
 import { Editor } from "./wed/editor";
 import * as exceptions from "./wed/exceptions";
+import * as grammarLoaders from "./wed/grammar-loaders";
 import * as inputTriggerFactory from "./wed/input-trigger-factory";
 import * as key from "./wed/key";
 import * as keyConstants from "./wed/key-constants";
 import * as labelman from "./wed/labelman";
 import * as objectCheck from "./wed/object-check";
 import { Options } from "./wed/options";
-import { Runtime } from "./wed/runtime";
 import * as saver from "./wed/saver";
+import * as tokens from "./wed/tokens";
 import * as transformation from "./wed/transformation";
 import * as treeUpdater from "./wed/tree-updater";
 import * as util from "./wed/util";
 
 export {
   convert,
+  DefaultRuntime,
   domutil,
   domtypeguards,
   EditorInstance,
   exceptions,
+  GrammarLoader,
+  grammarLoaders,
   inputTriggerFactory,
   key,
   keyConstants,
@@ -39,14 +46,16 @@ export {
   // it should support it. The embedded savers are already written with this
   // eventuality in mind, and so we need to export this.
   saver,
+  tokens,
   transformation,
   treeUpdater,
   util,
 };
 
-export function makeEditor(widget: HTMLElement,
-                           options: Options | Runtime): EditorInstance {
-  return new Editor(widget, options);
+export function makeEditor(container: Container): EditorInstance {
+  container.bind<Runtime>(tokens.RUNTIME).to(DefaultRuntime);
+  container.bind<EditorInstance>(tokens.EDITOR_INSTANCE).to(Editor);
+  return container.get<EditorInstance>(tokens.EDITOR_INSTANCE);
 }
 
 export { Action } from "./wed/action";

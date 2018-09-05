@@ -5,10 +5,10 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 
+import { Runtime } from "./client-api";
 import { Editor } from "./editor";
 import { Mode } from "./mode";
 import { EditorAPI } from "./mode-api";
-import { Runtime } from "./runtime";
 
 interface ModeConstructor {
   new (editor: EditorAPI, modeOptions: {}): Mode;

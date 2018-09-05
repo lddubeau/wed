@@ -8,7 +8,7 @@
 import { Observable, Subject } from "rxjs";
 
 import * as browsers from "./browsers";
-import { Runtime } from "./runtime";
+import { Runtime } from "./client-api";
 import * as serializer from "./serializer";
 import { TreeUpdater } from "./tree-updater";
 

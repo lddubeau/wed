@@ -10,6 +10,7 @@ const externals = {};
 
 ["jquery",
  "bootstrap",
+ "inversify",
  "log4javascript",
  "font-awesome",
  "xregexp",

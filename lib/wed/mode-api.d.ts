@@ -9,6 +9,7 @@ import { Observable } from "rxjs";
 
 import { Action } from "./action";
 import { CaretManager } from "./caret-manager";
+import { Runtime } from "./client-api";
 import { DLoc, DLocRange, DLocRoot } from "./dloc";
 import * as domlistener from "./domlistener";
 import { GUIUpdater } from "./gui-updater";
@@ -18,7 +19,6 @@ import { Modal, Options as ModalOptions } from "./gui/modal";
 import { Mode } from "./mode";
 import { AttributeHidingSpecs } from "./mode-tree";
 import { Options } from "./options";
-import { Runtime } from "./runtime";
 import { StockModals } from "./stock-modals";
 import { Transformation, TransformationData,
          TransformationEvent } from "./transformation";

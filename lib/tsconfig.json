@@ -9,6 +9,7 @@
       "rangy-textrange": ["../types/rangy-textrange"],
       "merge-options": ["../types/merge-options"]
     },
+    "types": ["reflect-metadata", "mocha", "node"],
     "declaration": true,
     "module": "amd",
     "moduleResolution": "node",
@@ -24,7 +25,9 @@
     "sourceMap": true,
     "inlineSources": true,
     "target": "es6",
-    "lib": ["dom", "es2015"]
+    "lib": ["dom", "es6"],
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
   },
   "include": [
     "**/*.ts",

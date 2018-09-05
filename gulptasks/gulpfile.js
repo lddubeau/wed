@@ -366,6 +366,8 @@ npmCopyTask("jquery/dist/jquery.js");
 
 npmCopyTask("bootstrap/dist/**/*", "external/bootstrap");
 
+npmCopyTask("inversify/amd/**/*", "external/inversify");
+
 npmCopyTask("font-awesome/{css,fonts}/**/*", "external/font-awesome");
 
 npmCopyTask("text-plugin", "requirejs-text/text.js", "requirejs");

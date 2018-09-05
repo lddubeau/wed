@@ -9,6 +9,7 @@
 define(function f(require) {
   "use strict";
 
+  var inversify = require("inversify");
   var wed = require("wed");
   var $ = require("jquery");
   var lr = require("last-resort");
@@ -75,7 +76,7 @@ define(function f(require) {
       options.mode.options = { hide_attributes: true };
     }
 
-    var r = new wed.Runtime(options);
+    var r = new wed.DefaultRuntime(options);
 
     var deps = [];
     if (file) {
@@ -100,7 +101,12 @@ define(function f(require) {
         $(function ready() {
           var widget = document.getElementById("widget");
           var finalOptions = mergeOptions({}, globalConfig.config, options);
-          window.wed_editor = wed.makeEditor(widget, finalOptions);
+          var container = new inversify.Container();
+          container.bind(wed.tokens.EDITOR_WIDGET).toConstantValue(widget);
+          container.bind(wed.tokens.EDITOR_OPTIONS).toConstantValue(finalOptions);
+          container.bind(wed.tokens.GRAMMAR_LOADER)
+            .to(wed.grammarLoaders.TrivialGrammarLoader);
+          window.wed_editor = wed.makeEditor(container);
           window.wed_editor.init(text);
         });
       });

@@ -28,6 +28,7 @@ module.exports = function configure(config, dist, specificMain) {
       },
     },
     files: [
+      "node_modules/reflect-metadata/Reflect.js",
       `${dist}requirejs-config.js`,
       `lib/tests/${specificMain}.js`,
       "lib/tests/karma-main.js",

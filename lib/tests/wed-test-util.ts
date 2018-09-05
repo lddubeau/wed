@@ -8,11 +8,12 @@
 // tslint:disable-next-line:import-name no-require-imports
 import md5 = require("blueimp-md5");
 import { expect } from "chai";
+import { Container } from "inversify";
 // tslint:disable-next-line: no-require-imports
 import qs = require("qs");
 import * as sinon from "sinon";
 
-import { domutil, makeEditor, Options } from "wed";
+import { domutil, grammarLoaders, makeEditor, Options, tokens } from "wed";
 import { Editor } from "wed/editor";
 import * as onerror from "wed/onerror";
 
@@ -276,7 +277,13 @@ export class EditorSetup {
 
     this.wedroot = makeWedRoot(document);
     doc.body.appendChild(this.wedroot);
-    this.editor = makeEditor(this.wedroot, options) as Editor;
+
+    const container = new Container();
+    container.bind(tokens.EDITOR_WIDGET).toConstantValue(this.wedroot);
+    container.bind(tokens.EDITOR_OPTIONS).toConstantValue(options);
+    container.bind(tokens.GRAMMAR_LOADER)
+      .to(grammarLoaders.TrivialGrammarLoader);
+    this.editor = makeEditor(container) as Editor;
   }
 
   async init(): Promise<Editor> {

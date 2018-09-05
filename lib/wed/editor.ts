@@ -6,6 +6,7 @@
  */
 import Ajv from "ajv";
 import "bootstrap";
+import { inject, injectable } from "inversify";
 import $ from "jquery";
 import * as log4javascript from "log4javascript";
 import { Observable } from "rxjs";
@@ -16,6 +17,7 @@ import { WorkingState, WorkingStateData } from "salve-dom";
 import { Action } from "./action";
 import { CaretChange, CaretManager } from "./caret-manager";
 import * as caretMovement from "./caret-movement";
+import { GrammarLoader, Runtime } from "./client-api";
 import { DLoc, DLocRoot } from "./dloc";
 import * as domlistener from "./domlistener";
 import { isAttr, isElement, isText } from "./domtypeguards";
@@ -51,10 +53,11 @@ import * as onerror from "./onerror";
 import { Options } from "./options";
 import * as optionsSchema from "./options-schema.json";
 import * as preferences from "./preferences";
-import { Runtime } from "./runtime";
 import { FailedEvent, SaveKind, Saver, SaverConstructor } from "./saver";
 import { StockModals } from "./stock-modals";
 import { Task, TaskRunner } from "./task-runner";
+import { EDITOR_OPTIONS, EDITOR_WIDGET, GRAMMAR_LOADER,
+         RUNTIME } from "./tokens";
 import { insertElement, mergeWithNextHomogeneousSibling,
          mergeWithPreviousHomogeneousSibling, removeMarkup, splitNode,
          Transformation, TransformationData, TransformationEvent,
@@ -194,6 +197,7 @@ const FRAMEWORK_TEMPLATE = "\
 /**
  * This is the class to instantiate for editing.
  */
+@injectable()
 export class Editor implements EditorAPI {
   private _firstValidationComplete: boolean = false;
   private firstValidationCompleteResolve!: (value: Editor) => void;
@@ -253,13 +257,10 @@ export class Editor implements EditorAPI {
   readonly name: string = "";
   readonly firstValidationComplete: Promise<Editor>;
   readonly initialized: Promise<Editor>;
-  readonly widget: HTMLElement;
   readonly $widget: JQuery;
   readonly $frame: JQuery;
   readonly window: Window;
   readonly doc: Document;
-  readonly runtime: Runtime;
-  readonly options: Options;
   readonly guiRoot: HTMLElement;
   readonly $guiRoot: JQuery;
   readonly $errorList: JQuery;
@@ -311,7 +312,10 @@ export class Editor implements EditorAPI {
   saver!: Saver;
 
   // tslint:disable-next-line:max-func-body-length
-  constructor(widget: HTMLElement, options: Options | Runtime) {
+  constructor(@inject(EDITOR_WIDGET) readonly widget: HTMLElement,
+              @inject(EDITOR_OPTIONS) readonly options: Options,
+              @inject(RUNTIME) readonly runtime: Runtime,
+              @inject(GRAMMAR_LOADER) readonly grammarLoader: GrammarLoader) {
     // tslint:disable-next-line:promise-must-complete
     this.firstValidationComplete = new Promise((resolve) => {
       this.firstValidationCompleteResolve = resolve;
@@ -332,12 +336,6 @@ export class Editor implements EditorAPI {
     this.$frame = $(closest(this.widget, "html"));
     const doc = this.doc = this.$frame[0].ownerDocument;
     this.window = doc.defaultView;
-
-    // It is possible to pass a runtime as "options" but if the user passed
-    // actual options, then make a runtime from them.
-    this.runtime = (options instanceof Runtime) ? options :
-      new Runtime(options);
-    options = this.runtime.options;
 
     this.modals = new StockModals(this);
 
@@ -1239,8 +1237,7 @@ export class Editor implements EditorAPI {
       schema = schemaOption;
     }
     else if (typeof schemaOption === "string") {
-      const schemaText = await this.runtime.resolveToString(schemaOption);
-      schema = salve.readTreeFromJSON(schemaText);
+      schema = await this.grammarLoader.load(schemaOption);
     }
     else {
       throw new Error("unexpected value for schema");

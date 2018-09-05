@@ -64,6 +64,13 @@ require.config({
       rangy: "rangy",
     },
   },
+  packages: [
+    {
+      name: "inversify",
+      location: "external/inversify",
+      main: "inversify",
+    },
+  ],
   shim: {
     bootstrap: {
       deps: ["jquery"],
