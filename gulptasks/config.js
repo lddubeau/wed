@@ -26,10 +26,6 @@ exports.optionDefinitions = {
     help: "Path to xsltproc.",
     defaultValue: "xsltproc",
   },
-  rst2html: {
-    help: "Path to rst2html.",
-    defaultValue: "rst2html",
-  },
   odd2html: {
     help: "Path to the odd2html.xsl stylesheet.",
     defaultValue: "/usr/share/xml/tei/stylesheet/odds/odd2html.xsl",

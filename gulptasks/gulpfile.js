@@ -486,19 +486,9 @@ gulp.task("webpack", ["build-standalone"],
           () => execFileAndReport("./node_modules/.bin/webpack", ["--color"],
                                   { maxBuffer: 300 * 1024 }));
 
-gulp.task("rst-doc",
-          () => gulp.src("*.rst", { read: false })
-          // eslint-disable-next-line array-callback-return
-          .pipe(es.map((file, callback) => {
-            const dest = `${file.path.substr(
-                  0, file.path.length - path.extname(file.path).length)}.html`;
-            exec(`${options.rst2html} ${file.path}` +
-                 ` ${dest}`).asCallback(callback);
-          })));
-
 gulp.task("default", ["build"]);
 
-gulp.task("doc", ["rst-doc", "typedoc"]);
+gulp.task("doc", ["typedoc"]);
 
 // We make this a different task so that the check can be performed as
 // early as possible.
@@ -572,7 +562,7 @@ const packNoTest = {
 !packed/**
 standalone/lib/tests/**
 `);
-    yield cprp("NPM_README.md", `${dist}/README.md`);
+    yield cprp("README.md", `${dist}/README.md`);
     const { stdout } = yield execFile("npm", ["pack"], { cwd: dist });
     const packname = stdout.trim();
     const buildPack = `build/${packname}`;

@@ -114,12 +114,9 @@ with jQuery 1.x or earlier versions.
 
 The optimized builds of wed include jQuery 3.x.
 
-Building wed's documentation **additionally** requires the following packages:
-
-* rst2html
-
-Running wed's selenium-based tests **additionally** requires Python 2.7 and the
-Python packages listed in ``dev_requirements.txt``.
+Running wed's selenium-based tests or building the documentation
+**additionally** requires Python 2.7 and the Python packages listed in
+``dev_requirements.txt``.
 
 If you want to contribute to wed, your code will have to pass the checks listed
 in :github:`.glerbl/repo_conf.py`. So you either have to install glerbl to get

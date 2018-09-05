@@ -5,7 +5,6 @@
 /schemas/out
 /gulp.local.js
 /test_logs
-/*.html
 *_flymake.*
 *.pyc
 /.venv
