@@ -1,0 +1,15 @@
+{
+  "extends": "tslint-config-lddubeau",
+  "rules": {
+    "no-implicit-dependencies":
+    [false, "We cannot rely on this rule with the setup we have."],
+    "no-import-side-effect": [true, { "ignore-pattern": "^bootstrap$" }],
+    "import-name": [true, {
+      "jquery": "$",
+      "ajv": "Ajv",
+      "interactjs": "interact",
+      "dexie": "Dexie"
+    }],
+    "no-submodule-imports": [true, "@wedxml/common"]
+  }
+}

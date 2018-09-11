@@ -1,0 +1,40 @@
+{
+  "name": "@wedxml/core",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Wed is a schema-aware editor for XML documents.",
+  "author": "Louis-Dominique Dubeau <louisd@mangalamresearch.org>",
+  "scripts": {
+    "build": "gulp build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mangalam-research/wed.git"
+  },
+  "license": "MPL-2.0",
+  "bugs": {
+    "url": "https://github.com/mangalam-research/wed/issues"
+  },
+  "homepage": "https://github.com/mangalam-research/wed#readme",
+  "keywords": [
+    "RelaxNG",
+    "rng",
+    "XML",
+    "editor"
+  ],
+  "dependencies": {
+    "@wedxml/client-api": "1.0.0",
+    "@wedxml/common": "1.0.0",
+    "@wedxml/default-runtime": "1.0.0",
+    "@wedxml/trivial-grammar-loader": "1.0.0",
+    "ajv": "^6.5.2",
+    "argparse": ">=1.0.3 <2",
+    "inversify": "^4.13.0",
+    "js-yaml": "^3.12.0",
+    "reflect-metadata": "^0.1.12",
+    "salve": "^9.0.0"
+  },
+  "bin": {
+    "wed-metadata": "./bin/wed-metadata"
+  }
+}

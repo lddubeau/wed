@@ -1,4 +1,3 @@
-
 declare namespace mergeOptions {
   interface MergeOptionsConfig {
     concatArrays?: boolean;

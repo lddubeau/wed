@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/xhtml; charset=utf-8"/>
+    <link href="/top-npm/font-awesome/css/font-awesome.min.css"
+          type="text/css" media="screen" rel="stylesheet"/>
+    <link href="/top-npm/bootstrap/dist/css/bootstrap.min.css"
+          type="text/css" media="screen" rel="stylesheet"/>
+    <link href="/top-npm/typeahead.js-bootstrap-css/typeaheadjs.css"
+          type="text/css" media="screen" rel="stylesheet"/>
+    <link href="lib/wed/wed.css" type="text/css" media="screen"
+          rel="stylesheet" />
+    <script type="text/javascript" src="/top-npm/core-js/client/core.min.js"></script>
+    <script type="text/javascript" src="/top-npm/bluebird/js/browser/bluebird.js"></script>
+    <script type="text/javascript" src="/top-npm/classlist-polyfill/src/index.js"></script>
+    <script type="text/javascript" src="lib/wed/polyfills/contains.js"></script>
+    <script type="text/javascript" src="lib/wed/polyfills/matches.js"></script>
+    <script type="text/javascript" src="lib/wed/polyfills/closest.js"></script>
+    <script type="text/javascript" src="lib/wed/polyfills/innerHTML_for_XML.js"></script>
+    <script type="text/javascript" src="lib/wed/polyfills/firstElementChild_etc.js"></script>
+    <script type="text/javascript" src="lib/wed/polyfills/normalize.js"></script>
+    <script type="text/javascript" src="/top-npm/systemjs/dist/system.src.js"></script>
+    <script type="text/javascript" src="/config/system.config.js"></script>
+    <script>
+      systemJSConfig.baseURL = "/build/packed/lib/";
+      systemJSConfig.paths["npm:"] = "/node_modules/";
+      systemJSConfig.paths["top-npm:"] = "/top-npm/";
+      SystemJS.config(systemJSConfig);
+      window.define = SystemJS.amdDefine;
+      window.require = window.requirejs = SystemJS.amdRequire;
+    </script>
+  </head>
+  <body>
+    <div class="container">
+      <div class="wed-widget" id="widget"></div>
+    </div>
+    <script>
+      require(["kitchen-sink"]);
+    </script>
+  </body>
+</html>

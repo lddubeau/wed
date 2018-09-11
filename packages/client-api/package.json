@@ -1,0 +1,39 @@
+{
+  "name": "@wedxml/client-api",
+  "version": "1.0.0",
+  "private": true,
+  "description": "The API for code using wed editors (\"client code\").",
+  "keywords": [
+    "RelaxNG",
+    "rng",
+    "XML",
+    "editor",
+    "wed"
+  ],
+  "homepage": "https://github.com/mangalam-research/wed#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mangalam-research/wed.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mangalam-research/wed/issues"
+  },
+  "author": "Louis-Dominique Dubeau <louisd@mangalamresearch.org>",
+  "license": "MPL-2.0",
+  "main": "build/dist/index.js",
+  "scripts": {
+    "yml-to-json": "mkdir -p build && node tasks/yml-to-json src/options-schema.yml build/options-schema.json",
+    "json-schema-to-ts": "node tasks/json-schema-to-ts build/options-schema.json build/generated/options.d.ts",
+    "tsc": "tsc -p tsconfig.json",
+    "copy": "mkdir -p build/dist && cp -rp src/*.ts build/generated/*.ts build/*.json build/dist/",
+    "clean-package": "../../tasks/clean-package package.json build/dist/package.json",
+    "build": "npm run yml-to-json && npm run json-schema-to-ts && npm run tsc && npm run copy && npm run clean-package",
+    "lint": "tslint --format verbose -p tsconfig.json -c ../../tslint.json && eslint 'tasks/**/*.js' && npmPkgJsonLint package.json",
+    "pack-npjl": "npmPkgJsonLint -c ./tasks/publish-npjl-config.json .",
+    "prepublishOnly": "npm run pack-npjl",
+    "self:publish": "(cd build/dist && npm publish)",
+    "version": "versync -b sync -a",
+    "postversion": "npm run self:publish",
+    "clean": "rm -rf build"
+  }
+}

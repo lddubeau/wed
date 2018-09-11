@@ -1,0 +1,14 @@
+#!/usr/bin/env node
+
+"use strict";
+
+const fs = require("fs");
+
+const input = fs.readFileSync(process.argv[2]);
+
+const obj = JSON.parse(input);
+const mainParts = obj.main.split("/");
+obj.main = mainParts[mainParts.length - 1];
+obj.private = false;
+
+fs.writeFileSync(process.argv[3], JSON.stringify(obj, null, 2));

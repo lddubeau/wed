@@ -29,6 +29,8 @@ const crypto = require("crypto");
 const morgan = require("morgan");
 const { ArgumentParser } = require("argparse");
 
+const { makeServeMiddleware } = require("./server-util");
+
 const parser = new ArgumentParser({
   addHelp: true,
   description: "Starts a server to run the in-browser tests for wed.",
@@ -37,6 +39,12 @@ const parser = new ArgumentParser({
 parser.addArgument(["-v", "--verbose"], {
   help: "Run verbosely.",
   action: "storeTrue",
+});
+
+parser.addArgument("--static-map", {
+  help: "Map a local static directory to a URL.",
+  action: "append",
+  dest: "staticMap",
 });
 
 parser.addArgument(["address"], {
@@ -52,10 +60,6 @@ if (address) {
 }
 const cwd = process.cwd();
 
-if (args.mode === "browser") {
-  args.visible = true;
-}
-
 // Yes, setting the expiration date at the start and never changing it
 // is sloppy... but this is not meant to be a production server.
 const tenYears = 315360000; // 10 years, in seconds
@@ -63,14 +67,26 @@ const expiration = new Date(Date.now() + (tenYears * 1000)).toUTCString();
 
 const app = express();
 
-app.use(compression());
-app.use(serveStatic(cwd));
-app.use("/forever", serveStatic(cwd, {
+const foreverConfig = {
   setHeaders(res) {
     res.setHeader("Cache-Control", `private, max-age=${tenYears}`);
     res.setHeader("Expires", expiration);
   },
-}));
+};
+
+app.use(compression());
+app.use(serveStatic(cwd));
+app.use("/forever", serveStatic(cwd, foreverConfig));
+
+if (args.staticMap && args.staticMap.length) {
+  app.use(makeServeMiddleware(args.staticMap.map((x) => {
+    const [fsPath, baseURL] = x.split(":");
+    return {
+      fsPath,
+      baseURL,
+    };
+  })));
+}
 
 if (verbose) {
   const logFile = process.stdout;

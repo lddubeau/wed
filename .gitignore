@@ -1,10 +1,10 @@
 /local_config
 /node_modules
-/downloads
-/build
-/schemas/out
+/packages/**/node_modules
+/packages/**/build
+/packages/core/test_logs
+/packages/core/schemas/out
 /gulp.local.js
-/test_logs
 *_flymake.*
 *.pyc
 /.venv

@@ -1,0 +1,16 @@
+{
+  "extends": "../tsconfig",
+  "compilerOptions": {
+    "baseUrl": "../build",
+    "paths": {
+      "trivial-grammar-loader": ["dist"]
+    },
+    "rootDir": ".",
+    "outDir": "",
+    "lib": ["es2016", "dom"],
+    "target": "es6"
+  },
+  "include": [
+    "**/*.ts",
+  ]
+}

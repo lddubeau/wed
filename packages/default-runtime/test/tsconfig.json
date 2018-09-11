@@ -1,0 +1,17 @@
+{
+  "extends": "../tsconfig",
+  "compilerOptions": {
+    "baseUrl": "../build",
+    "paths": {
+      "default-runtime": ["dist"]
+    },
+    "rootDir": ".",
+    "outDir": "",
+    "lib": ["es2016", "dom"],
+    "target": "es6"
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.d.ts"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig-common",
+  "compilerOptions": {
+    "baseUrl": "src",
+    "paths": {
+      "options": ["../build/generated/options"],
+      "bluejax": ["../../../types/bluejax"]
+    },
+    "outDir": "build/dist/",
+    "lib": ["dom", "es6"]
+  }
+}

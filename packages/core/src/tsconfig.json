@@ -1,0 +1,17 @@
+{
+  "extends": "../../../tsconfig-common",
+  "compilerOptions": {
+    "rootDir": ".",
+    "rootDirs": [".", "../build/generated/lib/"],
+    "baseUrl": ".",
+    "paths": {
+      "wed/*": ["wed/*", "../build/generated/lib/wed/*"],
+      "rangy": ["../types/rangy"],
+      "rangy-textrange": ["../types/rangy-textrange"],
+      "bluejax": ["../../../types/bluejax"],
+      "merge-options": ["../../../types/merge-options"]
+    },
+    "types": ["reflect-metadata", "mocha", "node"],
+    "outDir": "build/standalone/lib"
+  }
+}

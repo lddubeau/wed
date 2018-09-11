@@ -1,0 +1,17 @@
+{
+  "extends": "../tsconfig",
+  "compilerOptions": {
+    "baseUrl": "../build",
+    "paths": {
+      "runtime-indexeddb-handler": ["dist"]
+    },
+    "rootDir": ".",
+    "outDir": "",
+    "lib": ["es2016", "dom"],
+    "target": "es6"
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.d.ts"
+  ]
+}

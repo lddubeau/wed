@@ -1,0 +1,43 @@
+{
+  "name": "@wedxml/runtime-indexeddb-handler",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A handler for the indexeddb:// scheme.",
+  "keywords": [
+    "RelaxNG",
+    "rng",
+    "XML",
+    "editor",
+    "wed",
+    "IndexedDB"
+  ],
+  "homepage": "https://github.com/mangalam-research/wed#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mangalam-research/wed.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mangalam-research/wed/issues"
+  },
+  "author": "Louis-Dominique Dubeau <louisd@mangalamresearch.org>",
+  "license": "MPL-2.0",
+  "main": "build/dist/runtime-indexeddb-handler",
+  "dependencies": {
+    "@wedxml/default-runtime": "1.0.0"
+  },
+  "scripts": {
+    "tsc": "tsc -p tsconfig.json",
+    "clean-package": "../../tasks/clean-package package.json build/dist/package.json",
+    "add-modules": "cd build/dist; ln -s ../../node_modules .",
+    "build": "npm run tsc && npm run clean-package && npm run build",
+    "lint": "tslint --format verbose -p tsconfig.json -c ../../tslint.json && tslint --format verbose -p test/tsconfig.json -c test/tslint.json && npmPkgJsonLint package.json",
+    "test": "karma start --single-run",
+    "posttest": "npm run lint",
+    "pack-npjl": "npmPkgJsonLint -c ./tasks/publish-npjl-config.json .",
+    "prepublishOnly": "npm run pack-npjl",
+    "self:publish": "(cd build/dist && npm publish)",
+    "version": "versync -b sync -a",
+    "postversion": "npm run self:publish",
+    "clean": "rm -rf build"
+  }
+}
