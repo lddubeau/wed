@@ -15,8 +15,6 @@ go over the build code to check for things that can be removed.
 IMPORTANT
 =========
 
-Integrate aaadb2fc into the code for 3.0x
-
 There's also a bug whereby `npm publish` needs to be in the same directory as
 the bundle to be published. :-/
 

@@ -377,7 +377,8 @@ standalone/lib/tests/**
     yield exec(`sed -e'/"private": true/d' package.json > \
 ${dist}/package.json`);
     yield cprp("README.md", `${dist}/README.md`);
-    const { stdout } = yield execFile("npm", ["pack"], { cwd: dist });
+    const { stdout } = yield execFile("npm", ["pack"],
+                                      { cwd: dist, maxBuffer: 500 * 1024 });
     const packname = stdout.trim();
     const buildPack = `build/${packname}`;
     yield fs.rename(`${dist}/${packname}`, buildPack);
