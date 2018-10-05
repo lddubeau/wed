@@ -18,6 +18,11 @@ odd bug fix may not get mentioned here at all.
   - Breaking change: the ``packed`` distribution no longer contains a
     non-minified bundle.
 
+* 2.0.1:
+
+  - Fix validation restarts. There was a bug whereby wed would not restart
+    validation on text changes.
+
 * 2.0.0:
 
   - Upgrade to salve 7.x. Faster validation.
