@@ -4,7 +4,8 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 
-import * as browsers from "wed/browsers";
+import * as browsers from "@wedxml/common/browsers";
+
 import * as convert from "wed/convert";
 
 import { DataProvider } from "../util";

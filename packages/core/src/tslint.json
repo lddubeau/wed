@@ -23,7 +23,8 @@
     "no-implicit-dependencies": [false, "Way too many false positives."],
     "match-default-export-name": [false, "Way too many false positives."],
     "no-submodule-imports": [true, "rxjs", "@wedxml/client-api",
-                             "@wedxml/common", "wed", "tests"],
+                             "@wedxml/common", "@wedxml/base-saver", "wed",
+                             "tests"],
     "no-unused-variable": false,
     "import-name": [true, {
       "jquery": "$",

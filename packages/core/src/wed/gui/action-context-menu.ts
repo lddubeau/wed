@@ -6,8 +6,9 @@
  */
 import $ from "jquery";
 
+import * as browsers from "@wedxml/common/browsers";
+
 import { Action } from "../action";
-import * as browsers from "../browsers";
 import * as keyMod from "../key";
 import * as keyConstants from "../key-constants";
 import { Transformation, TransformationData } from "../transformation";

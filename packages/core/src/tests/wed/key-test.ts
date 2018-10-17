@@ -48,9 +48,11 @@ describe("key", () => {
       SystemJS.config((window as any).systemJSConfig);
       // This will be loaded instead of the real module. We have to create an
       // array like we do here due to the frame being a separate JS VM.
-      // tslint:disable-next-line:prefer-array-literal no-any
-      SystemJS.amdDefine("wed/browsers.js", new (frameWindow as any).Array(),
-                         browsers);
+      SystemJS.amdDefine(
+        SystemJS.normalizeSync("npm:@wedxml/common/browsers.js"),
+        // tslint:disable-next-line:prefer-array-literal no-any
+        new (frameWindow as any).Array(),
+        browsers);
       SystemJS.import("wed/key").then((_key: typeof keyMod) => {
         key = _key;
         done();

@@ -3,6 +3,7 @@
   "rules": {
     "no-implicit-dependencies":
     [false, "We cannot rely on this rule with the setup we have."],
+    "match-default-export-name": [false, "Way too many false positives."],
     "no-import-side-effect": [true, { "ignore-pattern": "^bootstrap$" }],
     "import-name": [true, {
       "jquery": "$",
@@ -10,6 +11,7 @@
       "interactjs": "interact",
       "dexie": "Dexie"
     }],
-    "no-submodule-imports": [true, "@wedxml/common"]
+    "no-submodule-imports": [true, "@wedxml/common", "rxjs",
+                             "@wedxml/base-saver"]
   }
 }

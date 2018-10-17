@@ -5,7 +5,7 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 
-import { OSX } from "./browsers";
+import { OSX } from "@wedxml/common/browsers";
 import * as buildInfo from "./build-info";
 import { Modal } from "./gui/modal";
 

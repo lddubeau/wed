@@ -1,0 +1,17 @@
+{
+  "extends": "../../../tslint.json",
+  "rules": {
+    "no-any": [false, "We need casting to any in testing."],
+    "chai-vague-errors": [false, "Too picky."],
+    "no-unused-expression": [false, "Happens too often."],
+    "missing-jsdoc": [false, "Not needed here"],
+    "no-import-side-effect": [true,
+                              { "ignore-pattern": "^(chai|mocha)$" }],
+    "completed-docs": false,
+    "no-non-null-assertion": [false, "We use them too much in testing."],
+    "no-object-literal-type-assertion": [false,
+                                         "We need it too much in testing."],
+    "no-backbone-get-set-outside-model": [false,
+                                          "We don't use backbone."]
+  }
+}

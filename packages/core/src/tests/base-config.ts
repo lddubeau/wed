@@ -18,11 +18,4 @@ export const config: Options = {
   ajaxlog: {
     url: "/build/ajax/log.txt",
   },
-  // You certainly do not want this in actual deployment.
-  save: {
-    path: "wed/savers/ajax",
-    options: {
-      url: "/build/ajax/save.txt",
-    },
-  },
 };

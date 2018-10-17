@@ -276,7 +276,9 @@ export class EditorSetup {
     this.wedroot = makeWedRoot(document);
     doc.body.appendChild(this.wedroot);
 
-    this.editor = makeEditor(this.wedroot, options);
+    this.editor = makeEditor(this.wedroot, options, {
+      url: "/build/ajax/save.txt",
+    });
   }
 
   async init(): Promise<Editor> {

@@ -6,7 +6,8 @@
  */
 
 import "jquery";
-import * as browsers from "./browsers";
+
+import * as browsers from "@wedxml/common/browsers";
 
 let id = 0;
 

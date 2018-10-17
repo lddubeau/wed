@@ -1,0 +1,18 @@
+{
+  "extends": "../tsconfig",
+  "compilerOptions": {
+    "baseUrl": "../build",
+    "paths": {
+      "ajax-saver": ["dist/ajax-saver"],
+      "bluejax": ["../../../types/bluejax"]
+    },
+    "rootDir": ".",
+    "outDir": "",
+    "lib": ["es2016", "dom"],
+    "target": "es6"
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.d.ts"
+  ]
+}

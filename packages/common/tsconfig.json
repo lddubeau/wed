@@ -2,5 +2,8 @@
   "extends": "../../tsconfig-common",
   "compilerOptions": {
     "outDir": "build/dist"
-  }
+  },
+  "include": [
+    "src/**/*.ts"
+  ]
 }

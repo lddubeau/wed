@@ -84,7 +84,7 @@ module.exports = {
       }
     }),
     new CopyWebpackPlugin([
-      "wed/{glue,patches,polyfills,modes,savers}/**/*",
+      "wed/{glue,patches,polyfills,modes}/**/*",
       "../kitchen-sink.html", "kitchen-sink.js", "../doc/**/*",
       "global-config.js", "wed/**/*.css",
       "wed/less-inc/**/*"].map(name => ({

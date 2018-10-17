@@ -5,7 +5,8 @@
   "description": "Wed is a schema-aware editor for XML documents.",
   "author": "Louis-Dominique Dubeau <louisd@mangalamresearch.org>",
   "scripts": {
-    "build": "gulp build"
+    "build": "gulp",
+    "build-and-test": "gulp test"
   },
   "repository": {
     "type": "git",
@@ -23,6 +24,7 @@
     "editor"
   ],
   "dependencies": {
+    "@wedxml/ajax-saver": "1.0.0",
     "@wedxml/client-api": "1.0.0",
     "@wedxml/common": "1.0.0",
     "@wedxml/default-runtime": "1.0.0",

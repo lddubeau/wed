@@ -97,50 +97,48 @@ describe("RuntimeIndexedDBHandler", () => {
 
   describe("#resolve", () => {
     it("rejects on bad scheme",
-       async () => expectError(
-         // tslint:disable-next-line:no-http-string
-         async () => handler.resolve("http://example.com"),
-         Error,
-         /^unknown scheme: http$/));
+       // tslint:disable-next-line:no-http-string
+       async () => expectError(handler.resolve("http://example.com"),
+                               Error,
+                               /^unknown scheme: http$/));
 
     it("rejects on bad version",
-       async () => expectError(
-         async () => handler.resolve("indexeddb://v999/wed/someTable/number/1"),
-         Error,
-         /^unsupported version number: v999$/));
+       async () =>
+       expectError(handler.resolve("indexeddb://v999/wed/someTable/number/1"),
+                   Error,
+                   /^unsupported version number: v999$/));
 
     it("rejects on bad db",
-       async () => expectError(
-         async () => handler.resolve("indexeddb://v1/xxx/someTable/number/1"),
-         Error,
-         /^Database xxx doesnt exist$/));
+       async () =>
+       expectError(handler.resolve("indexeddb://v1/xxx/someTable/number/1"),
+                   Error,
+                   /^Database xxx doesnt exist$/));
 
     it("rejects on bad table",
-       async () => expectError(
-         async () => handler.resolve("indexeddb://v1/wed/xxx/number/1"),
-         Error,
-         /^Table xxx does not exist$/));
+       async () =>
+       expectError(handler.resolve("indexeddb://v1/wed/xxx/number/1"),
+                   Error,
+                   /^Table xxx does not exist$/));
 
     it("rejects on bad key type",
-       async () => expectError(
-         async () => handler.resolve("indexeddb://v1/wed/someTable/xxx/1"),
-         Error,
-         /^unknown key type: xxx$/));
+       async () =>
+       expectError(handler.resolve("indexeddb://v1/wed/someTable/xxx/1"),
+                   Error,
+                   /^unknown key type: xxx$/));
 
     it("rejects on bad key",
-       async () => expectError(
-         async () => handler.resolve("indexeddb://v1/wed/someTable/number/999"),
-         Error,
-         new RegExp(`^cannot resolve key from: indexeddb://v1/wed/someTable/\
-number/999$`)));
+       async () =>
+       expectError(handler.resolve("indexeddb://v1/wed/someTable/number/999"),
+                   Error,
+                   new RegExp(`^cannot resolve key from: indexeddb://v1/wed/\
+someTable/number/999$`)));
 
     it("rejects on non-existent field",
-       async () => expectError(
-         async () =>
-           handler.resolve("indexeddb://v1/wed/someTable/number/1/xxx"),
-         Error,
-         new RegExp(`^cannot resolve property in the record of: indexeddb://v1/\
-wed/someTable/number/1/xxx$`)));
+       async () =>
+       expectError(handler.resolve("indexeddb://v1/wed/someTable/number/1/xxx"),
+                   Error,
+                   new RegExp(`^cannot resolve property in the record of: \
+indexeddb://v1/wed/someTable/number/1/xxx$`)));
 
     // tslint:disable-next-line:mocha-no-side-effect-code
     itNoSafari("loads record from db with number key", async () => {

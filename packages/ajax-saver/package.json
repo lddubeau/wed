@@ -1,0 +1,46 @@
+{
+  "name": "@wedxml/ajax-saver",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A saver for wed that uses an AJAX-based protocol to save.",
+  "keywords": [
+    "RelaxNG",
+    "rng",
+    "XML",
+    "editor",
+    "wed",
+    "ajax"
+  ],
+  "homepage": "https://github.com/mangalam-research/wed#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mangalam-research/wed.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mangalam-research/wed/issues"
+  },
+  "author": "Louis-Dominique Dubeau <louisd@mangalamresearch.org>",
+  "license": "MPL-2.0",
+  "main": "build/dist/ajax-saver.js",
+  "dependencies": {
+    "@wedxml/base-saver": "1.0.0",
+    "@wedxml/client-api": "1.0.0",
+    "@wedxml/common": "1.0.0"
+  },
+  "scripts": {
+    "tsc": "tsc -p tsconfig.json",
+    "clean-package": "../../tasks/clean-package package.json build/dist/package.json",
+    "add-modules": "cd build/dist; ln -sf ../../node_modules .",
+    "build": "npm run tsc && npm run clean-package && npm run add-modules",
+    "lint": "tslint --format verbose -p tsconfig.json -c ../../tslint.json && tslint --format verbose -p test/tsconfig.json -c test/tslint.json && npmPkgJsonLint package.json",
+    "test": "karma start --single-run",
+    "posttest": "npm run lint",
+    "build-and-test": "npm run build && npm run test",
+    "pack-npjl": "npmPkgJsonLint -c ./tasks/publish-npjl-config.json .",
+    "prepublishOnly": "npm run pack-npjl",
+    "self:publish": "(cd build/dist && npm publish)",
+    "version": "versync -b sync -a",
+    "postversion": "npm run self:publish",
+    "clean": "rm -rf build"
+  }
+}

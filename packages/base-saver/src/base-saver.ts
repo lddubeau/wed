@@ -5,19 +5,19 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 
+import { inject, injectable } from "inversify";
 import { Observable, Subject } from "rxjs";
 
-import { Runtime } from "@wedxml/client-api";
+import { Runtime, SaveError, SaveEvents, SaveKind,
+         Saver } from "@wedxml/client-api";
+import * as browsers from "@wedxml/common/browsers";
+import { RUNTIME } from "@wedxml/common/tokens";
 
-import * as browsers from "./browsers";
 import * as serializer from "./serializer";
-
-export enum SaveKind {
-  AUTO = 1,
-  MANUAL,
-}
+import { SAVER_OPTIONS } from "./tokens";
 
 function deltaToString(delta: number): string {
+  // tslint:disable-next-line:no-parameter-reassignment
   delta = Math.round(delta / 1000);
   let timeDesc = "moments ago";
   if (delta > 0) {
@@ -39,68 +39,14 @@ function deltaToString(delta: number): string {
     }
     timeDesc += " ago";
   }
+
   return timeDesc;
 }
 
-export interface SaveError {
-  /**
-   * The possible values for ``type`` are:
-   *
-   * - ``save_edited`` when the file to be saved has changed in the save
-   *   media. (For instance, if someone else edited a file that is stored on a
-   *   server.)
-   *
-   * - ``save_disconnected`` when the saver has lost contact with the media that
-   *   holds the data to be saved.
-   *
-   * - ``save_transient_error`` when an recoverable error happened while
-   *   saving. These are errors that a user should be able to recover from. For
-   *   instance, if the document must contain a specific piece of information
-   *   before being saved, this kind of error may be used to notify the user.
-   */
-  // tslint:disable-next-line:no-reserved-keywords
-  type: string | undefined;
-  msg: string;
-}
-
 /**
- * Emitted upon a failure during operations.
+ * The minimum set of options supported by savers deriving from this
+ * class. Derived classes should derive their own interface from this one.
  */
-export interface FailedEvent {
-  name: "Failed";
-  error: SaveError;
-}
-
-/**
- * This event is emitted when the saver detects that the document it is
- * responsible for saving has changed in a way that makes it stale from the
- * point of view of saving.
- *
- * Suppose that the document has been saved. Then a change is made. Upon this
- * first change, this event is emitted. Then a change is made again. Since the
- * document was *already* stale, this event is not emitted again.
- */
-export interface ChangedEvent {
-  name: "Changed";
-}
-
-/**
- * This event is emitted after a document has been successfully saved.
- */
-
-export interface Saved {
-  name: "Saved";
-}
-
-/**
- * This event is emitted after a document has been successfully autosaved.
- */
-export interface Autosaved {
-  name: "Autosaved";
-}
-
-export type SaveEvents = Saved | Autosaved | ChangedEvent | FailedEvent;
-
 export interface SaverOptions {
   /** The time between autosaves in seconds. */
   autosave?: number;
@@ -110,7 +56,8 @@ export interface SaverOptions {
  * A saver is responsible for saving a document's data. This class cannot be
  * instantiated as-is, but only through subclasses.
  */
-export abstract class Saver {
+@injectable()
+export abstract class BaseSaver implements Saver {
   /**
    * Subclasses must set this variable to true once they have finished with
    * their initialization.
@@ -138,6 +85,11 @@ export abstract class Saver {
    * not modify it.
    */
   protected savedGeneration: number = 0;
+
+  /**
+   * Whether init was called already.
+   */
+  private initCalled: boolean = false;
 
   /**
    * The date of last modification.
@@ -183,8 +135,8 @@ export abstract class Saver {
   /**
    * @param runtime The runtime under which this saver is created.
    */
-  constructor(protected readonly runtime: Runtime,
-              protected readonly options: SaverOptions) {
+  constructor(@inject(RUNTIME) protected readonly runtime: Runtime,
+              @inject(SAVER_OPTIONS) protected readonly options: SaverOptions) {
     /**
      * The _autosave method, pre-bound to ``this``.
      * @private
@@ -195,9 +147,12 @@ export abstract class Saver {
 
     this.events = this._events.asObservable();
 
-    if (options.autosave !== undefined) {
-      this.setAutosaveInterval(options.autosave * 1000);
+    let { autosave } = options;
+    // Undefined means use the 5 minute default.
+    if (autosave === undefined) {
+      autosave = 5 * 60;
     }
+    this.setAutosaveInterval(autosave * 1000);
   }
 
   /**
@@ -211,8 +166,13 @@ export abstract class Saver {
    * @returns A promise that is resolved when the saver is initialized.
    */
   async init(version: string, dataTree: Node): Promise<void> {
+    if (this.initCalled) {
+      throw new Error("init called more than once");
+    }
+    this.initCalled = true;
     this.version = version;
     this.dataTree = dataTree;
+
     return this._init();
   }
 
@@ -242,7 +202,7 @@ export abstract class Saver {
    *
    * @returns A promise which resolves if the save was successful.
    */
-  save(): Promise<void> {
+  async save(): Promise<void> {
     return this._save(false);
   }
 
@@ -259,7 +219,7 @@ export abstract class Saver {
    * classes **must** call this method rather than get the data directly from
    * the data tree.
    */
-  getData(): string {
+  protected getData(): string {
     const child = this.dataTree.firstChild as Element;
 
     if (browsers.MSIE) {
@@ -267,6 +227,7 @@ export abstract class Saver {
     }
 
     const serialization = child.outerHTML;
+
     // Edge has the bad habit of adding a space before the forward slash in
     // self-closing tags. Remove it.
     return browsers.EDGE ? serialization.replace(/<([^/<>]+) \/>/g, "<$1/>") :
@@ -364,14 +325,12 @@ export abstract class Saver {
    * already failed. It resolves to ``true`` if the recovery operation was
    * successful, and ``false`` if not.
    */
-  recover(): Promise<boolean | undefined> {
-    return Promise.resolve().then(() => {
-      if (!this.initialized || this.failed) {
-        return Promise.resolve(undefined);
-      }
+  async recover(): Promise<boolean | undefined> {
+    if (!this.initialized || this.failed) {
+      return undefined;
+    }
 
-      return this._recover();
-    });
+    return this._recover();
   }
 
   /**
@@ -420,13 +379,13 @@ export abstract class Saver {
    * @returns {number|undefined} The kind. The value will be
    * ``undefined`` if there has not been any save yet.
    */
-  getLastSaveKind(): number | undefined {
+  getLastSaveKind(): SaveKind | undefined {
     return this.lastSaveKind;
   }
 }
 
 export interface SaverConstructor {
-  new (runtime: Runtime, options: SaverOptions): Saver;
+  new (runtime: Runtime, options: SaverOptions): BaseSaver;
 }
 
 //  LocalWords:  param unintialized Mangalam MPL Dubeau autosaved autosaves pre

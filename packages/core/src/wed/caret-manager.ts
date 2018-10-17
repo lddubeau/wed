@@ -7,7 +7,8 @@
 import $ from "jquery";
 import { Observable, Subject } from "rxjs";
 
-import * as browsers from "./browsers";
+import * as browsers from "@wedxml/common/browsers";
+
 import { CaretMark } from "./caret-mark";
 import * as caretMovement from "./caret-movement";
 import { DLoc, DLocRange, DLocRoot } from "./dloc";

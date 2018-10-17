@@ -99,7 +99,9 @@ define(function f(require) {
         $(function ready() {
           var widget = document.getElementById("widget");
           var finalOptions = mergeOptions({}, globalConfig.config, options);
-          window.wed_editor = wed.makeEditor(widget, finalOptions);
+          window.wed_editor = wed.makeEditor(widget, finalOptions, {
+            url: "/build/ajax/save.txt",
+          });
           window.wed_editor.init(text);
         });
       });

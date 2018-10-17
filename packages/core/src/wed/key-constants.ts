@@ -5,7 +5,8 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 
-import { OSX } from "./browsers";
+import { OSX } from "@wedxml/common/browsers";
+
 import * as key from "./key";
 
 // A few constants are named by their key.

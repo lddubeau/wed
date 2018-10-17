@@ -1,0 +1,18 @@
+{
+  "extends": "../tsconfig",
+  "compilerOptions": {
+    "baseUrl": "../build",
+    "paths": {
+      "base-saver": ["dist/base-saver"],
+      "base-saver/*": ["dist/*"]
+    },
+    "rootDir": ".",
+    "outDir": "",
+    "lib": ["es2016", "dom"],
+    "target": "es6"
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.d.ts"
+  ]
+}

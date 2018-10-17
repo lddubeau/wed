@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig-common",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "merge-options": ["../../types/merge-options"],
+      "bluejax": ["../../types/bluejax"]
+    },
+    "outDir": "build/dist"
+  },
+  "include": [
+    "src/**/*.ts",
+  ]
+}

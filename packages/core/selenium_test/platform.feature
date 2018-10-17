@@ -6,10 +6,6 @@
 Feature: Handle Platform Variations
   Wed should be able to handle the difference among browsers gracefully.
 
-Scenario: Handle Platform Variations
-  Given the platform variation page is loaded
-  Then wed handles platform variations
-
 @only.with_browser=ie
 Scenario: Check that innerHTML on XML nodes produces valid values.
   Given the platform variation page is loaded

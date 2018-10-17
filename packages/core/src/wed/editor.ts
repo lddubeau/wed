@@ -14,10 +14,11 @@ import { filter } from "rxjs/operators";
 import * as salve from "salve";
 import { WorkingState, WorkingStateData } from "salve-dom";
 
-import { GrammarLoader, Options, Runtime } from "@wedxml/client-api";
+import { FailedEvent, GrammarLoader, Options, Runtime, SaveKind,
+         Saver } from "@wedxml/client-api";
 import * as optionsSchema from "@wedxml/client-api/options-schema.json";
 import { EDITOR_OPTIONS, EDITOR_WIDGET, GRAMMAR_LOADER,
-         RUNTIME } from "@wedxml/common/tokens";
+         RUNTIME, SAVER } from "@wedxml/common/tokens";
 
 import { Action } from "./action";
 import { CaretChange, CaretManager } from "./caret-manager";
@@ -55,7 +56,6 @@ import { ModeTree } from "./mode-tree";
 import * as onbeforeunload from "./onbeforeunload";
 import * as onerror from "./onerror";
 import * as preferences from "./preferences";
-import { FailedEvent, SaveKind, Saver, SaverConstructor } from "./saver";
 import { StockModals } from "./stock-modals";
 import { Task, TaskRunner } from "./task-runner";
 import { insertElement, mergeWithNextHomogeneousSibling,
@@ -309,12 +309,11 @@ export class Editor implements EditorAPI {
 
   editingMenuManager!: EditingMenuManager;
 
-  saver!: Saver;
-
   // tslint:disable-next-line:max-func-body-length
   constructor(@inject(EDITOR_WIDGET) readonly widget: HTMLElement,
               @inject(EDITOR_OPTIONS) readonly options: Options,
               @inject(RUNTIME) readonly runtime: Runtime,
+              @inject(SAVER) readonly saver: Saver,
               @inject(GRAMMAR_LOADER) readonly grammarLoader: GrammarLoader) {
     // tslint:disable-next-line:promise-must-complete
     this.firstValidationComplete = new Promise((resolve) => {
@@ -1569,62 +1568,36 @@ wed's generic help. The link by default will open in a new tab.</p>`);
       demoModal.modal();
     }
 
-    const save = this.options.save;
-    let savePromise;
-    if (save !== undefined) {
-      // The editor is not initialized until the saver is also initialized,
-      // which may take a bit.
-      savePromise = this.runtime.resolveModules(save.path)
-        .then((modules) => {
-          // tslint:disable-next-line:no-any variable-name
-          const SaverClass = (modules[0] as any).Saver as SaverConstructor;
-          const saveOptions = save.options !== undefined ? save.options : {};
-          const saver = new SaverClass(this.runtime, saveOptions);
-          this.dataUpdater.events.subscribe((ev) => {
-            if (ev.name !== "Changed") {
-              return;
-            }
+    const saver = this.saver;
+    await saver.init(version, this.dataRoot);
+    this.dataUpdater.events.subscribe((ev) => {
+      if (ev.name !== "Changed") {
+        return;
+      }
 
-            saver.change();
-          });
+      saver.change();
+    });
 
-          this.saver = saver;
+    saver.events.pipe(filter(filterSaveEvents.bind(undefined, "Saved")))
+      .subscribe(this.onSaverSaved.bind(this));
 
-          saver.events
-            .pipe(filter(filterSaveEvents.bind(undefined, "Saved")))
-            .subscribe(this.onSaverSaved.bind(this));
+    saver.events.pipe(filter(filterSaveEvents.bind(undefined, "Autosaved")))
+      .subscribe(this.onSaverAutosaved.bind(this));
 
-          saver.events
-            .pipe(filter(filterSaveEvents.bind(undefined, "Autosaved")))
-            .subscribe(this.onSaverAutosaved.bind(this));
+    saver.events.pipe(filter(filterSaveEvents.bind(undefined, "Failed")))
+      .subscribe(this.onSaverFailed.bind(this));
 
-          saver.events
-            .pipe(filter(filterSaveEvents.bind(undefined, "Failed")))
-            .subscribe(this.onSaverFailed.bind(this));
+    saver.events.pipe(filter(filterSaveEvents.bind(undefined, "Changed")))
+      .subscribe(this.onSaverChanged.bind(this));
 
-          saver.events
-            .pipe(filter(filterSaveEvents.bind(undefined, "Changed")))
-            .subscribe(this.onSaverChanged.bind(this));
+    this.refreshSaveStatus();
+    this.saveStatusInterval =
+      setInterval(this.refreshSaveStatus.bind(this), 30 * 1000);
+    onbeforeunload.install(
+      this.window,
+      () => !this.destroyed && this.saver.getModifiedWhen() !== false,
+      true);
 
-          this.refreshSaveStatus();
-          this.saveStatusInterval =
-            setInterval(this.refreshSaveStatus.bind(this), 30 * 1000);
-          onbeforeunload.install(
-            this.window,
-            () => !this.destroyed && this.saver.getModifiedWhen() !== false,
-            true);
-
-          return saver.init(version, this.dataRoot);
-        });
-    }
-    else {
-      savePromise = Promise.resolve()
-        .then(() => {
-          log.error("wed cannot save data due to the absence of a save option");
-        });
-    }
-
-    await savePromise;
     this.initializedResolve(this);
     return this;
   }

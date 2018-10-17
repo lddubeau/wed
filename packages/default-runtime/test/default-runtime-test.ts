@@ -186,8 +186,7 @@ describe("DefaultRuntime", () => {
     });
 
     it("rejects if a file is not available", async () => {
-      await expectError(async () => runtime.resolve("nonexistent"),
-                        Error, /.*/);
+      await expectError(runtime.resolve("nonexistent"), Error, /.*/);
     });
 
     it("uses handlers", async () => {
@@ -204,8 +203,7 @@ describe("DefaultRuntime", () => {
     });
 
     it("rejects if a file is not available", async () => {
-      await expectError(async () => runtime.resolveToString("nonexistent"),
-                        Error, /.*/);
+      await expectError(runtime.resolveToString("nonexistent"), Error, /.*/);
     });
 
     it("converts files to strings", async () => {
@@ -227,8 +225,7 @@ describe("DefaultRuntime", () => {
     });
 
     it("rejects if the module is not available", async () => {
-      await expectError(async () => runtime.resolveModules("nonexistent"),
-                        Error, /.*/);
+      await expectError(runtime.resolveModules("nonexistent"), Error, /.*/);
     });
   });
 });

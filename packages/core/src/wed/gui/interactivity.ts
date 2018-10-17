@@ -6,7 +6,7 @@
  */
 import interact from "interactjs";
 
-import * as browsers from "../browsers";
+import * as browsers from "@wedxml/common/browsers";
 
 /**
  * This records changes in such a way that if any of the changes cannot take

@@ -5,7 +5,8 @@
  */
 import { first } from "rxjs/operators";
 
-import * as browsers from "wed/browsers";
+import * as browsers from "@wedxml/common/browsers";
+
 import { CaretManager } from "wed/caret-manager";
 import { DLoc } from "wed/dloc";
 import { childByClass, firstDescendantOrSelf, indexOf } from "wed/domutil";

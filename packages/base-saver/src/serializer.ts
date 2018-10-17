@@ -47,8 +47,7 @@ function serializeElement(out: string[], node: Element): void {
   out.push("<", node.tagName);
 
   const attributes = node.attributes;
-  for (let i = 0; i < attributes.length; ++i) {
-    const attr = attributes[i];
+  for (const attr of attributes) {
     out.push(" ", attr.name, "=\"", escape(attr.value, true), "\"");
   }
   if (node.childNodes.length === 0) {
@@ -66,6 +65,7 @@ function serializeElement(out: string[], node: Element): void {
 }
 
 function serializeText(out: string[], node: Text): void {
+  // tslint:disable-next-line:no-non-null-assertion
   out.push(escape(node.textContent!, false));
 }
 

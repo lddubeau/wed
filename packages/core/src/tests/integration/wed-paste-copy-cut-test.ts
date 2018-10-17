@@ -3,7 +3,8 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import * as browsers from "wed/browsers";
+import * as browsers from "@wedxml/common/browsers";
+
 import { CaretManager } from "wed/caret-manager";
 import { Editor } from "wed/editor";
 

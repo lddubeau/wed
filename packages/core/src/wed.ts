@@ -22,7 +22,6 @@ import * as keyConstants from "./wed/key-constants";
 import * as labelman from "./wed/labelman";
 import * as objectCheck from "./wed/object-check";
 import * as onerror from "./wed/onerror";
-import * as saver from "./wed/saver";
 import * as transformation from "./wed/transformation";
 import * as treeUpdater from "./wed/tree-updater";
 import * as util from "./wed/util";
@@ -43,10 +42,6 @@ export {
   onerror,
   Options,
   Runtime,
-  // Right now wed does not load savers dynamically at run-time, but eventually
-  // it should support it. The embedded savers are already written with this
-  // eventuality in mind, and so we need to export this.
-  saver,
   tokens,
   transformation,
   treeUpdater,

@@ -6,10 +6,16 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 
+import { inject, injectable } from "inversify";
 import mergeOptions from "merge-options";
 
-// Everything from wed must be loaded from "wed".
-import { Runtime, saver } from "wed";
+import { BaseSaver, SaverOptions } from "@wedxml/base-saver";
+import { SAVER_OPTIONS } from "@wedxml/base-saver/tokens";
+import { Runtime, SaveError } from "@wedxml/client-api";
+import { RUNTIME } from "@wedxml/common/tokens";
+
+// We reexport it as a convenience.
+export { SAVER_OPTIONS };
 
 interface Message {
   command: string;
@@ -18,11 +24,11 @@ interface Message {
 }
 
 interface Response {
-  messages: saver.SaveError[];
+  messages: SaveError[];
 }
 
 interface ParsedResponse {
-  [key: string]: saver.SaveError;
+  [key: string]: SaveError;
 }
 
 /**
@@ -46,6 +52,7 @@ function getMessages(data: Response): ParsedResponse | undefined {
   for (const msg of raw) {
     // When we parse responses from the server it is not possible to get an
     // answer for which msg.type is undefined.
+    // tslint:disable-next-line:no-non-null-assertion
     const errType = msg.type!;
     if (ret[errType] !== undefined) {
       throw new Error("same type of message appearing more than " +
@@ -53,10 +60,11 @@ function getMessages(data: Response): ParsedResponse | undefined {
     }
     ret[errType] = msg;
   }
+
   return ret;
 }
 
-export interface Options extends saver.SaverOptions {
+export interface Options extends SaverOptions {
   /** The URL location to POST save requests. */
   url: string;
 
@@ -76,18 +84,16 @@ export interface Options extends saver.SaverOptions {
  *
  * @param runtime The runtime under which this saver is created.
  *
- * @param version The version of wed for which this object is created.
- *
- * @param {Node} dataTree The editor's data tree.
- *
  * @param options The options specific to this class.
  */
-class AjaxSaver extends saver.Saver {
+@injectable()
+export class AjaxSaver extends BaseSaver {
   private readonly url: string;
   private readonly headers: Record<string, string>;
   private etag: string | undefined;
 
-  constructor(runtime: Runtime, options: Options) {
+  constructor(@inject(RUNTIME) protected readonly runtime: Runtime,
+              @inject(SAVER_OPTIONS) protected readonly options: Options) {
     super(runtime, options);
 
     const headers = options.headers;
@@ -97,121 +103,118 @@ class AjaxSaver extends saver.Saver {
     const initial_etag = options.initial_etag;
     this.etag = initial_etag != null ? `"${initial_etag}"` : undefined;
     this.url = options.url;
-
-    // Every 5 minutes.
-    this.setAutosaveInterval(5 * 60 * 1000);
   }
 
   async _init(): Promise<void> {
-    return this._post({ command: "check", version: this.version }, "json")
-      .then(() => {
-        this.initialized = true;
-        this.failed = false;
-      })
-      .catch(() => {
-        // This effectively aborts the editing session. This is okay, since
-        // there's a good chance that the issue is major.
-        throw new Error(`${this.url} is not responding to a check; \
+    let response: Response;
+    try {
+      response = await this._post({ command: "check", version: this.version },
+                                  "json");
+    }
+    catch {
+      // This effectively aborts the editing session. This is okay, since
+      // there's a good chance that the issue is major.
+      throw new Error(`${this.url} is not responding to a check; \
 saving is not possible.`);
-      });
+    }
+
+    const msgs = getMessages(response);
+    if (msgs !== undefined && msgs.version_too_old_error !== undefined) {
+      this._fail({ type: "too_old", msg: "" });
+
+      return;
+    }
+
+    this.initialized = true;
+    this.failed = false;
   }
 
-  _save(autosave: boolean): Promise<void> {
-    return Promise.resolve().then(() => {
-      if (!this.initialized) {
-        return;
-      }
+  async _save(autosave: boolean): Promise<void> {
+    if (!this.initialized) {
+      return;
+    }
 
-      // We must store this value now because a modifying operation could occur
-      // after the data is sent to the server but before we can be sure the data
-      // is saved.
-      const savingGeneration = this.currentGeneration;
+    // We must store this value now because a modifying operation could occur
+    // after the data is sent to the server but before we can be sure the data
+    // is saved.
+    const savingGeneration = this.currentGeneration;
 
-      let ignore = false;
-      return this._post({
+    let response: Response;
+    try {
+      response = await this._post({
         command: autosave ? "autosave" : "save",
         version: this.version,
         data: this.getData(),
-      }, "json")
-        .catch(() => {
-          ignore = true;
-          const error = {
-            msg: "Your browser cannot contact the server",
-            type: "save_disconnected",
-          };
-          this._fail(error);
-          return { messages: [] };
-        })
-          .then((data: Response): void => {
-            if (ignore) {
-              return;
-            }
+      }, "json");
+    }
+    catch {
+      const error = {
+        msg: "Your browser cannot contact the server",
+        type: "save_disconnected",
+      };
+      this._fail(error);
 
-            const msgs = getMessages(data);
-            if (msgs === undefined) {
-              this._fail();
-              throw new Error(`The server accepted the save request but did \
+      return;
+    }
+
+    const msgs = getMessages(response);
+    if (msgs === undefined) {
+      this._fail();
+      throw new Error(`The server accepted the save request but did \
 not return any information regarding whether the save was successful or not.`);
-            }
+    }
 
-            if (msgs.save_fatal_error !== undefined) {
-              this._fail();
-              throw new Error(`The server was not able to save the data due to \
+    if (msgs.save_fatal_error !== undefined) {
+      this._fail();
+      throw new Error(`The server was not able to save the data due to \
 a fatal error. Please contact technical support before trying to edit again.`);
-            }
+    }
 
-            if (msgs.save_transient_error !== undefined) {
-              this._events.next({ name: "Failed",
-                                  error: msgs.save_transient_error });
-              return;
-            }
+    if (msgs.save_transient_error !== undefined) {
+      this._events.next({ name: "Failed", error: msgs.save_transient_error });
 
-            if (msgs.save_edited !== undefined) {
-              this._fail(msgs.save_edited);
-              return;
-            }
+      return;
+    }
 
-            if (msgs.save_successful === undefined) {
-              this._fail();
-              throw new Error(`Unexpected response from the server while \
+    if (msgs.save_edited !== undefined) {
+      this._fail(msgs.save_edited);
+
+      return;
+    }
+
+    if (msgs.save_successful === undefined) {
+      this._fail();
+      throw new Error(`Unexpected response from the server while \
 saving. Please contact technical support before trying to edit again.`);
-            }
+    }
 
-            if (msgs.version_too_old_error !== undefined) {
-              this._fail({ type: "too_old", msg: "" });
-              return;
-            }
+    if (msgs.version_too_old_error !== undefined) {
+      this._fail({ type: "too_old", msg: "" });
 
-            this._saveSuccess(autosave, savingGeneration);
-          });
-    });
+      return;
+    }
+
+    this._saveSuccess(autosave, savingGeneration);
   }
 
-  _recover(): Promise<boolean> {
-    const success = (data: Response): boolean => {
-      const msgs = getMessages(data);
-      if (msgs === undefined) {
-        return false;
-      }
+  async _recover(): Promise<boolean> {
+    let data: Response;
+    try {
+      data = await this._post({
+        command: "recover",
+        version: this.version,
+        data: this.getData(),
+      }, "json");
+    }
+    catch {
+      return false;
+    }
 
-      if (msgs.save_fatal_error !== undefined) {
-        return false;
-      }
+    const msgs = getMessages(data);
 
-      if (msgs.save_successful === undefined) {
-        return false;
-      }
-
-      return true;
-    };
-
-    return this._post({
-      command: "recover",
-      version: this.version,
-      data: this.getData(),
-    }, "json")
-      .then(success)
-      .catch(() => false);
+    return !((msgs === undefined)  ||
+             (msgs.save_fatal_error !== undefined) ||
+             (msgs.save_successful === undefined));
   }
 
   /**
@@ -224,7 +227,7 @@ saving. Please contact technical support before trying to edit again.`);
    *
    * @returns A promise that resolves when the post is over.
    */
-  private _post(data: Message, dataType: string): Promise<Response> {
+  private async _post(data: Message, dataType: string): Promise<Response> {
     let headers;
 
     if (this.etag !== undefined) {
@@ -236,16 +239,18 @@ saving. Please contact technical support before trying to edit again.`);
       headers = this.headers;
     }
 
-    return this.runtime.ajax({
-      type: "POST",
-      url: this.url,
-      data: data,
-      dataType: dataType,
-      headers: headers,
-      bluejaxOptions: {
-        verboseResults: true,
-      },
-    }).then(([reply, , jqXHR]) => {
+    try {
+      const [reply, , jqXHR] = await this.runtime.ajax({
+        type: "POST",
+        url: this.url,
+        data: data,
+        dataType: dataType,
+        headers: headers,
+        bluejaxOptions: {
+          verboseResults: true,
+        },
+      });
+
       const msgs = getMessages(reply);
       // Unsuccessful operations don't have a valid etag.
       if (msgs !== undefined && msgs.save_successful !== undefined) {
@@ -253,8 +258,8 @@ saving. Please contact technical support before trying to edit again.`);
       }
 
       return reply;
-      // tslint:disable-next-line:no-any
-    }).catch((bluejaxError: any) => {
+    }
+    catch (bluejaxError) {
       const jqXHR = bluejaxError.jqXHR;
       // This is a case where a precondition failed.
       if (jqXHR.status === 412) {
@@ -268,10 +273,8 @@ saving. Please contact technical support before trying to edit again.`);
         };
       }
       throw bluejaxError;
-    });
+    }
   }
 }
-
-export { AjaxSaver as Saver };
 
 //  LocalWords:  MPL ETag runtime etag json url autosave
