@@ -125,7 +125,11 @@
     "zone.js": "^0.8.10"
   },
   "scripts": {
-    "build": "cd packages/core && npm run build",
+    "build": "./tasks/run-all build",
+    "build-and-test": "./tasks/run-all build-and-test",
+    "clean": "./tasks/run-all clean",
+    "run-all": "./tasks/run-all",
+    "update-versions": "./tasks/update-versions",
     "commitmsg": "commitlint -e $GIT_PARAMS",
     "postinstall": "link-parent-bin",
     "lint": "npmPkgJsonLint package.json"
