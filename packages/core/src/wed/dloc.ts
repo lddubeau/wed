@@ -112,7 +112,7 @@ export class DLocRoot {
       if (/^(\d+)$/.test(part)) {
         let index = parseInt(part);
         let found = null;
-        let node = parent.firstChild;
+        let node: Node | null = parent.firstChild;
         while (node !== null && found === null) {
           const t = node.nodeType;
 
@@ -466,7 +466,7 @@ export class DLoc {
     }
 
     if (other === undefined) {
-      const range = this.node.ownerDocument.createRange();
+      const range = this.node.ownerDocument!.createRange();
       range.setStart(this.node, this.offset);
       return range;
     }

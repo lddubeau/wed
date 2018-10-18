@@ -22,13 +22,6 @@ export class CaretMark {
    */
   private readonly el: HTMLElement;
 
-  /**
-   * This is an element used to calculate the position of the caret on the
-   * screen. It is temporarily inserted in the DOM to perform the position
-   * calculations.
-   */
-  private readonly dummy: HTMLElement;
-
   private suspended: number = 0;
   private pendingRefresh: boolean = false;
 
@@ -60,7 +53,7 @@ export class CaretMark {
     el.setAttribute("contenteditable", "false");
     el.textContent = " ";
 
-    const dummy = this.dummy = doc.createElement("span");
+    const dummy = doc.createElement("span");
     dummy.textContent = "\u00A0";
     dummy.style.height = "100%";
     dummy.style.width = "1px";

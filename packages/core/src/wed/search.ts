@@ -324,7 +324,7 @@ export class Search {
 
     const valueCursor = new AttributeValueCursor(allValues, direction);
     const attrValue = closestByClass(start.node, "_attribute_value", guiRoot);
-    const doc = guiRoot.ownerDocument;
+    const doc = guiRoot.ownerDocument!;
     const scope = this.scope.mustMakeDOMRange();
     if (attrValue === null) {
       // We need to find the next attribute.

@@ -59,7 +59,7 @@ export class GUIUpdater extends TreeUpdater {
     if (guiCaret === null) {
       throw new Error("cannot find gui tree position");
     }
-    const clone = convert.toHTMLTree(this.tree.ownerDocument, ev.node);
+    const clone = convert.toHTMLTree(this.tree.ownerDocument!, ev.node);
     if (isElement(ev.node)) {
       // If ev.node is an element, then the clone is an element too.
       linkTrees(ev.node, clone as Element);

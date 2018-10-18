@@ -59,7 +59,7 @@ export function boundaryXY(boundary: DLoc): BoundaryCoordinates {
     return parentBoundary(node, boundary.root);
   }
 
-  const range = node.ownerDocument.createRange();
+  const range = node.ownerDocument!.createRange();
   let rect;
 
   let child;
@@ -96,7 +96,7 @@ export function boundaryXY(boundary: DLoc): BoundaryCoordinates {
   // coordinates. Try again.
   offset = boundary.offset;
 
-  const win = node.ownerDocument.defaultView;
+  const win = node.ownerDocument!.defaultView!;
   while (offset !== 0) {
     offset--;
     child = undefined;
@@ -157,7 +157,7 @@ export function getAttrValueNode(attrVal: Element): Node {
 
   let ret: Node = attrVal;
 
-  let child = attrVal.firstChild;
+  let child: Node | null = attrVal.firstChild;
   if (child !== null) {
     while (child !== null && !isText(child)) {
       child = child.nextSibling;

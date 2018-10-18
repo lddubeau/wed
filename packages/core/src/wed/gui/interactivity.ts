@@ -112,7 +112,7 @@ export function makeResizable($top: JQuery): void {
  * @param $top The top level element of the dialog.
  */
 export function makeDraggable($top: JQuery): void {
-  const win = $top[0].ownerDocument.defaultView;
+  const win = $top[0].ownerDocument!.defaultView!;
   const header = $top.find(".modal-header")[0];
   const content = $top.find(".modal-content")[0];
 

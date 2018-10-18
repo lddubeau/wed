@@ -11,7 +11,10 @@
       "bluejax": ["../../../types/bluejax"],
       "merge-options": ["../../../types/merge-options"]
     },
-    "types": ["reflect-metadata", "mocha", "node"],
+    "types": ["reflect-metadata", "mocha"],
     "outDir": "build/standalone/lib"
-  }
+  },
+  "exclude": [
+    "wed/cli"
+  ]
 }

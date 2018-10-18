@@ -70,10 +70,10 @@ export class Toolbar {
     }
 
     const top = this.top;
-    const frag = top.ownerDocument.createDocumentFragment();
+    const frag = top.ownerDocument!.createDocumentFragment();
     for (const button of buttons) {
       if (right) {
-        const wrap = top.ownerDocument.createElement("span");
+        const wrap = top.ownerDocument!.createElement("span");
         wrap.className = right ? "pull-right" : "";
         button.render(wrap);
         frag.appendChild(wrap);

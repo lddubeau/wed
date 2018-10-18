@@ -121,14 +121,14 @@ export class ContextMenu {
 
     const $menu = this.$menu;
     const menu = this.menu;
-    const document = dropdown.ownerDocument;
+    const win = dropdown.ownerDocument!.defaultView!;
     const x = this.x;
     let y = this.y;
 
     // Verify if we're going to run off screen. If so, then modify our position
     // to be inside the screen.
     const width = $menu.outerWidth();
-    const winWidth = $(document.defaultView).width();
+    const winWidth = $(win).width();
     // The x value that would put the menu just against the side of the window
     // is width - winWidth. If x is less than it, then x is the value we want,
     // but we don't want less than 0.
@@ -138,7 +138,7 @@ export class ContextMenu {
     // Adjust height so that we can see about 5 lines.
     const fiveLines = Number($menu.css("line-height").replace("px", "")) * 5;
 
-    const winHeight = $(document.defaultView).height();
+    const winHeight = $(win).height();
     let maxHeight = winHeight - y;
     if (maxHeight < fiveLines) {
       y -= fiveLines - maxHeight;

@@ -21,7 +21,7 @@ describe("wed undo redo:", () => {
   let editor: Editor;
   let caretManager: CaretManager;
   let ps: NodeListOf<Element>;
-  let titles: NodeListOf<Element>;
+  let titles: HTMLCollectionOf<Element>;
   let subscription: Subscription | undefined;
 
   before(() => {

@@ -62,7 +62,6 @@ const dialogTemplate = `
  */
 export class DialogSearchReplace {
   private readonly search: SearchReplace;
-  private readonly dialog: JQuery;
   private readonly searchField: HTMLInputElement;
   private readonly replaceField: HTMLInputElement;
   private readonly forwardRadioButton: HTMLInputElement;
@@ -83,7 +82,7 @@ export class DialogSearchReplace {
   constructor(editor: Editor, scroller: Scroller, direction: Direction) {
     this.search = new SearchReplace(editor, scroller);
     const body = $(dialogTemplate)[0] as HTMLFormElement;
-    const dialog = this.dialog = bootbox.dialog({
+    const dialog = bootbox.dialog({
       title: "Search/Replace",
       message: body,
       onEscape: true,

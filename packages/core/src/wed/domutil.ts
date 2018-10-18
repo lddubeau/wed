@@ -20,9 +20,10 @@ import * as util from "./util";
  *
  * @return -1 if the target is not found, or its index.
  */
-export function indexOf(a: NodeList, target: Node): number;
+export function indexOf(a: NodeList | HTMLCollection, target: Node): number;
 export function indexOf<T>(a: T[], target: T): number;
-export function indexOf<T>(a: T[] | NodeList, target: T | Node): number {
+export function indexOf<T>(a: T[] | NodeList | HTMLCollection,
+                           target: T | Node): number {
   const length = a.length;
   for (let i = 0; i < length; ++i) {
     if (a[i] === target) {
@@ -42,7 +43,7 @@ export function indexOf<T>(a: T[] | NodeList, target: T | Node): number {
 function parentChildCompare(parentNode: Node, parentOffset: number,
                             childNode: Node): 1 | -1 {
   // Find which child of parent is or contains the other node.
-  let curChild = parentNode.firstChild;
+  let curChild: Node | null = parentNode.firstChild;
   let ix = 0;
   while (curChild !== null) {
     if (curChild.contains(childNode)) {
@@ -153,7 +154,7 @@ export function rangeFromPoints(startContainer: Node,
                                 startOffset: number,
                                 endContainer: Node,
                                 endOffset: number): RangeInfo {
-  const range = startContainer.ownerDocument.createRange();
+  const range = startContainer.ownerDocument!.createRange();
   let reversed = false;
   if (comparePositions(startContainer, startOffset, endContainer,
                        endOffset) <= 0) {
@@ -237,9 +238,9 @@ export function nextCaretPosition(caret: Caret,
     return null;
   }
 
-  const doc = isDocument(node) ? node : node.ownerDocument;
+  const doc = isDocument(node) ? node : node.ownerDocument!;
 
-  const window = doc.defaultView;
+  const window = doc.defaultView!;
   let parent;
   search_loop:
   while (!found) {
@@ -343,9 +344,9 @@ export function prevCaretPosition(caret: Caret,
     return null;
   }
 
-  const doc = isDocument(node) ? node : node.ownerDocument;
+  const doc = isDocument(node) ? node : node.ownerDocument!;
 
-  const window = doc.defaultView;
+  const window = doc.defaultView!;
   let parent;
   search_loop:
   while (!found) {
@@ -1130,7 +1131,7 @@ export function genericCutFunction(this: GenericCutContext,
 
     const endTextOffset = sameContainer ? endOffset : startContainer.length;
 
-    startText = parent.ownerDocument.createTextNode(
+    startText = parent.ownerDocument!.createTextNode(
       startContainer.data.slice(startOffset, endTextOffset));
     // tslint:disable-next-line:no-invalid-this
     this.deleteText(startContainer, startOffset, startText.length);
@@ -1168,7 +1169,7 @@ export function genericCutFunction(this: GenericCutContext,
 
     const endContainerOffset = indexOf(parent.childNodes, endContainer);
 
-    endText = parent.ownerDocument.createTextNode(
+    endText = parent.ownerDocument!.createTextNode(
       endContainer.data.slice(0, endOffset));
     // tslint:disable-next-line:no-invalid-this
     this.deleteText(endContainer, 0, endOffset);
@@ -1287,7 +1288,7 @@ export function pointInContents(element: Element,
                                 x: number, y: number): boolean {
   // Convert the coordinates relative to the document to coordinates relative to
   // the element.
-  const body = element.ownerDocument.body;
+  const body = element.ownerDocument!.body;
   // Using clientLeft and clientTop is not equivalent to using the rect.
   const rect = element.getBoundingClientRect();
   x -= rect.left + body.scrollLeft;
@@ -1702,7 +1703,7 @@ export function getCharacterImmediatelyAt(caret: Caret): string | undefined {
  */
 export function isNotDisplayed(el: HTMLElement,
                                root: HTMLElement | HTMLDocument): boolean {
-  const win = el.ownerDocument.defaultView;
+  const win = el.ownerDocument!.defaultView!;
 
   // We don't put a menu for attributes that are somehow not
   // displayed.

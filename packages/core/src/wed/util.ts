@@ -461,7 +461,7 @@ export function getOriginalAttributes(node: Element): Record<string, string> {
   const attributes = node.attributes;
   for (let i = 0; i < attributes.length; ++i) {
     const attr = attributes[i];
-    const localName = attr.localName!;
+    const localName = attr.localName;
     if (isXMLAttrName(localName)) {
       original[decodeAttrName(localName).name] = attr.value;
     }

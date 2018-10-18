@@ -19,7 +19,7 @@ describe("wed file state:", () => {
   let caretManager: CaretManager;
   let $modificationStatus: JQuery;
   let $saveStatus: JQuery;
-  let titles: NodeListOf<Element>;
+  let titles: HTMLCollectionOf<Element>;
 
   beforeEach(() => {
     setup = new EditorSetup(

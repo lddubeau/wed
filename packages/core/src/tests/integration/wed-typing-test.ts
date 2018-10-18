@@ -22,7 +22,7 @@ describe("wed typing:", () => {
   let caretManager: CaretManager;
   let ps: NodeListOf<Element>;
   let guiRoot: Element;
-  let titles: NodeListOf<Element>;
+  let titles: HTMLCollectionOf<Element>;
 
   before(() => {
     setup = new EditorSetup(
@@ -512,7 +512,7 @@ describe("wed typing:", () => {
     // We create a special phantom element because the generic mode does not
     // create any.
     const title = editor.guiRoot.getElementsByClassName("title")[0];
-    const phantom = title.ownerDocument.createElement("span");
+    const phantom = title.ownerDocument!.createElement("span");
     phantom.className = "_phantom";
     phantom.textContent = "phantom";
     title.insertBefore(phantom, null);

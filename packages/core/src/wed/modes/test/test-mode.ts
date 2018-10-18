@@ -65,7 +65,7 @@ export class TestDecorator extends GenericDecorator {
     const dataNode = this.editor.toDataNode(el) as Element;
     const rend = dataNode.getAttribute("rend");
 
-    const localName = dataNode.localName!;
+    const localName = dataNode.localName;
     const inTEI = dataNode.namespaceURI === this.namespaces.tei;
 
     let level = inTEI ? this.elementLevel[localName] : undefined;
@@ -164,7 +164,7 @@ export class TestDecorator extends GenericDecorator {
     const dataNode = this.editor.toDataNode(node) as Element;
     const prefixedName = this.mode.unresolveName(
       new EName(dataNode.namespaceURI === null ? "" : dataNode.namespaceURI,
-                dataNode.localName!));
+                dataNode.localName));
 
     // We don't know this element.
     if (prefixedName === undefined) {

@@ -192,7 +192,10 @@ gulp.task("generate-ts",
           ]));
 
 gulp.task("tsc-wed", ["generate-ts"],
-          () => tsc("src/tsconfig.json", "build/standalone/lib"));
+          () => Promise.all([
+            tsc("src/tsconfig.json", "build/standalone/lib"),
+            tsc("src/wed/cli/tsconfig.json", "build/standalone/lib"),
+          ]));
 
 gulp.task("copy-js-web",
           () => gulp.src("web/**/*.{js,html,css}")

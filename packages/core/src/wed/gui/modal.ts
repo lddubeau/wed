@@ -150,7 +150,7 @@ export class Modal {
    * @returns The jQuery object for the button.
    */
   addButton(name: string, isPrimary: boolean = false): JQuery {
-    const button = this._$dom[0].ownerDocument.createElement("a");
+    const button = this._$dom[0].ownerDocument!.createElement("a");
     button.href = "#";
     button.className = "btn";
     button.setAttribute("data-dismiss", "modal");
@@ -229,7 +229,7 @@ export class Modal {
    * @param {Event} ev The DOM event.
    */
   private _handleShown(): void {
-    const win = this._$dom[0].ownerDocument.defaultView;
+    const win = this._$dom[0].ownerDocument!.defaultView!;
     const winHeight = win.innerHeight;
     const dialog = this._$dom.find(".modal-dialog")[0];
     const rect = dialog.getBoundingClientRect();

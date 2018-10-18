@@ -105,7 +105,7 @@ export class Scroller {
     top = top - vtop + pos.top;
     bottom = bottom - vtop + pos.top;
 
-    const doc = el.ownerDocument;
+    const doc = el.ownerDocument!;
     const sheight = doc.body.scrollHeight;
     const swidth = doc.body.scrollWidth;
 
@@ -119,7 +119,7 @@ export class Scroller {
       byX = left < 0 ? left : right;
     }
 
-    doc.defaultView.scrollBy(byX, byY);
+    doc.defaultView!.scrollBy(byX, byY);
   }
 }
 

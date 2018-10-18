@@ -115,7 +115,7 @@ export abstract class Decorator implements DecoratorAPI {
     // If sep is a string, create an appropriate div.
     let sepNode: Element;
     if (typeof sep === "string") {
-      sepNode = el.ownerDocument.createElement("div");
+      sepNode = el.ownerDocument!.createElement("div");
       sepNode.textContent = sep;
     }
     else {
@@ -206,7 +206,7 @@ ${domutil.textToHTML(attributes[name])}</span>"</span>`;
       }
     }
 
-    const doc = el.ownerDocument;
+    const doc = el.ownerDocument!;
     cls += ` _label_level_${level}`;
 
     // Save the cls of the end label here so that we don't further modify it.

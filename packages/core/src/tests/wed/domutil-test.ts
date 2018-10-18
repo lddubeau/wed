@@ -360,7 +360,7 @@ describe("domutil", () => {
     });
 
     it("inserts the new element", () => {
-      const el = child.ownerDocument.createElement("span");
+      const el = child.ownerDocument!.createElement("span");
       const [first, second] = domutil.insertIntoText(child, 2, el);
       assert.equal(first[0].nodeValue, "ab");
       assert.equal(first[0].nextSibling, el);
@@ -373,9 +373,9 @@ describe("domutil", () => {
     });
 
     it("works fine with negative offset", () => {
-      const el = child.ownerDocument.createElement("span");
+      const el = child.ownerDocument!.createElement("span");
       const [first, second] = domutil.insertIntoText(child, -1, el);
-      assert.deepEqual(first, [el.parentNode, 0], "first caret");
+      assert.deepEqual(first, [el.parentNode!, 0], "first caret");
       assert.equal(second[0].nodeValue, "abcd");
       assert.equal(second[0].previousSibling, el);
       assert.equal(second[1], 0);
@@ -404,7 +404,7 @@ describe("domutil", () => {
          frag.appendChild(document.createTextNode("first"));
          const [first, second] = domutil.insertIntoText(child, -1, frag);
          assert.deepEqual(first, [title, 0]);
-         assert.deepEqual(second, [title.firstChild, 5]);
+         assert.deepEqual(second, [title.firstChild!, 5]);
          assert.equal(title.childNodes.length, 1);
          assert.equal(title.innerHTML, "firstabcd");
        });
@@ -412,14 +412,14 @@ describe("domutil", () => {
     it("works fine with offset beyond text length", () => {
       assert.equal(title.childNodes.length, 1,
                    "the parent should start with one child");
-      const el = child.ownerDocument.createElement("span");
+      const el = child.ownerDocument!.createElement("span");
       const [first, second] =
         domutil.insertIntoText(child, child.nodeValue!.length, el);
       assert.equal(title.childNodes.length, 2,
                    "the parent should have two children after insertion");
       assert.equal(first[0].nodeValue, "abcd");
       assert.equal(first[0].nextSibling, el);
-      assert.deepEqual(first, [title.firstChild, 4]);
+      assert.deepEqual(first, [title.firstChild!, 4]);
       assert.deepEqual(second, [title, 2]);
       assert.equal(title.childNodes.length, 2,
                    "title.childNodes.length should be 2");
@@ -434,7 +434,7 @@ describe("domutil", () => {
       const [first, second] =
         domutil.insertIntoText(child, child.nodeValue!.length, frag);
       assert.equal(first[0].nodeValue, "abcdfirst");
-      assert.deepEqual(first, [title.firstChild, 4]);
+      assert.deepEqual(first, [title.firstChild!, 4]);
       assert.deepEqual(second, [title, 3]);
       assert.equal(title.childNodes.length, 3);
       assert.equal(
@@ -448,7 +448,7 @@ describe("domutil", () => {
          frag.appendChild(document.createTextNode("first"));
          const [first, second] =
            domutil.insertIntoText(child, child.nodeValue!.length, frag);
-         assert.deepEqual(first, [title.firstChild, 4]);
+         assert.deepEqual(first, [title.firstChild!, 4]);
          assert.deepEqual(second, [title, title.childNodes.length]);
          assert.equal(title.childNodes.length, 1);
          assert.equal(title.innerHTML, "abcdfirst");
@@ -543,7 +543,7 @@ describe("domutil", () => {
 
         it("inserts in correct position if needs to create text node", () => {
           empty(title);
-          const b = title.ownerDocument.createElement("b");
+          const b = title.ownerDocument!.createElement("b");
           b.textContent = "q";
           title.appendChild(b);
           const { node: textNode, isNew, caret } = adapter(title, 1, "test");
@@ -698,18 +698,18 @@ describe("domutil", () => {
   describe("focusNode", () => {
     it("focuses an element", () => {
       const p = testPara;
-      assert.notEqual(p, p.ownerDocument.activeElement, "p is not focused");
+      assert.notEqual(p, p.ownerDocument!.activeElement, "p is not focused");
       domutil.focusNode(p);
-      assert.equal(p, p.ownerDocument.activeElement, "p is focused");
+      assert.equal(p, p.ownerDocument!.activeElement, "p is focused");
     });
 
     it("focuses text's parent", () => {
       const text = testPara.firstChild!;
       assert.equal(text.nodeType, Node.TEXT_NODE, "node type is text");
-      assert.notEqual(text, text.ownerDocument.activeElement,
+      assert.notEqual(text, text.ownerDocument!.activeElement,
                       "text is not focused");
       domutil.focusNode(text);
-      assert.equal(text.parentNode, text.ownerDocument.activeElement,
+      assert.equal(text.parentNode, text.ownerDocument!.activeElement,
                    "text's parent is focused");
     });
 
@@ -767,8 +767,8 @@ describe("domutil", () => {
         p.childNodes,
         domutil.indexOf(p.childNodes, start[0].nextSibling!),
         domutil.indexOf(p.childNodes, end[0].previousSibling!) + 1);
-      nodes.unshift(p.ownerDocument.createTextNode("re "));
-      nodes.push(p.ownerDocument.createTextNode(" af"));
+      nodes.unshift(p.ownerDocument!.createTextNode("re "));
+      nodes.push(p.ownerDocument!.createTextNode(" af"));
 
       const [final, cutContent] = cut(start, end);
 
@@ -788,7 +788,7 @@ describe("domutil", () => {
       const end = [p.firstChild, 6];
       assert.equal(p.childNodes.length, 5);
 
-      const nodes = [p.ownerDocument.createTextNode("re")];
+      const nodes = [p.ownerDocument!.createTextNode("re")];
       const [final, cutContent] = cut(start, end);
 
       // Check that we're doing what we think we're doing.
@@ -921,8 +921,8 @@ describe("domutil", () => {
   });
 
   describe("siblingByClass", () => {
-    let a: NodeListOf<Element>;
-    let b: NodeListOf<Element>;
+    let a: HTMLCollectionOf<Element>;
+    let b: HTMLCollectionOf<Element>;
     let firstLi: HTMLElement;
     before(() => {
       domroot.innerHTML = `<ul><li>a</li><li class="a"></li><li></li>\
@@ -960,7 +960,7 @@ describe("domutil", () => {
   });
 
   describe("childrenByClass", () => {
-    let a: NodeListOf<Element>;
+    let a: HTMLCollectionOf<Element>;
     let firstLi: HTMLElement;
     let ul: HTMLElement;
     before(() => {
@@ -992,7 +992,7 @@ describe("domutil", () => {
   });
 
   describe("childByClass", () => {
-    let a: NodeListOf<Element>;
+    let a: HTMLCollectionOf<Element>;
     let firstLi: HTMLElement;
     let ul: HTMLElement;
     before(() => {

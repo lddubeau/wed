@@ -95,7 +95,7 @@ export class TypeaheadPopup {
     // Verify if we're going to run off screen. If so, then modify our position
     // to be inside the screen.
     const actualWidth = taWrapper.offsetWidth;
-    const winWidth = doc.defaultView.innerWidth;
+    const winWidth = doc.defaultView!.innerWidth;
 
     // The x value that would put the menu just against the side of the window
     // is actualWidth - winWidth. If x is less than it, then x is the value we
@@ -104,7 +104,7 @@ export class TypeaheadPopup {
 actualWidth))}px`;
     taWrapper.style.maxWidth = `${winWidth}px`;
 
-    const winHeight = doc.defaultView.innerHeight;
+    const winHeight = doc.defaultView!.innerHeight;
     const maxHeight = winHeight - y;
     taWrapper.style.maxHeight = `${maxHeight}px`;
 

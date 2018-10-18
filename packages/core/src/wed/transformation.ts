@@ -389,7 +389,7 @@ export function insertElement(dataUpdater: TreeUpdater,
                               parent: Node, index: number, ns: string,
                               name: string,
                               attrs?: AttributeTable): Element {
-  const ownerDocument = isDocument(parent) ? parent : parent.ownerDocument;
+  const ownerDocument = isDocument(parent) ? parent : parent.ownerDocument!;
   const el = makeElement(ownerDocument, ns, name, attrs);
   dataUpdater.insertAt(parent, index, el);
   return el;
@@ -430,13 +430,13 @@ export function wrapTextInElement(dataUpdater: TreeUpdater, node: Text,
   const nodeOffset = indexOf(parent.childNodes, node);
 
   dataUpdater.deleteText(node, offset, textToWrap.length);
-  const newElement = makeElement(node.ownerDocument, ns, name, attrs);
+  const newElement = makeElement(node.ownerDocument!, ns, name, attrs);
 
   if (textToWrap !== "") {
     // It is okay to manipulate the DOM directly as long as the DOM tree being
     // manipulated is not *yet* inserted into the data tree. That is the case
     // here.
-    newElement.appendChild(node.ownerDocument.createTextNode(textToWrap));
+    newElement.appendChild(node.ownerDocument!.createTextNode(textToWrap));
   }
 
   if (node.parentNode === null) {
@@ -480,7 +480,7 @@ function _wie_splitTextNode(dataUpdater: TreeUpdater, container: Text,
     const text = container.data.slice(offset);
     dataUpdater.setTextNode(container, container.data.slice(0, offset));
     dataUpdater.insertNodeAt(parent, containerOffset + 1,
-                             container.ownerDocument.createTextNode(text));
+                             container.ownerDocument!.createTextNode(text));
 
     offset = containerOffset + 1;
   }
@@ -542,7 +542,8 @@ export function wrapInElement(dataUpdater: TreeUpdater, startContainer: Node,
                     "probably due to an algorithmic mistake");
   }
 
-  const newElement = makeElement(startContainer.ownerDocument, ns, name, attrs);
+  const newElement = makeElement(startContainer.ownerDocument!, ns, name,
+                                 attrs);
   while (--endOffset >= startOffset) {
     const endNode = endContainer.childNodes[endOffset];
     dataUpdater.deleteNode(endNode);

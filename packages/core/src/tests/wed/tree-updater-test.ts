@@ -168,7 +168,7 @@ describe("TreeUpdater", () => {
            [parent, 0],
            // Insertion of the completed 2nd half into the DOM tree.
            [parent, 1],
-         ];
+         ] as [Node, number][];
          let callsIx = 0;
          tu.events.pipe(filter(filterInsertNodeAtAndBefore))
            .subscribe((ev) => {
@@ -588,7 +588,7 @@ quoted3</div></div>\
       const inaCalls = [
         [parent, 0],
         [parent, 1],
-      ];
+      ] as [Node, number][];
       let inaCallIx = 0;
       tu.events.pipe(filter(filterInsertNodeAtAndBefore))
         .subscribe((ev) => {
@@ -637,7 +637,7 @@ quoted3</div></div>\
       const inaCalls = [
         [parent, 0],
         [parent, 1],
-      ];
+      ] as [Node, number][];
       let inaCallIx = 0;
       tu.events.pipe(filter(filterInsertNodeAtAndBefore))
         .subscribe((ev) => {
@@ -1343,7 +1343,7 @@ befoter</div>");
       const end = DLoc.mustMakeDLoc(root, p.firstChild, 6);
       assert.equal(p.childNodes.length, 5);
 
-      const nodes = [p.ownerDocument.createTextNode("re")];
+      const nodes = [p.ownerDocument!.createTextNode("re")];
       const ret = tu.cut(start, end);
 
       // Check that we're doing what we think we're doing.
@@ -1367,8 +1367,8 @@ befoter</div>");
         indexOf(p.childNodes, start.node.nextSibling!),
         indexOf(p.childNodes, end.node.previousSibling!) + 1);
       new Listener(tu); // eslint-disable-line no-new
-      nodes.unshift(p.ownerDocument.createTextNode("re "));
-      nodes.push(p.ownerDocument.createTextNode(" af"));
+      nodes.unshift(p.ownerDocument!.createTextNode("re "));
+      nodes.push(p.ownerDocument!.createTextNode(" af"));
 
       const ret = tu.cut(start, end);
 

@@ -65,7 +65,7 @@ function determineContainer(docRoot: Document | Element): Element {
   // docRoot.firstChild will have a perverse effect of setting the container to
   // be **inside** the current pos.
   if (container.classList.contains("_placeholder")) {
-    container = docRoot;
+    container = docRoot as Element;
   }
 
   return container as Element;
@@ -136,7 +136,8 @@ function bothDecorated(prev: Node | undefined,
  *
  * @returns The first node in ``haystack`` which does not precede ``ref``.
  */
-function findNext(haystack: NodeList, ref: Node): Node | undefined {
+function findNext(haystack: NodeList | HTMLCollection,
+                  ref: Node): Node | undefined {
   const arr: Element[] = Array.prototype.slice.call(haystack);
   for (const x of arr) {
     // tslint:disable-next-line:no-bitwise

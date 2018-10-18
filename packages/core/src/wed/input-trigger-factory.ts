@@ -39,7 +39,7 @@ function splitNodeOn(editor: EditorAPI, data: SplitData): void {
   while (modified) {
     modified = false;
     const textNodes: Text[] = [];
-    let child = node.firstChild;
+    let child: Node | null = node.firstChild;
     while (child !== null) {
       if (isText(child)) {
         textNodes.push(child);

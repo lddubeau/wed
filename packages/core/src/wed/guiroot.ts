@@ -31,7 +31,7 @@ function countInPhantomWrap(top: Element): number {
   }
 
   let count = 0;
-  let child = top.firstChild;
+  let child: Node | null = top.firstChild;
   while (child !== null) {
     if (isElement(child)) {
       if (child.classList.contains("_phantom_wrap")) {
@@ -68,7 +68,7 @@ function findInPhantomWrap(top: Element, index: number): FindResult {
 
   const originalIndex = index;
   let found: Node | null = null;
-  let child = top.firstChild;
+  let child: Node | null = top.firstChild;
   while (found === null && child !== null) {
     if (isElement(child)) {
       if (child.classList.contains("_phantom_wrap")) {

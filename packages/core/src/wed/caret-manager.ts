@@ -162,12 +162,12 @@ export class CaretManager implements GUIToDataConverter {
               private readonly layer: Layer,
               private readonly scroller: Scroller,
               private readonly modeTree: ModeTree) {
-    this.mark = new CaretMark(this, guiRoot.node.ownerDocument, layer,
+    this.mark = new CaretMark(this, guiRoot.node.ownerDocument!, layer,
                               inputField, scroller);
     const guiRootEl = this.guiRootEl = guiRoot.node;
     this.dataRootEl = dataRoot.node;
-    this.doc = guiRootEl.ownerDocument;
-    this.win = this.doc.defaultView;
+    this.doc = guiRootEl.ownerDocument!;
+    this.win = this.doc.defaultView!;
     this.$inputField = $(this.inputField);
     this._events = new Subject();
     this.events = this._events.asObservable();

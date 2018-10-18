@@ -50,7 +50,7 @@ export class EditingMenuManager {
     this.modeTree = editor.modeTree;
     this.guiRoot = editor.guiRoot;
     this.dataRoot = editor.dataRoot;
-    this.doc = this.guiRoot.ownerDocument;
+    this.doc = this.guiRoot.ownerDocument!;
   }
 
   /**
@@ -454,7 +454,7 @@ Element's documentation.</a></li>`, this.doc)[0] as HTMLElement;
 
     this.caretManager.pushSelection();
     const menu = this.currentDropdown = new CompletionMenu(
-      this.editor, this.guiRoot.ownerDocument, pos.left, pos.top,
+      this.editor, this.doc, pos.left, pos.top,
       dataNode.value, possible,
       () => {
         this.currentDropdown = undefined;
@@ -485,8 +485,7 @@ Element's documentation.</a></li>`, this.doc)[0] as HTMLElement;
     const pos = this.computeMenuPosition(undefined, true);
     this.caretManager.pushSelection();
     this.currentDropdown = new ReplacementMenu(
-      this.editor, this.guiRoot.ownerDocument, pos.left, pos.top,
-      possible,
+      this.editor, this.doc, pos.left, pos.top, possible,
       (selected) => {
         this.currentDropdown = undefined;
         this.caretManager.popSelection();

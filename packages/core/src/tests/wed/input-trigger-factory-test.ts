@@ -95,7 +95,7 @@ describe("input_trigger_factory", () => {
       inputTriggerFactory.makeSplitMergeInputTrigger(
         editor, mode, pSelector, ENTER, BACKSPACE, DELETE);
 
-      let ps = editor.dataRoot.getElementsByTagName("p");
+      let ps = editor.dataRoot.querySelectorAll("body p");
       editor.caretManager.setCaret(ps[ps.length - 1].firstChild, 4);
       editor.type(ENTER);
 

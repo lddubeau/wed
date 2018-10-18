@@ -55,7 +55,7 @@ function serializeElement(out: string[], node: Element): void {
   }
   else {
     out.push(">");
-    let child = node.firstChild;
+    let child: Node | null = node.firstChild;
     while (child !== null) {
       _serialize(out, child);
       child = child.nextSibling;

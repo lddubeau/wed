@@ -83,7 +83,7 @@ _real`;
       }
     }
 
-    let child = node.firstChild;
+    let child: Node | null = node.firstChild;
     while (child !== null) {
       ret.appendChild(toHTMLTree(doc, child));
       child = child.nextSibling;

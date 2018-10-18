@@ -43,7 +43,7 @@ describe("convert", () => {
 
       it(name, () => {
         const root = parser.parseFromString(source, "application/xml")
-          .documentElement;
+          .documentElement!;
         const html = convert.toHTMLTree(window.document, root) as HTMLElement;
         // The reason this does not produce a diff seems to be that Mocha's HTML
         // reporter does not support diffs.

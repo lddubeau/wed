@@ -86,7 +86,7 @@ export class Button {
       throw new Error("called first render without a parent");
     }
 
-    const button = this.makeButton(parent.ownerDocument);
+    const button = this.makeButton(parent.ownerDocument!);
     this.el = button;
     parent.insertBefore(button, position);
   }

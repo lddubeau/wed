@@ -87,11 +87,13 @@ export function getElementNameFor(container: Element,
   return gui!.getElementsByClassName("_element_name")[0];
 }
 
-export function getAttributeValuesFor(container: Element): NodeListOf<Element> {
+export function getAttributeValuesFor(container: Element):
+HTMLCollectionOf<Element> {
   return firstGUI(container)!.getElementsByClassName("_attribute_value");
 }
 
-export function getAttributeNamesFor(container: Element): NodeListOf<Element> {
+export function getAttributeNamesFor(container: Element):
+HTMLCollectionOf<Element> {
   return firstGUI(container)!.getElementsByClassName("_attribute_name");
 }
 

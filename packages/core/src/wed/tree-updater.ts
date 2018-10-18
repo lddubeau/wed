@@ -329,7 +329,7 @@ export class TreeUpdater {
         const textAfter = node.data.slice(index);
         node.deleteData(index, node.length - index);
         if (parent !== null) {
-          parent.insertBefore(parent.ownerDocument.createTextNode(textAfter),
+          parent.insertBefore(parent.ownerDocument!.createTextNode(textAfter),
                               node.nextSibling);
         }
         ret = [node, node.nextSibling];

@@ -756,7 +756,7 @@ describe("dloc", () => {
       });
 
       it("returns the child of an element node", () => {
-        assert.equal(quoteNode.parentNode, quote.node);
+        assert.equal(quoteNode.parentNode as Node, quote.node);
         assert.equal(quote.pointedNode, quoteNode);
       });
 

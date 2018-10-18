@@ -228,9 +228,9 @@ export class Editor implements EditorAPI {
   private readonly sidebar: HTMLElement;
   private readonly validationProgress: HTMLElement;
   private readonly validationMessage: HTMLElement;
-  private readonly caretOwners: NodeListOf<Element>;
-  private readonly clickedLabels: NodeListOf<Element>;
-  private readonly withCaret: NodeListOf<Element>;
+  private readonly caretOwners: HTMLCollectionOf<Element>;
+  private readonly clickedLabels: HTMLCollectionOf<Element>;
+  private readonly withCaret: HTMLCollectionOf<Element>;
   private readonly $modificationStatus: JQuery;
   private readonly $saveStatus: JQuery;
   private readonly $navigationPanel: JQuery;
@@ -333,8 +333,8 @@ export class Editor implements EditorAPI {
     // We could be loaded in a frame in which case we should not alter anything
     // outside our frame.
     this.$frame = $(closest(this.widget, "html"));
-    const doc = this.doc = this.$frame[0].ownerDocument;
-    this.window = doc.defaultView;
+    const doc = this.doc = this.$frame[0].ownerDocument!;
+    this.window = doc.defaultView!;
 
     this.modals = new StockModals(this);
 
@@ -512,7 +512,7 @@ export class Editor implements EditorAPI {
     });
 
     $(this.window).on("popstate.wed", () => {
-      if (document.location.hash === "") {
+      if (document.location!.hash === "") {
         this.guiRoot.scrollTop = 0;
       }
     });
@@ -937,7 +937,7 @@ export class Editor implements EditorAPI {
     const ph =
       // tslint:disable-next-line:no-jquery-raw-elements
       $("<span class='_placeholder _transient' contenteditable='false'> \
-</span>", loc.node.ownerDocument)[0];
+</span>", loc.node.ownerDocument!)[0];
     this.guiUpdater.insertNodeAt(loc, ph);
     return ph;
   }
@@ -1344,7 +1344,7 @@ export class Editor implements EditorAPI {
          // about ._phantom._text elements in the data tree.
          const toConsider: Node[] = [];
          let ph: Element | undefined;
-         let child = target.firstChild;
+         let child: Node | null = target.firstChild;
          while (child !== null) {
            if (isText(child) ||
                (isElement(child) &&
@@ -2568,7 +2568,7 @@ in a way not supported by this version of wed.";
 
   private mousemoveHandler(e: JQueryMouseEventObject): void {
     let elementAtMouse = this.doc.elementFromPoint(e.clientX, e.clientY);
-    if (!this.guiRoot.contains(elementAtMouse)) {
+    if (elementAtMouse === null || !this.guiRoot.contains(elementAtMouse)) {
       // Not in GUI tree.
       return;
     }
@@ -3107,7 +3107,7 @@ in a way not supported by this version of wed.";
       return false;
     }
 
-    let child = node.firstChild;
+    let child: Node | null = node.firstChild;
     let childIx = 0;
     main_loop:
     while (child !== null) {

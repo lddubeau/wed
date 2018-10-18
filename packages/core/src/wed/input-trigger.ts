@@ -219,7 +219,7 @@ export class InputTrigger {
     }
 
     const text: Text[] = [];
-    let child = data.firstChild;
+    let child: Node | null = data.firstChild;
     while (child !== null) {
       if (isText(child)) {
         text.push(child);

@@ -179,7 +179,7 @@ export class ValidationController {
               private readonly errorLayer: ErrorLayer,
               private readonly errorList: HTMLElement,
               private readonly errorItemHandler: ErrorItemHandler) {
-    this.document = guiRoot.ownerDocument;
+    this.document = guiRoot.ownerDocument!;
     this.$errorList = $(errorList);
     this.refreshErrorsRunner =
       new TaskRunner(new RefreshValidationErrors(this));
@@ -395,7 +395,7 @@ export class ValidationController {
     if (marker === undefined) {
       // Turn the names into qualified names.
       const convertedNames = convertNames(error, this.resolver);
-      const doc = insertAt.node.ownerDocument;
+      const doc = insertAt.node.ownerDocument!;
       item = doc.createElement("li");
       const linkId = item.id = newGenericID();
       if (isAttr(dataNode) &&

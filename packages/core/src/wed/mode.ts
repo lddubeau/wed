@@ -257,7 +257,7 @@ export abstract class BaseMode<ModeOptions> implements Mode<ModeOptions> {
     let end = null;
     let endIx;
 
-    let child = element.firstChild;
+    let child: Node | null = element.firstChild;
     let childIx = 0;
     while (child !== null) {
       if (domtypeguards.isElement(child)) {
