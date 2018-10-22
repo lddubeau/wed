@@ -50,7 +50,6 @@ export class CaretMark {
               private readonly scroller: Scroller) {
     const el = this.el = doc.createElement("span");
     el.className = "_wed_caret";
-    el.setAttribute("contenteditable", "false");
     el.textContent = " ";
 
     const dummy = doc.createElement("span");
@@ -190,4 +189,4 @@ export class CaretMark {
   }
 }
 
-//  LocalWords:  MPL scroller contenteditable px
+//  LocalWords:  MPL scroller px

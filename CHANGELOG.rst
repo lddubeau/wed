@@ -5,7 +5,7 @@ there.
 Only salient changes are recorded here. Releases that contain only the
 odd bug fix may not get mentioned here at all.
 
-* 3.0.0:
+* 5.0.0:
 
   - Upgrade to salve 9.x. Immediate benefits are faster validation, and a
     smaller salve bundle. Breaking change: salve 8 and over do not support IE
@@ -17,6 +17,16 @@ odd bug fix may not get mentioned here at all.
 
   - Breaking change: the ``packed`` distribution no longer contains a
     non-minified bundle.
+
+* 3.0.0:
+
+  - Potentially breaking change: wed no longer makes the GUI tree
+    ``contenteditable``. Usages that depended on this behavior may be affected.
+
+    One consequence of this change is that key combinations that wed does not
+    handle now have no effect. In previous versions, a key combination that was
+    unhandled by wed would still be handled as an editing operation by the
+    browser.
 
 * 2.0.1:
 
