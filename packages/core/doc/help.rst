@@ -1150,7 +1150,7 @@ browser.
 
 * The latest stable version of Chrome.
 
-* The latest stable version of Edge.
+* The latest stable version of Edge, but `see the section on Edge <Edge_>`_.
 
 * Versions of Chrome or Edge older than the latest stable version, but not very
   old. (Yeah, this is vague. Sorry about that.)
@@ -1181,6 +1181,20 @@ supported:
   pages. (E.g. gaming consoles, smart TVs.)
 
 * Operating systems or browsers no longer supported by their own vendors.
+
+Edge
+----
+
+Cut-copy-paste are not working well in Edge, and there is currently no
+development resource available to devote to it. The root cause is that the
+luminaries who develop Edge cannot be bothered to implement the clipboard API
+correctly. See:
+
+* https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/14080506/
+* https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/14110451/
+
+At the time of writing this, the bugs were reported over a year ago: response
+from Microsoft... crickets.
 
 Firefox
 -------
