@@ -351,6 +351,10 @@ function *ghPages() {
     yield exec("node tasks/modify_config.js -d config.ajaxlog -d config.save " +
                `${globalConfig}.t > ${globalConfig}`);
   }
+
+  const tutorialData = `${dest}/tutorial_data`;
+  yield cprpdir("build/standalone/lib/tests/wed_test_data/unit_selection.xml",
+                tutorialData);
 }
 
 gulp.task("gh-pages", ["gh-pages-check", "default", "doc"],
