@@ -4,7 +4,7 @@ const gulpFilter = require("gulp-filter");
 const less = require("gulp-less");
 const rename = require("gulp-rename");
 const changed = require("gulp-changed");
-const es = require("event-stream");
+const through2 = require("through2");
 const vinylFile = require("vinyl-file");
 const Promise = require("bluebird");
 const path = require("path");
@@ -79,12 +79,11 @@ gulp.task("config", () => {
   const configPath = "../../config";
   const localConfigPath = "../../local_config";
   return gulp.src(path.join(configPath, "**"), { nodir: true })
-    .pipe(es.map(
-      (file, callback) => vinylFile.read(
-        path.join(localConfigPath, file.relative),
-        { base: localConfigPath })
-        .then(override => callback(null, override),
-              () => callback(null, file))))
+    .pipe(through2.obj((file, enc, callback) => vinylFile.read(
+      path.join(localConfigPath, file.relative),
+      { base: localConfigPath })
+                       .then(override => callback(null, override),
+                             () => callback(null, file))))
   // We do not use newer here as it would sometimes have
   // unexpected effects.
     .pipe(changed(dest, { hasChanged: changed.compareContents }))
@@ -116,12 +115,12 @@ gulp.task("convert-wed-yaml", () => {
       extname: ".json",
     }))
     .pipe(gulpNewer(dest))
-    .pipe(es.mapSync((file) => {
+    .pipe(through2.obj((file, enc, callback) => {
       file.contents = Buffer.from(JSON.stringify(yaml.safeLoad(file.contents, {
         schema: yaml.JSON_SCHEMA,
       })));
 
-      return file;
+      callback(null, file);
     }))
     .pipe(gulp.dest(dest));
 });
