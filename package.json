@@ -86,7 +86,7 @@
     "karma-mocha-reporter": "^2.2.4",
     "karma-source-map-support": "^1.2.0",
     "karma-typescript-agile-preprocessor": "^2.0.1",
-    "last-resort": "^0.1.0",
+    "last-resort": "^1.0.1",
     "less": "^2",
     "link-parent-bin": "^0.2.3",
     "localforage": "^1.7.2",
