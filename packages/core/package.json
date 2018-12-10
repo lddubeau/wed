@@ -34,7 +34,7 @@
     "inversify": "^4.13.0",
     "js-yaml": "^3.12.0",
     "reflect-metadata": "^0.1.12",
-    "salve": "^9.0.0"
+    "salve": "^9.0.1"
   },
   "bin": {
     "wed-metadata": "./bin/wed-metadata"

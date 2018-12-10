@@ -7,16 +7,21 @@ odd bug fix may not get mentioned here at all.
 
 * 5.0.0:
 
-  - Upgrade to salve 9.x. Immediate benefits are faster validation, and a
-    smaller salve bundle. Breaking change: salve 8 and over do not support IE
-    any longer, and Safari version 9 or older. This means wed no longer suports
-    them either.
-
   - We no longer depend on Lodash. The minified bundle was immediately reduced
     in size by 10%.
 
   - Breaking change: the ``packed`` distribution no longer contains a
     non-minified bundle.
+
+* 4.0.0:
+
+  - Potentially breaking change: Upgrade to salve 9.x. Immediate benefits are
+    faster validation, and a smaller salve bundle. This affects scenarios in
+    which salve is used outside wed.
+
+  - Potentially breaking change: we no longer downcompile to ES5. If ES5
+    downcompilation is desired, someone will have to provide the patch and
+    maintain it. This affects only scenarios where ES5 support is necessary.
 
 * 3.0.0:
 
