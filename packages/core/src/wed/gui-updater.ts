@@ -32,7 +32,7 @@ export class GUIUpdater extends TreeUpdater {
   constructor(guiTree: Element, private readonly treeUpdater: TreeUpdater) {
     super(guiTree);
     this.haveTooltips =
-      guiTree.ownerDocument.getElementsByClassName("wed-has-tooltip");
+      guiTree.ownerDocument!.getElementsByClassName("wed-has-tooltip");
     this.treeUpdater.events.subscribe((ev) => {
       switch (ev.name) {
       case "InsertNodeAt":

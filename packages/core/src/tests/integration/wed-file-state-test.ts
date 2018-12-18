@@ -55,7 +55,7 @@ describe("wed file state:", () => {
   it("onbeforeunload returns falsy on unmodified doc", () => {
     assert.isFalse(!!editor.window.onbeforeunload!
                    // tslint:disable-next-line:no-any
-                   .call(editor.window, undefined) as any);
+                   .call(editor.window, undefined as any) as any);
   });
 
   it("modification status shows a modified document after modification", () => {
@@ -74,7 +74,8 @@ describe("wed file state:", () => {
     editor.type(" ");
 
     assert.isTrue(!!editor.window.onbeforeunload!
-                  .call(editor.window, undefined));
+                   // tslint:disable-next-line:no-any
+                  .call(editor.window, undefined as any));
   });
 
   it("modification status shows an unmodified document after save", () => {

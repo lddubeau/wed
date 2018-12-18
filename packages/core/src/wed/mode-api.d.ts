@@ -23,7 +23,7 @@ import { Options } from "./options";
 import { Runtime } from "./runtime";
 import { SelectionMode, SelectionModeChange } from "./selection-mode";
 import { StockModals } from "./stock-modals";
-import { Transformation, TransformationData,
+import { NamedTransformationData, Transformation, TransformationData,
          TransformationEvent } from "./transformation";
 import { TreeUpdater } from "./tree-updater";
 import { UndoEvents, UndoMarker } from "./undo";
@@ -197,7 +197,7 @@ export interface EditorAPI extends EditorInstance {
    * The action to perform is a user is trying to do something with a complex
    * pattern.
    */
-  readonly complexPatternAction: Action<{}>;
+  readonly complexPatternAction: Action<null>;
 
   /** Paste transformation. */
   readonly pasteTr: Transformation<PasteTransformationData>;
@@ -212,7 +212,7 @@ export interface EditorAPI extends EditorInstance {
   readonly cutUnitTr: Transformation<CutUnitTransformationData>;
 
   /** Transformation for splitting nodes. */
-  readonly splitNodeTr: Transformation<TransformationData>;
+  readonly splitNodeTr: Transformation<NamedTransformationData>;
 
   /** Replace a range with text. */
   readonly replaceRangeTr: Transformation<ReplaceRangeTransformationData>;
@@ -381,7 +381,7 @@ export interface EditorAPI extends EditorInstance {
    * list contain ``undefined`` for ``name``.
    */
   getElementTransformationsAt(treeCaret: DLoc, types: string |  string[]):
-  { tr: Action<{}>, name?: string }[];
+  { tr: Action<{}> | Action<null>; name?: string }[];
 
   /**
    * Sets the list of items to show in the navigation list. This will make the

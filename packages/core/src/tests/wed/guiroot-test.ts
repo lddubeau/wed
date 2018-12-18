@@ -16,6 +16,8 @@ import { DataProvider } from "../util";
 
 const assert = chai.assert;
 
+// tslint:disable:no-any
+
 function defined<T>(x: T | null | undefined): T {
   assert.isDefined(x);
   // The assertion above already excludes null and undefined, but TypeScript
@@ -124,10 +126,10 @@ describe("guiroot", () => {
       });
 
       it("fails on invalid node", () => {
-        assert.throws(rootObj.nodeToPath.bind(rootObj, null),
+        assert.throws(rootObj.nodeToPath.bind(rootObj, null as any),
                       Error, "node is not a descendant of root");
 
-        assert.throws(rootObj.nodeToPath.bind(rootObj, undefined),
+        assert.throws(rootObj.nodeToPath.bind(rootObj, undefined as any),
                       Error, "node is not a descendant of root");
       });
 

@@ -76,7 +76,7 @@ export function makeResizable($top: JQuery): void {
   // user releases the button when the pointer is outside. Without the use of
   // ignoreBackdropClick, this causes the modal to close.
   const content = $top.find(".modal-content")[0];
-  const body = $top.find(".modal-body")[0];
+  const body = $top.find(".modal-body")[0] as HTMLElement;
   interact(content)
     .resizable({})
     .on("resizestart", () => {
@@ -114,7 +114,7 @@ export function makeResizable($top: JQuery): void {
 export function makeDraggable($top: JQuery): void {
   const win = $top[0].ownerDocument!.defaultView!;
   const header = $top.find(".modal-header")[0];
-  const content = $top.find(".modal-content")[0];
+  const content = $top.find(".modal-content")[0] as HTMLElement;
 
   let startLeft: number;
   let startTop: number;

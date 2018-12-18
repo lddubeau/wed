@@ -112,7 +112,8 @@ InputTrigger {
       ev.preventDefault();
     }
     if (eventType === "keypress" || eventType === "keydown") {
-      editor.fireTransformation(editor.splitNodeTr, { node: el });
+      editor.fireTransformation(editor.splitNodeTr, { node: el,
+                                                      name: el.tagName });
     }
     else {
       editor.fireTransformation(

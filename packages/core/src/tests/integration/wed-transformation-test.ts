@@ -5,6 +5,7 @@
  */
 import { CaretManager } from "wed/caret-manager";
 import { Editor } from "wed/editor";
+import { Transformation, TransformationData } from "wed/transformation";
 
 import * as globalConfig from "../base-config";
 import { caretCheck, EditorSetup, getAttributeNamesFor, getAttributeValuesFor,
@@ -297,7 +298,7 @@ describe("wed transformation:", () => {
                "the caret should be in the element name");
     let first = true;
     editor.transformations.subscribe((ev) => {
-      assert.equal(ev.transformation, tr);
+      assert.equal(ev.transformation, tr as Transformation<TransformationData>);
       if (first) {
         assert.equal(ev.name, "StartTransformation");
         first = false;

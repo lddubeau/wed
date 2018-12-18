@@ -52,7 +52,7 @@ const KEY_TO_FILTER: {
 ];
 
 export interface Item {
-  action: Action<{}> | null;
+  action: Action<{} | null> | null;
   item: Element;
   data: TransformationData | null;
 }
@@ -243,7 +243,8 @@ export class ActionContextMenu extends Base {
         // clipped by the dropdown. However, we then run into the problem that
         // when the dropdown menu is removed, the tooltip may remain displayed.
         container: "body",
-        placement: "auto top",
+        // Cast is necessary due to bug in Bootstrap definitions.
+        placement: "auto top" as "auto",
         trigger: "hover",
       });
       $(child).on("click", this.makeKindHandler(kind));
@@ -276,7 +277,8 @@ export class ActionContextMenu extends Base {
         // clipped by the dropdown. However, we then run into the problem that
         // when the dropdown menu is removed, the tooltip may remain displayed.
         container: "body",
-        placement: "auto top",
+        // Cast is necessary due to bug in Bootstrap definitions.
+        placement: "auto top" as "auto",
         trigger: "hover",
       });
       $(child).on("click", this.makeTypeHandler(actionType));
@@ -358,7 +360,7 @@ export class ActionContextMenu extends Base {
     return true;
   }
 
-  private inputChangeHandler(ev: KeyboardEvent): void {
+  private inputChangeHandler(ev: JQueryKeyEventObject): void {
     const previous = this.actionTextFilter;
     const newval = (ev.target as HTMLInputElement).value;
     // IE11 generates input events when focus is lost/gained. These
@@ -370,7 +372,7 @@ export class ActionContextMenu extends Base {
     }
   }
 
-  private inputKeydownHandler(ev: KeyboardEvent): boolean {
+  private inputKeydownHandler(ev: JQueryKeyEventObject): boolean {
     if (keyConstants.ENTER.matchesEvent(ev)) {
       this.$menu.find(ITEM_SELECTOR).first().focus().click();
       ev.stopPropagation();

@@ -80,7 +80,8 @@ describe("validator", () => {
       const body = tree.getElementsByTagName("body")[0];
       const container = body.parentNode!;
       const index = Array.prototype.indexOf.call(container.childNodes, body);
-      assert.throws(p.speculativelyValidateFragment.bind(
+      // tslint:disable-next-line:no-any
+      assert.throws((p.speculativelyValidateFragment.bind as any)(
         p, DLoc.makeDLoc(dataRoot, container, index),
         document.createTextNode("blah")), Error, "toParse is not an element");
     });

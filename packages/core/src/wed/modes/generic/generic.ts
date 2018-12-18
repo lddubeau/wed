@@ -203,9 +203,10 @@ class GenericMode<Options extends GenericModeOptions>
     for (const ttype of transformationType) {
       const val = this.tagTr[ttype];
       if (val !== undefined) {
-        ret.push(val);
+        ret.push(val as unknown as Action<{}>);
       }
     }
+
     return ret;
   }
 }

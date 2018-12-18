@@ -29,24 +29,24 @@ describe("wed validation errors:", () => {
   let refreshRunner: TaskRunner;
   let guiRoot: Element;
 
-  before(() => {
+  before(async () => {
     setup = new EditorSetup(
       "/base/build/standalone/lib/tests/wed_test_data/source_converted.xml",
       globalConfig.config,
       document);
     ({ editor } = setup);
-    return setup.init().then(() => {
-      // tslint:disable-next-line:no-any
-      (editor.validator as any)._validateUpTo(editor.dataRoot, -1);
-      // tslint:disable-next-line:no-any
-      processRunner = (editor as any).validationController.processErrorsRunner;
-      // tslint:disable-next-line:no-any
-      refreshRunner = (editor as any).validationController.refreshErrorsRunner;
-      caretManager = editor.caretManager;
-      // tslint:disable-next-line:no-any
-      controller = (editor as any).validationController;
-      guiRoot = editor.guiRoot;
-    });
+    await setup.init();
+
+    // tslint:disable-next-line:no-any
+    (editor.validator as any)._validateUpTo(editor.dataRoot, -1);
+    // tslint:disable-next-line:no-any
+    processRunner = (editor as any).validationController.processErrorsRunner;
+    // tslint:disable-next-line:no-any
+    refreshRunner = (editor as any).validationController.refreshErrorsRunner;
+    caretManager = editor.caretManager;
+    // tslint:disable-next-line:no-any
+    controller = (editor as any).validationController;
+    guiRoot = editor.guiRoot;
   });
 
   beforeEach(() => {
@@ -220,17 +220,17 @@ within 5 pixels of the bottom of the start label for the monogr");
       await processRunner.onCompleted();
       // tslint:disable-next-line:no-any
       const errorLayer = (editor as any).errorLayer.el as Element;
-      let orig = _slice.call(errorLayer.children);
+      let orig = _slice.call(errorLayer.children) as Element[];
 
       // Reduce the visibility level.
       editor.type(keyConstants.LOWER_LABEL_VISIBILITY);
-      let after;
+      let after: Element[] | undefined;
       await waitForSuccess(() => {
         after = _slice.call(errorLayer.children);
         assertNewMarkers(orig, after, "decreasing the level");
       });
 
-      orig = after;
+      orig = after!;
 
       // Increase visibility level
       editor.type(keyConstants.INCREASE_LABEL_VISIBILITY);
@@ -263,7 +263,7 @@ within 5 pixels of the bottom of the start label for the monogr");
       await processRunner.onCompleted();
       // tslint:disable-next-line:no-any
       const errorLayer = (editor as any).errorLayer.el as Element;
-      let orig = _slice.call(errorLayer.children);
+      let orig = _slice.call(errorLayer.children) as Element[];
 
       const divs = editor.dataRoot.querySelectorAll("body>div");
       const div = divs[divs.length - 1];
@@ -275,7 +275,7 @@ within 5 pixels of the bottom of the start label for the monogr");
       // Move into the label.
       editor.caretManager.setCaret(div, 0);
       editor.caretManager.move("left");
-      let after;
+      let after: Element[] | undefined;
       await processRunner.onCompleted();
       await waitForSuccess(() => {
         after = _slice.call(errorLayer.children);
@@ -284,7 +284,7 @@ within 5 pixels of the bottom of the start label for the monogr");
         assert.isDefined(getError().marker);
       });
 
-      orig = after;
+      orig = after!;
 
       // Move out of the label.
       editor.caretManager.move("right");

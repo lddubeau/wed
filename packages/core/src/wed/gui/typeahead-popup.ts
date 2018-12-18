@@ -83,7 +83,9 @@ export class TypeaheadPopup {
     if (options.datasets != null && options.datasets.length > 0) {
       args = args.concat(options.datasets);
     }
-    $ta.typeahead.apply($ta, args);
+    // We don't have typings for typeahead
+    // tslint:disable-next-line:no-any
+    ($ta as any).typeahead.apply($ta, args);
 
     $ta.on("keydown", this._keydownHandler.bind(this));
     $ta.on("typeahead:selected", this._selectedHandler.bind(this));

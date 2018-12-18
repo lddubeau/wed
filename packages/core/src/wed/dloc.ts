@@ -338,7 +338,8 @@ export class DLoc {
       throw new Error("called mustMakeDLoc with an absent node");
     }
 
-    return this.makeDLoc.apply(this, arguments);
+    // tslint:disable-next-line:no-any
+    return (this.makeDLoc.apply as any)(this, arguments);
   }
 
   /**

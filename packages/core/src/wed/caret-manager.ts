@@ -413,7 +413,8 @@ export class CaretManager implements GUIToDataConverter {
   mustFromDataLocation(node: Node, offset: number): DLoc;
   // @ts-ignore
   mustFromDataLocation(node: Node | DLoc, offset?: number): DLoc {
-    const ret = this.fromDataLocation.apply(this, arguments);
+    // tslint:disable-next-line:no-any
+    const ret = (this.fromDataLocation.apply as any)(this, arguments);
     if (ret === undefined) {
       throw new Error("cannot convert to a data location");
     }

@@ -16,6 +16,8 @@ import { DataProvider } from "../util";
 
 const assert = chai.assert;
 
+// tslint:disable:no-any
+
 function defined<T>(x: T | null | undefined): T {
   assert.isDefined(x);
   // The assertion above already excludes null and undefined, but TypeScript
@@ -117,10 +119,10 @@ describe("dloc", () => {
          });
 
       it("fails on invalid node", () => {
-        assert.throws(rootObj.nodeToPath.bind(rootObj, null),
+        assert.throws(rootObj.nodeToPath.bind(rootObj, null as any),
                       Error, "invalid node parameter");
 
-        assert.throws(rootObj.nodeToPath.bind(rootObj, undefined),
+        assert.throws(rootObj.nodeToPath.bind(rootObj, undefined as any),
                       Error, "invalid node parameter");
       });
     });
@@ -239,40 +241,40 @@ describe("dloc", () => {
 
     it("throws an error when the node is not in the root", () => {
       const c = defined($root.parent()[0]);
-      assert.throws(DLoc.makeDLoc.bind(undefined, root, c, 0),
+      assert.throws((DLoc.makeDLoc.bind as any)(undefined, root, c, 0),
                    Error, "node not in root");
     });
 
     it("throws an error when the root is not marked", () => {
       const c = defined($root.parent()[0]);
-      assert.throws(DLoc.makeDLoc.bind(undefined, c, c, 0), Error,
+      assert.throws((DLoc.makeDLoc.bind as any)(undefined, c, c, 0), Error,
                     /^root has not been marked as a root/);
     });
 
     it("throws an error when the offset is negative", () => {
       const c = defined($root.parent()[0]);
-      assert.throws(DLoc.makeDLoc.bind(undefined, root, c, -1), Error,
+      assert.throws((DLoc.makeDLoc.bind as any)(undefined, root, c, -1), Error,
                     /^negative offsets are not allowed/);
     });
 
     it("throws an error when the offset is too large (element)", () => {
       const c = defined($(".p")[0]);
       assert.equal(c.nodeType, Node.ELEMENT_NODE);
-      assert.throws(DLoc.makeDLoc.bind(undefined, root, c, 100), Error,
+      assert.throws((DLoc.makeDLoc.bind as any)(undefined, root, c, 100), Error,
                     /^offset greater than allowable value/);
     });
 
     it("throws an error when the offset is too large (text)", () => {
       const c = defined($(".body .p")[0].firstChild);
       assert.equal(c.nodeType, Node.TEXT_NODE);
-      assert.throws(DLoc.makeDLoc.bind(undefined, root, c, 100), Error,
+      assert.throws((DLoc.makeDLoc.bind as any)(undefined, root, c, 100), Error,
                    /^offset greater than allowable value/);
     });
 
     it("throws an error when the offset is too large (attribute)", () => {
       const c = defined($(".quote")[0].getAttributeNode(encodedType));
       assert.isTrue(isAttr(c));
-      assert.throws(DLoc.makeDLoc.bind(undefined, root, c, 100), Error,
+      assert.throws((DLoc.makeDLoc.bind as any)(undefined, root, c, 100), Error,
                     /^offset greater than allowable value/);
     });
 
@@ -306,7 +308,7 @@ describe("dloc", () => {
 
   describe("mustMakeDLoc", () => {
     it("throws when called with undefined location", () => {
-      assert.throws(DLoc.mustMakeDLoc.bind(undefined, root, undefined),
+      assert.throws((DLoc.mustMakeDLoc.bind as any)(undefined, root, undefined),
                     Error,
                     /^called mustMakeDLoc with an absent node$/);
     });
@@ -331,7 +333,7 @@ describe("dloc", () => {
 
     it("throws when called with an array that has an undefined first member",
        () => {
-         assert.throws(DLoc.mustMakeDLoc.bind(
+         assert.throws((DLoc.mustMakeDLoc.bind as any)(
            undefined,
            root,
            [undefined, 0]),
@@ -603,7 +605,7 @@ describe("dloc", () => {
     });
 
     describe("equals", () => {
-      let p: HTMLElement;
+      let p: Element;
       let loc: DLoc;
       before(() => {
         p = defined($(".body .p")[0]);
@@ -638,7 +640,7 @@ describe("dloc", () => {
     });
 
     describe("compare", () => {
-      let p: HTMLElement;
+      let p: Element;
       let loc: DLoc;
       before(() => {
         p = defined($(".body .p")[0]);
@@ -778,7 +780,7 @@ describe("dloc", () => {
     });
 
     describe("makeWithOffset", () => {
-      let p: HTMLElement;
+      let p: Element;
       let loc: DLoc;
       before(() => {
         p = defined($(".body .p")[0]);
@@ -800,7 +802,7 @@ describe("dloc", () => {
     });
 
     describe("getLocationInParent", () => {
-      let p: HTMLElement;
+      let p: Element;
       let loc: DLoc;
       before(() => {
         p = defined($(".body .p")[1]);
@@ -822,7 +824,7 @@ describe("dloc", () => {
     });
 
     describe("getLocationAfterInParent", () => {
-      let p: HTMLElement;
+      let p: Element;
       let loc: DLoc;
       before(() => {
         p = defined($(".body .p")[1]);

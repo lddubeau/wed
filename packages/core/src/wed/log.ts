@@ -101,7 +101,7 @@ export function wrap<T extends (this: any, ...args: any[]) => any>(fn: T): T {
   return function wrapper(this: any, ...args: any[]): any {
     try {
       // tslint:disable-next-line:no-invalid-this
-      return fn.apply(this, arguments);
+      return fn.apply(this, arguments as any);
     }
     catch (ex) {
       handle(ex);

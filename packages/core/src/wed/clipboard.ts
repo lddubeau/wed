@@ -127,7 +127,7 @@ export class Clipboard {
         // move around.
         this.clear();
         collection =
-          top.ownerDocument.createElementNS(CLIPBOARD_NS, "wed:attributes");
+          top.ownerDocument!.createElementNS(CLIPBOARD_NS, "wed:attributes");
         top.appendChild(collection);
       }
       collection.setAttributeNode(node);

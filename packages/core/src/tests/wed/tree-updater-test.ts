@@ -19,6 +19,8 @@ import { DataProvider } from "../util";
 
 const assert = chai.assert;
 
+// tslint:disable:no-any
+
 function filterSetTextNodeValue(ev: TreeUpdaterEvents):
 ev is SetTextNodeValueEvent {
   return ev.name === "SetTextNodeValue";
@@ -170,13 +172,14 @@ describe("TreeUpdater", () => {
     it("fails on node which is not child of the top", () => {
       const top = root.querySelector(".p");
       const node = root.querySelector(".title");
-      assert.throws(tu.splitAt.bind(tu, top, node, 0), Error,
+      assert.throws((tu.splitAt.bind as any)(tu, top, node, 0), Error,
                     "split location is not inside top");
     });
 
     it("fails if splitting would denormalize an element", () => {
       const node = root.querySelector(".title")!;
-      assert.throws(tu.splitAt.bind(tu, node.firstChild, node.firstChild, 2),
+      assert.throws((tu.splitAt.bind as any)(tu, node.firstChild,
+                                             node.firstChild, 2),
                     Error,
                     "splitAt called in a way that would result in " +
                     "two adjacent text nodes");
@@ -429,7 +432,7 @@ quoted3</div></div>\
   describe("deleteText", () => {
     it("fails on non-text node", () => {
       const node = root.querySelector(".title")!;
-      assert.throws(tu.deleteText.bind(tu, node, 0, "t"), Error,
+      assert.throws((tu.deleteText.bind as any)(tu, node, 0, "t"), Error,
                    "deleteText called on non-text");
     });
 
@@ -476,7 +479,7 @@ quoted3</div></div>\
   describe("setAttribute", () => {
     it("fails on non-element node", () => {
       const node = root.querySelector(".title")!.firstChild;
-      assert.throws(tu.setAttribute.bind(tu, node, "q", "ab"), Error,
+      assert.throws(tu.setAttribute.bind(tu, node as Element, "q", "ab"), Error,
                     "setAttribute called on non-element");
     });
 
@@ -529,14 +532,15 @@ quoted3</div></div>\
   describe("insertIntoText", () => {
     it("fails on non-text node", () => {
       const node = root.querySelector(".title")!;
-      assert.throws(tu.insertIntoText.bind(tu, node, 0, node), Error,
+      assert.throws(tu.insertIntoText.bind(tu, node as any, 0, node), Error,
                     "insertIntoText called on non-text");
     });
 
     it("fails on undefined node to insert", () => {
       const node = root.querySelector(".title")!.firstChild;
-      assert.throws(tu.insertIntoText.bind(tu, node, 0, undefined), Error,
-                    "must pass an actual node to insert");
+      assert.throws(tu.insertIntoText.bind(tu, node as Text, 0,
+                                           undefined as any),
+                    Error, "must pass an actual node to insert");
     });
 
     it("generates appropriate events when inserting a new element", () => {
@@ -692,7 +696,7 @@ quoted3</div></div>\
   describe("setTextNodeValue", () => {
     it("fails on non-text node", () => {
       const node = root.querySelector(".title")!;
-      assert.throws(tu.setTextNode.bind(tu, node, "test"), Error,
+      assert.throws(tu.setTextNode.bind(tu, node as any, "test"), Error,
                    "setTextNode called on non-text");
     });
 
@@ -976,7 +980,7 @@ quoted2</div> after</div>");
       // test.
       const node = root.querySelectorAll(".body>.p")[2]
         .querySelector(".quote")!;
-      assert.throws(tu.removeNodes.bind(tu, [node, node.parentNode]),
+      assert.throws(tu.removeNodes.bind(tu, [node, node.parentNode!]),
                     Error,
                    "nodes are not immediately contiguous in document order");
     });

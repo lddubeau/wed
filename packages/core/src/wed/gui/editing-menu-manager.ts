@@ -12,7 +12,7 @@ import { closestByClass, htmlToElements, indexOf,
          isNotDisplayed } from "../domutil";
 import { Editor } from "../editor";
 import { ModeTree } from "../mode-tree";
-import { Transformation, TransformationData } from "../transformation";
+import { Transformation } from "../transformation";
 import { ActionContextMenu, Item } from "./action-context-menu";
 import { CompletionMenu } from "./completion-menu";
 import { ContextMenu } from "./context-menu";
@@ -95,7 +95,8 @@ export class EditingMenuManager {
       this.getMenuItemsForAttribute :
       this.getMenuItemsForElement;
 
-    const menuItems = method.call(this, node, offset, !sel.collapsed);
+    // tslint:disable-next-line:no-any
+    const menuItems = (method as any).call(this, node, offset, !sel.collapsed);
 
     // There's no menu to display, so let the event bubble up.
     if (menuItems.length === 0) {
@@ -223,10 +224,10 @@ export class EditingMenuManager {
     }
 
     const menuItems: Item[] = [];
-    const pushItem = (data: TransformationData | null,
-                      tr: Action<TransformationData>): void =>  {
+    const pushItem = <D>(data: D, tr: Action<D>): void =>  {
       const li = this.makeMenuItemForAction(tr, data);
-      menuItems.push({ action: tr, item: li, data: data });
+      // tslint:disable-next-line:no-any
+      menuItems.push({ action: tr, item: li, data: data } as any);
     };
 
     if (// Should not be part of a gui element.
@@ -251,7 +252,13 @@ export class EditingMenuManager {
       for (const tr of trs) {
         // If tr.name is not undefined we have a real transformation.
         // Otherwise, it is an action.
-        pushItem((tr.name !== undefined) ? { name: tr.name } : null, tr.tr);
+        // TS 3.2.2 does not like the inline and messes up inference.
+        if (tr.name !== undefined) {
+          pushItem({ name: tr.name }, tr.tr as Action<{}>);
+        }
+        else {
+          pushItem(null, tr.tr as Action<null>);
+        }
       }
 
       if (dataNode !== this.dataRoot.firstChild && dataNode !== this.dataRoot) {

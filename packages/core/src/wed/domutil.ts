@@ -1074,7 +1074,7 @@ export function isWellFormedRange(range: RangeLike): boolean {
 export interface GenericCutContext {
   deleteText(node: Text, index: number, length: number): void;
   deleteNode(node: Node): void;
-  mergeTextNodes(node: Node): Caret;
+  mergeTextNodes(node: Node): void;
 }
 
 export type CutResult = [Caret, Node[]];
@@ -1245,7 +1245,7 @@ export function copy(startCaret: Caret, endCaret: Caret): Node[] {
     const startContainerOffset = indexOf(parent.childNodes, startContainer);
     const endTextOffset = sameContainer ? endOffset : startContainer.length;
 
-    startText = parent.ownerDocument.createTextNode(
+    startText = parent.ownerDocument!.createTextNode(
       startContainer.data.slice(startOffset, endTextOffset));
 
     if (sameContainer) {
@@ -1267,7 +1267,7 @@ export function copy(startCaret: Caret, endCaret: Caret): Node[] {
 
     const endContainerOffset = indexOf(parent.childNodes, endContainer);
 
-    endText = parent.ownerDocument.createTextNode(
+    endText = parent.ownerDocument!.createTextNode(
       endContainer.data.slice(0, endOffset));
 
     // Alter our end to take care of the rest

@@ -15,7 +15,7 @@ import * as salve from "salve";
 import { ParsingError, safeParse, WorkingState,
          WorkingStateData } from "salve-dom";
 
-import { FailedEvent, GrammarLoader, Options, Runtime, SaveKind,
+import { FailedEvent, GrammarLoader, Options, Runtime, SaveEvents, SaveKind,
          Saver } from "@wedxml/client-api";
 import * as optionsSchema from "@wedxml/client-api/options-schema.json";
 import { EDITOR_OPTIONS, EDITOR_WIDGET, GRAMMAR_LOADER,
@@ -62,8 +62,9 @@ import { SelectionMode, SelectionModeChange } from "./selection-mode";
 import { StockModals } from "./stock-modals";
 import { Task, TaskRunner } from "./task-runner";
 import { insertElement, mergeWithNextHomogeneousSibling,
-         mergeWithPreviousHomogeneousSibling, removeMarkup, splitNode,
-         Transformation, TransformationData, TransformationEvent,
+         mergeWithPreviousHomogeneousSibling, NamedTransformationData,
+         removeMarkup, splitNode, Transformation, TransformationData,
+         TransformationEvent,
          TransformationEventSubject } from "./transformation";
 import { BeforeInsertNodeAtEvent, TreeUpdater } from "./tree-updater";
 import { Undo, UndoEvents, UndoList } from "./undo";
@@ -84,14 +85,17 @@ export type KeydownHandler = (wedEv: JQueryEventObject,
 // seen elsewhere.
 const ESCAPE_KEYPRESS = makeKey(27);
 
-function filterSaveEvents(name: string, ev: { name: string }): boolean {
+type Filter<T, U> = T extends U ? T : never;
+function filterSaveEvents<T extends SaveEvents["name"]>(name: T,
+                                                        ev: SaveEvents):
+ev is Filter<SaveEvents, { name: T }> {
   return ev.name === name;
 }
 
 /**
  * An action for bringing up the complex pattern modal.
  */
-class ComplexPatternAction extends Action<{}> {
+class ComplexPatternAction extends Action<null> {
   private _modal: Modal | undefined;
 
   get modal(): Modal {
@@ -290,13 +294,13 @@ export class Editor implements EditorAPI {
   readonly guiRoot: HTMLElement;
   readonly $guiRoot: JQuery;
   readonly $errorList: JQuery;
-  readonly complexPatternAction: Action<{}>;
+  readonly complexPatternAction: Action<null>;
   readonly pasteTr: Transformation<PasteTransformationData>;
   readonly pasteUnitTr: Transformation<PasteTransformationData>;
   readonly cutTr: Transformation<TransformationData>;
   readonly cutUnitTr: Transformation<CutUnitTransformationData>;
   readonly deleteSelectionTr: Transformation<TransformationData>;
-  readonly splitNodeTr: Transformation<TransformationData>;
+  readonly splitNodeTr: Transformation<NamedTransformationData>;
   readonly replaceRangeTr: Transformation<ReplaceRangeTransformationData>;
   readonly removeMarkupTr: Transformation<TransformationData>;
   readonly saveAction: Action<{}> =
@@ -309,7 +313,7 @@ export class Editor implements EditorAPI {
     new editorActions.Undo(this);
   readonly redoAction: Action<{}> =
     new editorActions.Redo(this);
-  readonly toggleAttributeHidingAction: Action<{}> =
+  readonly toggleAttributeHidingAction: Action<boolean> =
     new editorActions.ToggleAttributeHiding(this);
   readonly setSelectionModeToSpan: Action<{}> =
     new editorActions.SetSelectionMode(this, "span",
@@ -572,7 +576,7 @@ export class Editor implements EditorAPI {
     });
 
     $(this.window).on("popstate.wed", () => {
-      if (document.location!.hash === "") {
+      if (document.location.hash === "") {
         this.guiRoot.scrollTop = 0;
       }
     });
@@ -680,16 +684,14 @@ export class Editor implements EditorAPI {
       throw new Error("transformation applied with undefined caret.");
     }
 
-    const start =
-      new TransformationEvent("StartTransformation",
-                              tr as Transformation<TransformationData>);
+    // tslint:disable-next-line:no-any
+    const start = new TransformationEvent("StartTransformation", tr as any);
     this._transformations.next(start);
     start.throwIfAborted();
 
     tr.handler(this, data);
-    const end =
-      new TransformationEvent("EndTransformation",
-                              tr as Transformation<TransformationData>);
+    // tslint:disable-next-line:no-any
+    const end = new TransformationEvent("EndTransformation", tr as any);
     this._transformations.next(end);
     end.throwIfAborted();
   }
@@ -1137,7 +1139,8 @@ export class Editor implements EditorAPI {
     if (error.type === "too_old") {
       // Reload when the modal is dismissed.
       this.modals.getModal("tooOld").modal(
-        this.window.location.reload.bind(this.window.location));
+        // tslint:disable-next-line:no-any
+        this.window.location.reload.bind(this.window.location) as any);
     }
     else if (error.type === "save_disconnected") {
       this.modals.getModal("disconnect").modal(() => {
@@ -1385,7 +1388,7 @@ export class Editor implements EditorAPI {
                                this.validationProgress,
                                this.validationMessage,
                                this.errorLayer,
-                               this.$errorList[0],
+                               this.$errorList[0] as HTMLElement,
                                this.errorItemHandlerBound);
     return this.postInitialize();
   }
@@ -1721,7 +1724,11 @@ wed's generic help. The link by default will open in a new tab.</p>`);
     saver.events.pipe(filter(filterSaveEvents.bind(undefined, "Autosaved")))
       .subscribe(this.onSaverAutosaved.bind(this));
 
-    saver.events.pipe(filter(filterSaveEvents.bind(undefined, "Failed")))
+    saver.events
+    // We need the typecast because bind loses typeguardness of
+    // filterSaveEvents.
+      .pipe(filter(filterSaveEvents.bind(undefined, "Failed") as
+                   (ev: SaveEvents) => ev is FailedEvent))
       .subscribe(this.onSaverFailed.bind(this));
 
     saver.events.pipe(filter(filterSaveEvents.bind(undefined, "Changed")))
@@ -1970,11 +1977,11 @@ in a way not supported by this version of wed.";
    * list contain ``undefined`` for ``name``.
    */
   getElementTransformationsAt(treeCaret: DLoc, types: string |  string[]):
-  { tr: Action<{}>; name?: string }[]
+  { tr: Action<{}> | Action<null>; name?: string }[]
   {
     const mode = this.modeTree.getMode(treeCaret.node);
     const resolver = mode.getAbsoluteResolver();
-    const ret: { tr: Action<{}>; name?: string }[] = [];
+    const ret: { tr: Action<{}> | Action<null>; name?: string }[] = [];
     this.validator.possibleAt(treeCaret).forEach((ev: salve.Event) => {
       if (ev.params[0] !== "enterStartTag") {
         return;
@@ -2235,7 +2242,7 @@ cannot be cut.`, { type: "danger" });
       }
       this.dataUpdater.setAttributeNS(ownerElement!,
                                       namespaceURI === null ? "" : namespaceURI,
-                                      node.localName!,
+                                      node.localName,
                                       null);
       clipboard.putUnit(node, add);
       if (index < names.length - 1) {
@@ -2472,7 +2479,7 @@ cannot be cut.`, { type: "danger" });
         this.dataUpdater.setAttributeNS(el,
                                         namespaceURI === null ? "" :
                                         namespaceURI,
-                                        localName!, value);
+                                        localName, value);
         this.caretManager.mark.refresh();
       }
     }
@@ -3234,12 +3241,15 @@ cannot be cut.`, { type: "danger" });
       const options = {
         title: () => {
           const mode = this.modeTree.getMode(label);
-          return mode.shortDescriptionFor(origName);
+        // We cheat because of a bug in the Bootstrap definitions.
+          // tslint:disable-next-line:no-any
+          return mode.shortDescriptionFor(origName) as any;
         },
         container: "body",
         delay: { show: 1000 },
-        placement: "auto top",
-        trigger: "hover",
+        // We cheat because of a bug in the Bootstrap definitions.
+        placement: "auto top" as "auto",
+        trigger: "hover" as "hover",
       };
       this.makeGUITreeTooltip($(label), options);
       const tt = $.data(label, "bs.tooltip");
@@ -3290,7 +3300,8 @@ cannot be cut.`, { type: "danger" });
         this.$saveStatus.tooltip({
           title: tip,
           container: "body",
-          placement: "auto top",
+          // We cheat due to a bug in the Bootstrap definitions.
+          placement: "auto top" as "auto",
           trigger: "hover",
         });
       }
@@ -3351,12 +3362,12 @@ cannot be cut.`, { type: "danger" });
    * Expand the error panel if there is no navigation.
    */
   expandErrorPanelWhenNoNavigation(): void {
-    if (this.$navigationPanel[0].style.display === "none") {
+    if ((this.$navigationPanel[0] as HTMLElement).style.display === "none") {
       this.$errorList.parents(".panel-collapse").collapse("show");
     }
   }
 
-  private errorItemHandler(ev: JQueryEventObject): boolean {
+  private errorItemHandler(ev: JQueryMouseEventObject): boolean {
     const err = ev.data as GUIValidationError;
     const marker =
       document.querySelector(ev.target.getAttribute("href")!) as HTMLElement;
@@ -3399,14 +3410,20 @@ cannot be cut.`, { type: "danger" });
     const title = options.title;
     if (title !== undefined) {
       options = {...options};
-      options.title = () => {
+      // We need to save this because we have to use a function with its own
+      // "this" for the title callback.
+      // tslint:disable-next-line:no-this-assignment
+      const me = this;
+      options.title = function titleFn(this: Element): string {
         // The check is here so that we can turn tooltips on and off
         // dynamically.
-        if (this.destroyed || !(this.preferences.get("tooltips") as boolean)) {
-          return undefined;
+        if (me.destroyed || !(me.preferences.get("tooltips") as boolean)) {
+          // We need the cast to deal with a bug in Bootstrap's definitions.
+          // tslint:disable-next-line:no-any
+          return undefined as any;
         }
 
-        return (typeof title === "function") ? title() : title;
+        return (typeof title === "function") ? title.call(this) : title;
       };
     }
 

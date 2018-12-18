@@ -54,7 +54,7 @@ describe("domlistener", () => {
   let domroot: HTMLElement;
   let root: HTMLElement;
   let $root: JQuery;
-  let fragmentToAdd: HTMLElement;
+  let fragmentToAdd: Element;
   let listener: DOMListener;
   let treeUpdater: TreeUpdater;
   let mark: Mark;

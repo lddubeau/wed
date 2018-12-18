@@ -85,7 +85,7 @@ export class DataProvider {
       }
 
       return ajax({ url: path, dataType: "text"})
-        .then((data) => {
+        .then((data: string) => {
           this.cache[path] = data;
           return data;
         });

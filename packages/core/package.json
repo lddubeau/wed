@@ -29,7 +29,7 @@
     "@wedxml/common": "1.0.0",
     "@wedxml/default-runtime": "1.0.0",
     "@wedxml/trivial-grammar-loader": "1.0.0",
-    "ajv": "^6.5.2",
+    "ajv": "^6.6.2",
     "argparse": ">=1.0.3 <2",
     "inversify": "^4.13.0",
     "js-yaml": "^3.12.0",

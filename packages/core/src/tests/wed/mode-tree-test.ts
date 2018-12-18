@@ -148,7 +148,7 @@ describe("ModeTree", () => {
     });
 
     it("fails if the node passed was not in the GUI or data trees", () => {
-      expect(tree.getMode.bind(tree, editor.guiRoot.parentNode)).to.throw(
+      expect(tree.getMode.bind(tree, editor.guiRoot.parentNode!)).to.throw(
         Error,
         /^did not pass a node in the GUI or data tree$/);
     });
@@ -207,7 +207,7 @@ describe("ModeTree", () => {
     });
 
     it("fails if the node passed was not in the GUI or data trees", () => {
-      expect(tree.getMode.bind(tree, editor.guiRoot.parentNode)).to.throw(
+      expect(tree.getMode.bind(tree, editor.guiRoot.parentNode!)).to.throw(
         Error,
         /^did not pass a node in the GUI or data tree$/);
     });

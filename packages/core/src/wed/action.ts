@@ -19,9 +19,10 @@ export interface EventWithData<Data> extends Event {
  * conditions they choose.
  */
 export abstract class Action<Data> {
-  public readonly boundHandler: (this: Action<Data>, ev: Event) => void;
+  public readonly boundHandler: (this: Action<Data>,
+                                 ev: EventWithData<Data>) => void;
   public readonly boundTerminalHandler: (this: Action<Data>,
-                                         ev: Event) => boolean;
+                                         ev: EventWithData<Data>) => boolean;
   /**
    * @param editor The editor to which this action belongs.
    *

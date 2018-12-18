@@ -98,7 +98,7 @@ export class Modal {
     $dom.on("shown.bs.modal.modal", this._handleShown.bind(this));
 
     if (options.resizable as boolean) {
-      this._$body[0].style.overflow = "auto";
+      (this._$body[0] as HTMLElement).style.overflow = "auto";
       makeResizable($dom);
     }
 
@@ -231,14 +231,14 @@ export class Modal {
   private _handleShown(): void {
     const win = this._$dom[0].ownerDocument!.defaultView!;
     const winHeight = win.innerHeight;
-    const dialog = this._$dom.find(".modal-dialog")[0];
+    const dialog = this._$dom.find(".modal-dialog")[0] as HTMLElement;
     const rect = dialog.getBoundingClientRect();
     const computedStyle = window.getComputedStyle(dialog);
     const diff = -rect.top + (winHeight - rect.height) -
       parseInt(computedStyle.marginBottom!);
     const dialogMaxHeight = rect.height + diff;
     dialog.style.maxHeight = `${dialogMaxHeight}px`;
-    const content = this._$dom.find(".modal-content")[0];
+    const content = this._$dom.find(".modal-content")[0] as HTMLElement;
     content.style.maxHeight = `${dialogMaxHeight}px`;
   }
 }

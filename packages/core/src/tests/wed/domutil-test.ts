@@ -12,6 +12,8 @@ import { DataProvider } from "../util";
 
 const assert = chai.assert;
 
+// tslint:disable:no-any
+
 // Utility  XML nodes.
 function empty(el: Element): void {
   // tslint:disable-next-line:no-inner-html
@@ -312,7 +314,7 @@ describe("domutil", () => {
     });
 
     it("fails on non-text node", () => {
-      assert.throws(domutil.splitTextNode.bind(title, 0),
+      assert.throws(domutil.splitTextNode.bind(title, 0 as any),
                     Error, "insertIntoText called on non-text");
     });
 
@@ -350,12 +352,14 @@ describe("domutil", () => {
     });
 
     it("fails on non-text node", () => {
-      assert.throws(domutil.insertIntoText.bind(undefined, title, 0, title),
+      assert.throws(domutil.insertIntoText.bind(undefined, title as any, 0,
+                                                title),
                     Error, "insertIntoText called on non-text");
     });
 
     it("fails on undefined node to insert", () => {
-      assert.throws(domutil.insertIntoText.bind(undefined, child, 0, undefined),
+      assert.throws(domutil.insertIntoText.bind(undefined, child, 0,
+                                                undefined as any),
                     Error, "must pass an actual node to insert");
     });
 
@@ -582,7 +586,7 @@ describe("domutil", () => {
     });
 
     it("fails on non-text node", () => {
-      assert.throws(domutil.deleteText.bind(title, 0, 0),
+      assert.throws(domutil.deleteText.bind(title, 0 as any, 0),
                     Error, "deleteText called on non-text");
     });
 
@@ -714,7 +718,7 @@ describe("domutil", () => {
     });
 
     it("throws an error on anything else than element or text", () => {
-      assert.throws(domutil.focusNode.bind(undefined, undefined), Error,
+      assert.throws(domutil.focusNode.bind(undefined, undefined as any), Error,
                     "tried to focus something other than a text node or " +
                     "an element.");
     });
