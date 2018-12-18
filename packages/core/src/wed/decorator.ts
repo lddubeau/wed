@@ -356,11 +356,7 @@ ${domutil.textToHTML(attributes[name])}</span>"</span>`;
       menuItems.push({ action: tr, item: li, data: data });
     }
 
-    function pushItems<D>(data: D, trs?: Action<D>[], start?: boolean): void {
-      if (trs === undefined) {
-        return;
-      }
-
+    function pushItems<D>(data: D, trs: Action<D>[], start?: boolean): void {
       for (const tr of trs) {
         pushItem(data, tr, start);
       }
