@@ -24,7 +24,27 @@ describe("onbeforeunload", () => {
     // We need <base> in the following code so that the proper protocol
     // is set when resolving the relative paths.
     const absoluteTopDir = (window as any).__karma__.config.absoluteTopDir;
-    const frameSrc = `
+
+    frame.addEventListener("load", () => {
+      // tslint:disable-next-line:no-any
+      const SystemJS = (frameWindow as any).SystemJS;
+      // tslint:disable-next-line:no-any
+      SystemJS.config((window as any).systemJSConfig);
+      // tslint:disable-next-line:no-console
+      SystemJS.import("wed/onbeforeunload")
+        .then((_onbeforeunload: typeof onbeforeunloadMod) => {
+          onbeforeunload = _onbeforeunload;
+          done();
+        })
+        .catch(done);
+    });
+
+    // We used to set src with a URL created from a blob, but in Chrome 71 for
+    // some reason the frame was not loading when using Chrome Headless. So we
+    // switched to srcdoc. This is not supported on Edge prior to 18 (and maybe
+    // not even on 18) but we don't run this suite on Edge, and with the MS
+    // announcement that Edge will use Chrome guts the issue is mostly moot.
+    frame.srcdoc = `
 <html>
   <base href="${window.location.origin}"></base>
   <head>
@@ -34,20 +54,6 @@ describe("onbeforeunload", () => {
   <body>
   </body>
 </html>`;
-
-    frame.addEventListener("load", () => {
-      // tslint:disable-next-line:no-any
-      const SystemJS = (frameWindow as any).SystemJS;
-      // tslint:disable-next-line:no-any
-      SystemJS.config((window as any).systemJSConfig);
-      SystemJS.import("wed/onbeforeunload")
-        .then((_onbeforeunload: typeof onbeforeunloadMod) => {
-          onbeforeunload = _onbeforeunload;
-          done();
-        });
-    });
-    frame.src = URL.createObjectURL(new Blob([frameSrc],
-                                             { type: "text/html" }));
   });
 
   afterEach(() => {

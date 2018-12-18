@@ -29,16 +29,6 @@ describe("key", () => {
     // is set when resolving the relative paths.
     /* tslint:disable:no-any */
     const absoluteTopDir = (window as any).__karma__.config.absoluteTopDir;
-    const frameSrc = `
-<html>
-  <base href="${window.location.origin}"></base>
-  <head>
-    <script src="${absoluteTopDir}\
-/node_modules/systemjs/dist/system.src.js"></script>
-  </head>
-  <body>
-  </body>
-</html>`;
     /* tslint:enable:no-any */
 
     frame.addEventListener("load", () => {
@@ -56,10 +46,24 @@ describe("key", () => {
       SystemJS.import("wed/key").then((_key: typeof keyMod) => {
         key = _key;
         done();
-      });
+      }).catch(done);
     });
-    frame.src = URL.createObjectURL(new Blob([frameSrc],
-                                             { type: "text/html" }));
+
+    // We used to set src with a URL created from a blob, but in Chrome 71 for
+    // some reason the frame was not loading when using Chrome Headless. So we
+    // switched to srcdoc. This is not supported on Edge prior to 18 (and maybe
+    // not even on 18) but we don't run this suite on Edge, and with the MS
+    // announcement that Edge will use Chrome guts the issue is mostly moot.
+    frame.srcdoc = `
+<html>
+  <base href="${window.location.origin}"></base>
+  <head>
+    <script src="${absoluteTopDir}\
+/node_modules/systemjs/dist/system.src.js"></script>
+  </head>
+  <body>
+  </body>
+</html>`;
   });
 
   after(() => {
