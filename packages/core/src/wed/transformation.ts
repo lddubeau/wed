@@ -192,10 +192,9 @@ export interface TransformationOptions {
 /**
  * An operation that transforms the data tree.
  */
-export class Transformation<Data extends TransformationData,
-Handler extends TransformationHandler<Data> = TransformationHandler<Data>>
+export class Transformation<Data extends TransformationData>
   extends Action<Data> {
-  public readonly handler: Handler;
+  public readonly handler: TransformationHandler<Data>;
   public readonly transformationType: string;
   public readonly kind: string;
   public readonly nodeType: string;
@@ -217,7 +216,8 @@ Handler extends TransformationHandler<Data> = TransformationHandler<Data>>
    * @param options Additional options.
    */
   constructor(editor: EditorAPI, transformationType: string, desc: string,
-              handler: Handler, options?: TransformationOptions) {
+              handler: TransformationHandler<Data>,
+              options?: TransformationOptions) {
     const actualOpts = options !== undefined ? options : {};
     super(editor, desc, actualOpts.abbreviatedDesc,
           computeIconHtml(actualOpts.iconHtml, transformationType),
