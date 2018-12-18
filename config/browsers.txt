@@ -5,7 +5,7 @@
 #
 # Perform these first because they are extremely cheap to perform.
 #
-Linux,CH,70
+Linux,CH,71
 
 #
 # Perform these next because MS browsers compatibility is a major issue. Finding
@@ -17,12 +17,12 @@ Windows 10,Edge,17,Remote
 # Perform these next because OS X compatibility is an issue. Again, we want to
 # find problems early.
 #
-OS X 10.12,CH,70,Remote
+OS X 10.12,CH,71,Remote
 
 #
 # The rest is unlikely to fail if the previous tests passed.
 #
-Windows 8.1,CH,70,Remote
+Windows 8.1,CH,71,Remote
 
 # FF support is still suspended.
 # ESR
