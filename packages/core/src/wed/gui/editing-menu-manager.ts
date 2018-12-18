@@ -12,7 +12,7 @@ import { closestByClass, htmlToElements, indexOf,
          isNotDisplayed } from "../domutil";
 import { Editor } from "../editor";
 import { ModeTree } from "../mode-tree";
-import { Transformation } from "../transformation";
+import { NamedTransformationData, Transformation } from "../transformation";
 import { ActionContextMenu, Item } from "./action-context-menu";
 import { CompletionMenu } from "./completion-menu";
 import { ContextMenu } from "./context-menu";
@@ -172,7 +172,7 @@ export class EditingMenuManager {
       let actionKey = `${(item.action !== null ?
                        item.action.getDescription() : "")}\0`;
       if (item.data !== null) {
-        actionKey += item.data.name;
+        actionKey += (item.data as NamedTransformationData).name;
       }
       const keep = !seen[actionKey];
       seen[actionKey] = true;
@@ -223,11 +223,11 @@ export class EditingMenuManager {
                                                    lastPhantomChild)));
     }
 
-    const menuItems: Item[] = [];
+    // tslint:disable-next-line:no-any
+    const menuItems: Item<any>[] = [];
     const pushItem = <D>(data: D, tr: Action<D>): void =>  {
       const li = this.makeMenuItemForAction(tr, data);
-      // tslint:disable-next-line:no-any
-      menuItems.push({ action: tr, item: li, data: data } as any);
+      menuItems.push({ action: tr, item: li, data: data });
     };
 
     if (// Should not be part of a gui element.

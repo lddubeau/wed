@@ -347,13 +347,13 @@ ${domutil.textToHTML(attributes[name])}</span>"</span>`;
     const editor = this.editor;
     const editingMenuManager = editor.editingMenuManager;
     let node = wedEv.target;
-    const menuItems: Item[] = [];
+    // tslint:disable-next-line:no-any
+    const menuItems: Item<any>[] = [];
     const mode = editor.modeTree.getMode(node);
 
     function pushItem<D>(data: D, tr: Action<D>, start?: boolean): void {
       const li = editingMenuManager.makeMenuItemForAction(tr, data, start);
-      // tslint:disable-next-line:no-any
-      menuItems.push({ action: tr, item: li, data: data } as any);
+      menuItems.push({ action: tr, item: li, data: data });
     }
 
     function pushItems<D>(data: D, trs?: Action<D>[], start?: boolean): void {

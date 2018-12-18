@@ -11,7 +11,7 @@ import * as browsers from "@wedxml/common/browsers";
 import { Action } from "../action";
 import * as keyMod from "../key";
 import * as keyConstants from "../key-constants";
-import { Transformation, TransformationData } from "../transformation";
+import { NamedTransformationData, Transformation } from "../transformation";
 import { ContextMenu as Base, DismissCallback } from "./context-menu";
 import * as icon from "./icon";
 
@@ -51,11 +51,13 @@ const KEY_TO_FILTER: {
   { key: exclamation, filter: undefined, which: "type" },
 ];
 
-export interface Item {
-  action: Action<{} | null> | null;
+export interface Item<D = unknown> {
+  action: Action<D> | null;
   item: Element;
-  data: TransformationData | null;
+  data: D | null;
 }
+
+type NamedDataItem = Item<NamedTransformationData>;
 
 function compareItems(a: Item, b: Item): number {
   const aKind = (a.action !== null && (a.action instanceof Transformation)) ?
@@ -452,6 +454,7 @@ export class ActionContextMenu extends Base {
     super.render(items);
   }
 
+  // The type NamedDataItem
   private computeActionItemsToDisplay(items: Item[]): Element[] {
     const kindFilter = this.filters.kind;
     const typeFilter = this.filters.type;
@@ -459,30 +462,30 @@ export class ActionContextMenu extends Base {
 
     let kindMatch;
     switch (kindFilter) {
-    case null:
-      kindMatch = () => true;
-      break;
-    case undefined:
-      kindMatch = (item: Item) => !(item.action instanceof Transformation) ||
-        KINDS.indexOf(item.action.kind) === -1;
-      break;
-    default:
-      kindMatch = (item: Item) => (item.action instanceof Transformation) &&
-        item.action.kind === kindFilter;
+      case null:
+        kindMatch = () => true;
+        break;
+      case undefined:
+        kindMatch = (item: Item) => !(item.action instanceof Transformation) ||
+          KINDS.indexOf(item.action.kind) === -1;
+        break;
+      default:
+        kindMatch = (item: Item) => (item.action instanceof Transformation) &&
+          item.action.kind === kindFilter;
     }
 
     let typeMatch;
     switch (typeFilter) {
-    case null:
-      typeMatch = () => true;
-      break;
-    case undefined:
-      typeMatch = (item: Item) => !(item.action instanceof Transformation) ||
-        TYPES.indexOf(item.action.nodeType) === -1;
-      break;
-    default:
-      typeMatch = (item: Item) => (item.action instanceof Transformation) &&
-        item.action.nodeType === typeFilter;
+      case null:
+        typeMatch = () => true;
+        break;
+      case undefined:
+        typeMatch = (item: Item) => !(item.action instanceof Transformation) ||
+          TYPES.indexOf(item.action.nodeType) === -1;
+        break;
+      default:
+        typeMatch = (item: Item) => (item.action instanceof Transformation) &&
+          item.action.nodeType === typeFilter;
     }
 
     let textMatch;
@@ -490,15 +493,17 @@ export class ActionContextMenu extends Base {
       if (textFilter[0] === "^") {
         const textFilterRe = RegExp(textFilter);
         textMatch = (item: Item) => {
-          const text = (item.data !== null && item.data.name !== undefined) ?
-            item.data.name : item.item.textContent!;
+          const { data } = item as NamedDataItem;
+          const text = (data !== null && data.name !== undefined) ? data.name :
+            item.item.textContent!;
           return textFilterRe.test(text);
         };
       }
       else {
           textMatch = (item: Item) => {
-            const text = (item.data !== null && item.data.name !== undefined) ?
-              item.data.name : item.item.textContent!;
+            const { data } = item as NamedDataItem;
+            const text = (data !== null && data.name !== undefined) ?
+              data.name : item.item.textContent!;
             return text.indexOf(textFilter) !== -1;
           };
       }
