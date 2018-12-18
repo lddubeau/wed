@@ -7,5 +7,5 @@
 /gulp.local.js
 *_flymake.*
 *.pyc
-/.venv
+.venv
 .dir-locals.el
