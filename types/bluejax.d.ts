@@ -1,3 +1,5 @@
+import { Promise } from "bluebird";
+
 export type Pair = {
   promise: Promise<any>;
   xhr: JQueryXHR;
