@@ -40,8 +40,8 @@ exports.optionDefinitions = {
     defaultValue: undefined,
   },
   tei: {
-    help: "Path to the directory containing the TEI stylesheets.",
-    defaultValue: "/usr/share/xml/tei/stylesheet",
+    help: "Path to the directory containing the TEI source.",
+    defaultValue: "/usr/share/xml/tei/odd/p5subset.xml",
   },
   skip_semver: {
     help: "If true skip the semver check.",

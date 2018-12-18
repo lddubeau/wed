@@ -126,21 +126,20 @@ if (args.tei as boolean) {
     "": "http://www.tei-c.org/ns/1.0",
   };
 
-  const members = parsed.members;
-  let i;
-  for (i = members.length - 1; i >= 0; i--) {
+  const { elements: inputElements } = parsed;
+  for (let i = inputElements.length - 1; i >= 0; i--) {
     // Delete class specs
-    if (members[i].type !== "elementSpec") {
-      members.splice(i, 1);
+    if (inputElements[i].type !== "elementSpec") {
+      inputElements.splice(i, 1);
     }
   }
 
   const elements: Elements = [];
-  for (const member of members) {
+  for (const el of inputElements) {
     elements.push({
-      name: member.ident,
-      desc: member.desc,
-      ns: member.ns,
+      name: el.ident,
+      desc: el.shortDesc,
+      ns: el.ns,
     });
   }
 

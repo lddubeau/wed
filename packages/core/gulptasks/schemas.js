@@ -25,12 +25,11 @@ function xmlToJsonChain(name, dest) {
   gulp.task(rngTaskName, Promise.coroutine(function *task() {
     const isNewer = yield newer(xml, compiled);
     if (!isNewer) {
-      log(`Skipped running roma2 for ${compiled}.`);
+      log(`Skipped running teitoodd for ${compiled}.`);
       return;
     }
 
-    yield exec(`roma2 --xsl=${options.tei} --compile --nodtd ` +
-               `--noxsd ${xml} schemas/out`);
+    yield exec(`teitoodd --localsource=${options.tei} ${xml} ${compiled}`);
   }));
 
   function *compiledToJson() {
