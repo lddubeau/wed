@@ -18,11 +18,11 @@ export interface EventWithData<Data> extends Event {
  * derived classes can set their own enabled state depending on whatever
  * conditions they choose.
  */
-export abstract class Action<Data> {
-  public readonly boundHandler: (this: Action<Data>,
-                                 ev: EventWithData<Data>) => void;
-  public readonly boundTerminalHandler: (this: Action<Data>,
-                                         ev: EventWithData<Data>) => boolean;
+export abstract class Action<Data extends {} | void = void> {
+  readonly boundHandler: (this: Action<Data>, ev: EventWithData<Data>) => void;
+  readonly boundTerminalHandler: (this: Action<Data>,
+                                  ev: EventWithData<Data>) => boolean;
+
   /**
    * @param editor The editor to which this action belongs.
    *
@@ -185,6 +185,14 @@ export abstract class Action<Data> {
 
     return button;
   }
+}
+
+/**
+ * An interface modeling actions for which we do not have precise information
+ * regarding what data they accept.
+ */
+// tslint:disable-next-line:no-any
+export interface UnspecifiedAction extends Action<any> {
 }
 
 //  LocalWords:  autoinsert Dubeau MPL Mangalam html keybindings

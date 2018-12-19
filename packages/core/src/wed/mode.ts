@@ -9,8 +9,8 @@
 
 import { DefaultNameResolver, EName } from "salve";
 
-import { Action, Decorator, domtypeguards, domutil, EditorAPI, gui,
-         ModeValidator, WedOptions } from "wed";
+import { Decorator, domtypeguards, domutil, EditorAPI, gui,
+         ModeValidator, UnspecifiedAction, WedOptions } from "wed";
 
 import Button = gui.button.Button;
 
@@ -115,7 +115,7 @@ CommonModeOptions = CommonModeOptions> {
   getContextualActions(transformationType: string | string[],
                        tag: string,
                        container: Node,
-                       offset?: number): Action<{}>[];
+                       offset?: number): UnspecifiedAction[];
 
   /**
    * Provide the possible value completions for an attribute. This allows a mode
@@ -344,7 +344,7 @@ export abstract class BaseMode<ModeOptions> implements Mode<ModeOptions> {
   abstract getContextualActions(transformationType: string | string[],
                                 tag: string,
                                 container: Node,
-                                offset: number): Action<{}>[];
+                                offset: number): UnspecifiedAction[];
 }
 
 //  LocalWords:  autoinsertion domutil Dubeau Mangalam MPL html overriden

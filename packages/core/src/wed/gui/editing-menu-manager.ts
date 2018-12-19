@@ -171,7 +171,7 @@ export class EditingMenuManager {
       // "\0" not a legitimate value in descriptions.
       let actionKey = `${(item.action !== null ?
                        item.action.getDescription() : "")}\0`;
-      if (item.data !== null) {
+      if (item.data != null) {
         actionKey += (item.data as NamedTransformationData).name;
       }
       const keep = !seen[actionKey];
@@ -224,7 +224,7 @@ export class EditingMenuManager {
     }
 
     // tslint:disable-next-line:no-any
-    const menuItems: Item<any>[] = [];
+    const menuItems: Item[] = [];
     const pushItem = <D>(data: D, tr: Action<D>): void =>  {
       const li = this.makeMenuItemForAction(tr, data);
       menuItems.push({ action: tr, item: li, data: data });
@@ -254,10 +254,11 @@ export class EditingMenuManager {
         // Otherwise, it is an action.
         // TS 3.2.2 does not like the inline and messes up inference.
         if (tr.name !== undefined) {
-          pushItem({ name: tr.name }, tr.tr as Action<{}>);
+          pushItem({ name: tr.name },
+                   tr.tr as Transformation<NamedTransformationData>);
         }
         else {
-          pushItem(null, tr.tr as Action<null>);
+          pushItem(null, tr.tr);
         }
       }
 
@@ -265,7 +266,8 @@ export class EditingMenuManager {
         const actions = mode.getContextualActions(
           ["unwrap", "delete-parent", "split"], tagName, dataNode, 0);
         for (const action of actions) {
-          pushItem({ node: dataNode, name: tagName }, action);
+          pushItem({ node: dataNode, name: tagName },
+                   action as Transformation);
         }
       }
     }
@@ -287,7 +289,8 @@ export class EditingMenuManager {
         ["merge-with-next", "merge-with-previous", "append", "prepend"], sepFor,
         $.data(transformationNode, "wed_mirror_node"), 0);
       for (const action of actions) {
-        pushItem({ node: transformationNode, name: sepFor }, action);
+        pushItem({ node: transformationNode, name: sepFor },
+                 action as Transformation);
       }
     }
 

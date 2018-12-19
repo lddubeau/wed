@@ -54,7 +54,7 @@ export function makeEditor(container: Container): EditorInstance {
   return container.get<EditorInstance>(tokens.EDITOR_INSTANCE);
 }
 
-export { Action } from "./wed/action";
+export { Action, UnspecifiedAction } from "./wed/action";
 export { Decorator } from "./wed/decorator";
 export { DLoc, DLocRoot } from "./wed/dloc";
 export { DOMListener } from "./wed/domlistener";

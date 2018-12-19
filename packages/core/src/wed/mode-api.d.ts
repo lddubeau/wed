@@ -9,7 +9,7 @@ import { Observable } from "rxjs";
 
 import { EditorInstance, Options, Runtime } from "@wedxml/client-api";
 
-import { Action } from "./action";
+import { Action, UnspecifiedAction } from "./action";
 import { CaretManager } from "./caret-manager";
 import { DLoc, DLocRange, DLocRoot } from "./dloc";
 import * as domlistener from "./domlistener";
@@ -197,7 +197,7 @@ export interface EditorAPI extends EditorInstance {
    * The action to perform is a user is trying to do something with a complex
    * pattern.
    */
-  readonly complexPatternAction: Action<null>;
+  readonly complexPatternAction: Action;
 
   /** Paste transformation. */
   readonly pasteTr: Transformation<PasteTransformationData>;
@@ -381,7 +381,7 @@ export interface EditorAPI extends EditorInstance {
    * list contain ``undefined`` for ``name``.
    */
   getElementTransformationsAt(treeCaret: DLoc, types: string |  string[]):
-  { tr: Action<{}> | Action<null>; name?: string }[];
+  { tr: UnspecifiedAction; name?: string }[];
 
   /**
    * Sets the list of items to show in the navigation list. This will make the

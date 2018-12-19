@@ -8,7 +8,7 @@ import $ from "jquery";
 
 import * as browsers from "@wedxml/common/browsers";
 
-import { Action } from "../action";
+import { UnspecifiedAction } from "../action";
 import * as keyMod from "../key";
 import * as keyConstants from "../key-constants";
 import { NamedTransformationData, Transformation } from "../transformation";
@@ -51,13 +51,11 @@ const KEY_TO_FILTER: {
   { key: exclamation, filter: undefined, which: "type" },
 ];
 
-export interface Item<D = unknown> {
-  action: Action<D> | null;
+export interface Item {
+  action: UnspecifiedAction | null;
   item: Element;
-  data: D | null;
+  data: {} | null;
 }
-
-type NamedDataItem = Item<NamedTransformationData>;
 
 function compareItems(a: Item, b: Item): number {
   const aKind = (a.action !== null && (a.action instanceof Transformation)) ?
@@ -493,7 +491,7 @@ export class ActionContextMenu extends Base {
       if (textFilter[0] === "^") {
         const textFilterRe = RegExp(textFilter);
         textMatch = (item: Item) => {
-          const { data } = item as NamedDataItem;
+          const { data } = item as Item & { data: NamedTransformationData };
           const text = (data !== null && data.name !== undefined) ? data.name :
             item.item.textContent!;
           return textFilterRe.test(text);
@@ -501,7 +499,7 @@ export class ActionContextMenu extends Base {
       }
       else {
           textMatch = (item: Item) => {
-            const { data } = item as NamedDataItem;
+            const { data } = item as Item & { data: NamedTransformationData };
             const text = (data !== null && data.name !== undefined) ?
               data.name : item.item.textContent!;
             return text.indexOf(textFilter) !== -1;

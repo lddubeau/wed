@@ -17,6 +17,8 @@ import { GUIUpdater } from "./gui-updater";
 import { ActionContextMenu, Item } from "./gui/action-context-menu";
 import { Mode } from "./mode";
 import { DecoratorAPI, EditorAPI } from "./mode-api";
+import { NamedTransformationData, Transformation,
+         TransformationData } from "./transformation";
 import * as  util from "./util";
 
 const indexOf = domutil.indexOf;
@@ -348,7 +350,7 @@ ${domutil.textToHTML(attributes[name])}</span>"</span>`;
     const editingMenuManager = editor.editingMenuManager;
     let node = wedEv.target;
     // tslint:disable-next-line:no-any
-    const menuItems: Item<any>[] = [];
+    const menuItems: Item[] = [];
     const mode = editor.modeTree.getMode(node);
 
     function pushItem<D>(data: D, tr: Action<D>, start?: boolean): void {
@@ -391,11 +393,12 @@ ${domutil.textToHTML(attributes[name])}</span>"</span>`;
 
           pushItems({ name: unresolved, node: element },
                     mode.getContextualActions("add-attribute", unresolved,
-                                              element));
+                                              element) as
+                    Action<TransformationData>[]);
         }
       }
       else {
-        pushItem(null, editor.complexPatternAction);
+        pushItem<void>(undefined, editor.complexPatternAction);
       }
     }
 
@@ -419,7 +422,8 @@ ${domutil.textToHTML(attributes[name])}</span>"</span>`;
       if (!editor.isAttrProtected(dataNode)) {
         pushItems({ name: name, node: dataNode },
                   mode.getContextualActions("delete-attribute", name,
-                                            dataNode));
+                                            dataNode) as
+                  Action<TransformationData>[]);
       }
     }
     else {
@@ -443,7 +447,8 @@ ${domutil.textToHTML(attributes[name])}</span>"</span>`;
         pushItems({ node: node, name: orig },
                   mode.getContextualActions(
                     ["unwrap", "delete-element"],
-                    orig, $.data(node, "wed_mirror_node"), 0));
+                    orig, $.data(node, "wed_mirror_node"), 0) as
+                  Action<NamedTransformationData>[]);
       }
 
       // Then we check what could be done before the node (if the
@@ -480,11 +485,11 @@ ${domutil.textToHTML(attributes[name])}</span>"</span>`;
           if (tr.name !== undefined) {
             // Regular case: we have a real transformation.
             pushItem({ name: tr.name, moveCaretTo: treeCaret },
-                     tr.tr as Action<{}>, atStart);
+                     tr.tr as Transformation, atStart);
           }
           else {
             // It is an action rather than a transformation.
-            pushItem(null, tr.tr as Action<null>);
+            pushItem(undefined, tr.tr);
           }
         }
 
@@ -497,10 +502,10 @@ ${domutil.textToHTML(attributes[name])}</span>"</span>`;
                                                               "wrap-content")) {
             // As of TS 3.2.2, TS is not happy with an inline conditional here.
             if (tr.name !== undefined) {
-              pushItem({ name: tr.name, node: node }, tr.tr as Action<{}>);
+              pushItem({ name: tr.name, node: node }, tr.tr as Transformation);
             }
             else {
-              pushItem(null, tr.tr as Action<null>);
+              pushItem(undefined, tr.tr);
             }
           }
         }

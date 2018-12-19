@@ -12,7 +12,7 @@ import { makeHTML } from "./gui/icon";
 import { EditorAPI } from "./mode-api";
 import { SelectionMode } from "./selection-mode";
 
-export type ActionCtor = { new (editor: EditorAPI): Action<{}> };
+export type ActionCtor = { new (editor: EditorAPI): Action };
 
 export type Handler = (editor: EditorAPI) => void;
 
@@ -47,12 +47,12 @@ export function makeAction(desc: string,
     actualFn = fn as Handler;
   }
 
-  return class extends Action<{}> {
+  return class extends Action {
     constructor(editor: EditorAPI) {
       super(editor, desc, actualAbbreviatedDesc, actualIcon, actualNeedsInput);
     }
 
-    execute(): void {
+    execute(_data: void): void {
       actualFn(this.editor);
     }
   };

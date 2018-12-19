@@ -21,7 +21,7 @@ import * as optionsSchema from "@wedxml/client-api/options-schema.json";
 import { EDITOR_OPTIONS, EDITOR_WIDGET, GRAMMAR_LOADER,
          RUNTIME, SAVER } from "@wedxml/common/tokens";
 
-import { Action } from "./action";
+import { Action, UnspecifiedAction } from "./action";
 import { CaretChange, CaretManager } from "./caret-manager";
 import * as caretMovement from "./caret-movement";
 import { Clipboard, containsClipboardAttributeCollection } from "./clipboard";
@@ -95,7 +95,7 @@ ev is Filter<SaveEvents, { name: T }> {
 /**
  * An action for bringing up the complex pattern modal.
  */
-class ComplexPatternAction extends Action<null> {
+class ComplexPatternAction extends Action {
   private _modal: Modal | undefined;
 
   get modal(): Modal {
@@ -294,32 +294,29 @@ export class Editor implements EditorAPI {
   readonly guiRoot: HTMLElement;
   readonly $guiRoot: JQuery;
   readonly $errorList: JQuery;
-  readonly complexPatternAction: Action<null>;
+  readonly complexPatternAction: Action;
   readonly pasteTr: Transformation<PasteTransformationData>;
   readonly pasteUnitTr: Transformation<PasteTransformationData>;
-  readonly cutTr: Transformation<TransformationData>;
+  readonly cutTr: Transformation;
   readonly cutUnitTr: Transformation<CutUnitTransformationData>;
-  readonly deleteSelectionTr: Transformation<TransformationData>;
+  readonly deleteSelectionTr: Transformation;
   readonly splitNodeTr: Transformation<NamedTransformationData>;
   readonly replaceRangeTr: Transformation<ReplaceRangeTransformationData>;
-  readonly removeMarkupTr: Transformation<TransformationData>;
-  readonly saveAction: Action<{}> =
-    new editorActions.Save(this);
-  readonly decreaseLabelVisibilityLevelAction: Action<{}> =
+  readonly removeMarkupTr: Transformation;
+  readonly saveAction: Action = new editorActions.Save(this);
+  readonly decreaseLabelVisibilityLevelAction: Action =
     new editorActions.DecreaseLabelVisibilityLevel(this);
-  readonly increaseLabelVisibilityLevelAction: Action<{}> =
+  readonly increaseLabelVisibilityLevelAction: Action =
     new editorActions.IncreaseLabelVisibilityLevel(this);
-  readonly undoAction: Action<{}> =
-    new editorActions.Undo(this);
-  readonly redoAction: Action<{}> =
-    new editorActions.Redo(this);
-  readonly toggleAttributeHidingAction: Action<boolean> =
+  readonly undoAction: Action = new editorActions.Undo(this);
+  readonly redoAction: Action = new editorActions.Redo(this);
+  readonly toggleAttributeHidingAction: editorActions.ToggleAttributeHiding =
     new editorActions.ToggleAttributeHiding(this);
-  readonly setSelectionModeToSpan: Action<{}> =
+  readonly setSelectionModeToSpan: editorActions.SetSelectionMode =
     new editorActions.SetSelectionMode(this, "span",
                                        icon.makeHTML("spanSelectionMode"),
                                        SelectionMode.SPAN);
-  readonly setSelectionModeToUnit: Action<{}> =
+  readonly setSelectionModeToUnit: editorActions.SetSelectionMode =
     new editorActions.SetSelectionMode(this, "unit",
                                        icon.makeHTML("unitSelectionMode"),
                                        SelectionMode.UNIT);
@@ -340,9 +337,9 @@ export class Editor implements EditorAPI {
   domlistener!: domlistener.DOMListener;
   modals: StockModals;
 
-  mergeWithPreviousHomogeneousSiblingTr: Transformation<TransformationData>;
+  mergeWithPreviousHomogeneousSiblingTr: Transformation;
 
-  mergeWithNextHomogeneousSiblingTr: Transformation<TransformationData>;
+  mergeWithNextHomogeneousSiblingTr: Transformation;
 
   modeTree!: ModeTree;
 
@@ -684,14 +681,12 @@ export class Editor implements EditorAPI {
       throw new Error("transformation applied with undefined caret.");
     }
 
-    // tslint:disable-next-line:no-any
-    const start = new TransformationEvent("StartTransformation", tr as any);
+    const start = new TransformationEvent("StartTransformation", tr);
     this._transformations.next(start);
     start.throwIfAborted();
 
     tr.handler(this, data);
-    // tslint:disable-next-line:no-any
-    const end = new TransformationEvent("EndTransformation", tr as any);
+    const end = new TransformationEvent("EndTransformation", tr);
     this._transformations.next(end);
     end.throwIfAborted();
   }
@@ -1977,11 +1972,11 @@ in a way not supported by this version of wed.";
    * list contain ``undefined`` for ``name``.
    */
   getElementTransformationsAt(treeCaret: DLoc, types: string |  string[]):
-  { tr: Action<{}> | Action<null>; name?: string }[]
+  { tr: UnspecifiedAction; name?: string }[]
   {
     const mode = this.modeTree.getMode(treeCaret.node);
     const resolver = mode.getAbsoluteResolver();
-    const ret: { tr: Action<{}> | Action<null>; name?: string }[] = [];
+    const ret: { tr: UnspecifiedAction; name?: string }[] = [];
     this.validator.possibleAt(treeCaret).forEach((ev: salve.Event) => {
       if (ev.params[0] !== "enterStartTag") {
         return;
