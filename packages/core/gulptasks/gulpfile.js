@@ -74,17 +74,13 @@ if (options.optimize) {
 }
 gulp.task("build", buildDeps);
 
-gulp.task("build-standalone-wed", ["copy-src", "convert-wed-yaml",
-                                   "tsc"]);
+gulp.task("build-standalone-wed",
+          () => execFileAndReport("npm", ["run", "build-dev"]));
 
-gulp.task("copy-src", () => execFileAndReport("npm", ["run", "copy-src"]));
-
-gulp.task("convert-wed-yaml", () => execFileAndReport("npm", ["run", "yml-to-json"]));
+gulp.task("tsc", () => execFileAndReport("npm", ["run", "tsc"]));
 
 gulp.task("generate-ts",
           () => execFileAndReport("npm", ["run", "generate-ts"]));
-
-gulp.task("tsc", () => execFileAndReport("npm", ["run", "tsc"]));
 
 gulp.task("copy-js-web",
           () => gulp.src("web/**/*.{js,html,css}")
