@@ -246,6 +246,8 @@ gulp.task("build-info", Promise.coroutine(function *task() {
              `--module > ${dest}`);
 }));
 
+gulp.task("build-samples", () => execFileAndReport("tasks/make-samples"));
+
 gulp.task("build-html", () => {
   const dest = "build/standalone";
   return gulp.src("web/*.html", { base: "web" })

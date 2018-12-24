@@ -1,0 +1,47 @@
+#!/usr/bin/env node
+
+"use strict";
+
+const glob = require("glob");
+const path = require("path");
+const log = require("fancy-log");
+const { options } = require("./config");
+
+const { newer, checkOutputFile, copy, existsInFile } =
+      require("../gulptasks/util");
+
+process.on("unhandledRejection", (err) => {
+  // eslint-disable-next-line no-console
+  console.log(err);
+  process.exit(1);
+});
+
+// Try to load local configuration options.
+let localConfig = {};
+try {
+  // eslint-disable-next-line global-require, import/no-unresolved
+  localConfig = require("../gulp.local");
+}
+catch (e) {
+  if (e.code !== "MODULE_NOT_FOUND") {
+    throw e;
+  }
+}
+
+Object.assign(options, localConfig);
+
+Promise.all(glob.sync("sample_documents/*.xml").map(async (sample) => {
+  const dest = `build/samples/${path.basename(sample)}`;
+  const isNewer = await newer([sample, "src/tests/xml-to-xml-tei.xsl"], dest);
+  if (!isNewer) {
+    log(`Skipping generation of ${dest}`);
+    return;
+  }
+
+  const needsXSL = await existsInFile(sample, "http://www.tei-c.org/ns/1.0");
+  await (needsXSL ?
+         checkOutputFile(options.xsltproc,
+                         ["-o", dest, "src/tests/xml-to-xml-tei.xsl",
+                          sample]) :
+         copy(sample, dest));
+}));
