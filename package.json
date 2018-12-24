@@ -67,7 +67,6 @@
     "gulp-filter": "^5.1.0",
     "gulp-less": "^3.0.3",
     "gulp-newer": "^1.0.0",
-    "gulp-rename": "^1.2.3",
     "gulp-replace": "^1.0.0",
     "html-loader": "^0.5.5",
     "husky": "^1.2.1",

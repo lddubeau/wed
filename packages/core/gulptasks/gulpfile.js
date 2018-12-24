@@ -2,8 +2,6 @@ const gulp = require("gulp");
 const gulpNewer = require("gulp-newer");
 const gulpFilter = require("gulp-filter");
 const less = require("gulp-less");
-const rename = require("gulp-rename");
-const through2 = require("through2");
 const Promise = require("bluebird");
 const path = require("path");
 const log = require("fancy-log");
@@ -11,7 +9,6 @@ const requireDir = require("require-dir");
 const replace = require("gulp-replace");
 const argparse = require("argparse");
 const touch = require("touch");
-const yaml = require("js-yaml");
 
 const config = require("./config");
 const {
@@ -82,22 +79,7 @@ gulp.task("build-standalone-wed", ["copy-src", "convert-wed-yaml",
 
 gulp.task("copy-src", () => execFileAndReport("npm", ["run", "copy-src"]));
 
-gulp.task("convert-wed-yaml", () => {
-  const dest = "build/standalone/lib";
-  return gulp.src(["src/**/*.yml"])
-    .pipe(rename({
-      extname: ".json",
-    }))
-    .pipe(gulpNewer(dest))
-    .pipe(through2.obj((file, enc, callback) => {
-      file.contents = Buffer.from(JSON.stringify(yaml.safeLoad(file.contents, {
-        schema: yaml.JSON_SCHEMA,
-      })));
-
-      callback(null, file);
-    }))
-    .pipe(gulp.dest(dest));
-});
+gulp.task("convert-wed-yaml", () => execFileAndReport("npm", ["run", "yml-to-json"]));
 
 gulp.task("generate-ts",
           () => execFileAndReport("npm", ["run", "generate-ts"]));

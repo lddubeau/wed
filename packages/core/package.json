@@ -9,6 +9,7 @@
     "generate-ts": "./tasks/generate-ts",
     "tsc": "npm run generate-ts && tsc -p src/tsconfig.json --outDir build/standalone/lib && tsc -p src/wed/cli/tsconfig.json --outDir build/standalone/lib",
     "copy-src": "mkdir -p build/standalone/lib && (cd src; cp --parents `find . -regex '.*\\.\\(js\\|json\\|d.ts\\|xml\\|html\\|xsl\\)$' \\! -regex '.*/\\(\\(tsconfig\\|tslint\\).json\\|.*_flymake.*\\|.*/flycheck.*\\)$'` ../build/standalone/lib/)",
+    "yml-to-json": "mkdir -p build/standalone/lib/wed && ../../tasks/yml-to-json src/wed/wed-options-schema.yml build/standalone/lib/wed/wed-options-schema.json",
     "build": "gulp",
     "build-and-test": "gulp test"
   },

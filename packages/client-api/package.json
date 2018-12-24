@@ -22,7 +22,7 @@
   "license": "MPL-2.0",
   "main": "build/dist/index.js",
   "scripts": {
-    "yml-to-json": "mkdir -p build && node tasks/yml-to-json src/options-schema.yml build/options-schema.json",
+    "yml-to-json": "mkdir -p build && ../../tasks/yml-to-json src/options-schema.yml build/options-schema.json",
     "json-schema-to-ts": "node tasks/json-schema-to-ts build/options-schema.json build/generated/options.d.ts",
     "tsc": "tsc -p tsconfig.json",
     "copy": "mkdir -p build/dist && cp -rp src/*.ts build/generated/*.ts build/*.json build/dist/",
