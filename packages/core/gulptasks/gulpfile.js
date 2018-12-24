@@ -1,5 +1,4 @@
 const gulp = require("gulp");
-const gulpNewer = require("gulp-newer");
 const Promise = require("bluebird");
 const path = require("path");
 const log = require("fancy-log");
@@ -80,12 +79,6 @@ gulp.task("tsc", () => execFileAndReport("npm", ["run", "tsc"]));
 gulp.task("generate-ts",
           () => execFileAndReport("npm", ["run", "generate-ts"]));
 
-gulp.task("copy-js-web",
-          () => gulp.src("web/**/*.{js,html,css}")
-          .pipe(gulp.dest("build/standalone/lib/")));
-
-gulp.task("build-standalone-web", ["copy-js-web"]);
-
 gulp.task("stamp-dir", () => mkdirp(config.internals.stampDir));
 
 gulp.task("build-standalone-wed-less",
@@ -107,23 +100,17 @@ gulp.task("build-info", Promise.coroutine(function *task() {
 
 gulp.task("build-samples", () => execFileAndReport("tasks/make-samples"));
 
-gulp.task("build-html", () => {
-  const dest = "build/standalone";
-  return gulp.src("web/*.html", { base: "web" })
-    .pipe(gulpNewer(dest))
-    .pipe(gulp.dest(dest));
-});
+gulp.task("build-web", () => execFileAndReport("npm", ["run", "copy-web"]));
 
 gulp.task("build-standalone",
           [].concat(
             "build-standalone-wed",
-            "build-standalone-web",
             "build-standalone-wed-less",
             "config",
             "copy-bin",
+            "build-web",
             "build-schemas",
             "build-samples",
-            "build-html",
             "build-info"),
           () => mkdirp("build/ajax"));
 
