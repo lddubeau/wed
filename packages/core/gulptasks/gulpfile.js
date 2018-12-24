@@ -12,7 +12,6 @@ const replace = require("gulp-replace");
 const argparse = require("argparse");
 const touch = require("touch");
 const yaml = require("js-yaml");
-const { compile: compileToTS } = require("json-schema-to-typescript");
 
 const config = require("./config");
 const {
@@ -112,64 +111,8 @@ function tsc(tsconfigPath, dest) {
                            ["-p", tsconfigPath, "--outDir", dest]);
 }
 
-function parseFile(name, data) {
-  let ret;
-
-  try {
-    ret = JSON.parse(data);
-  }
-  // eslint-disable-next-line no-empty
-  catch (ex) {}
-
-  if (ret !== undefined) {
-    return ret;
-  }
-
-  try {
-    ret = yaml.safeLoad(data, {
-      schema: yaml.JSON_SCHEMA,
-    });
-  }
-  // eslint-disable-next-line no-empty
-  catch (ex) {}
-
-  if (ret !== undefined) {
-    return ret;
-  }
-
-  throw new Error(`cannot parse ${name}`);
-}
-
-function convertJSONSchemaToTS(srcPath, destBaseName) {
-  if (!destBaseName) {
-    destBaseName = path.basename(srcPath).replace(/(\..*?)?$/, ".d.ts");
-  }
-
-  const baseDirname = path.dirname(srcPath);
-
-  srcPath = `src/${srcPath}`;
-  const dest = path.join("build/generated/lib", baseDirname, destBaseName);
-  return newer(srcPath, dest)
-    .then((result) => {
-      if (!result) {
-        return undefined;
-      }
-
-      return fs.readFile(srcPath)
-        .then(data => compileToTS(parseFile(srcPath, data)))
-        .then(ts => fs.outputFile(dest, ts));
-    });
-}
-
 gulp.task("generate-ts",
-          () => Promise.all([
-            convertJSONSchemaToTS("wed/modes/generic/metadata-schema.json",
-                                  "metadata-as-json.d.ts"),
-            convertJSONSchemaToTS(
-              "wed/wed-options-schema.yml", "wed-options.d.ts"),
-            convertJSONSchemaToTS(
-              "wed/options-schema.yml", "options.d.ts"),
-          ]));
+          () => execFileAndReport("npm", ["run", "generate-ts"]));
 
 gulp.task("tsc-wed", ["generate-ts"],
           () => Promise.all([

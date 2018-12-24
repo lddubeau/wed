@@ -6,6 +6,7 @@
   "author": "Louis-Dominique Dubeau <louisd@mangalamresearch.org>",
   "scripts": {
     "config": "mkdir -p build/config && cp -rp ../../config ../../local_config build/config",
+    "generate-ts": "./tasks/generate-ts",
     "build": "gulp",
     "build-and-test": "gulp test"
   },
