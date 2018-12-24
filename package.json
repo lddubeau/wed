@@ -131,7 +131,11 @@
     "run-all": "./tasks/run-all",
     "update-versions": "./tasks/update-versions",
     "postinstall": "link-parent-bin",
-    "lint": "npmPkgJsonLint package.json"
+    "lint": "npmPkgJsonLint package.json",
+    "self:publish": "./tasks/run-all self:publish",
+    "preversion": "./tasks/run-all version",
+    "version": "versync -b sync -a && ./tasks/run-all version && git commit -m'build: version bump' && git tag -a v$npm_package_version",
+    "postversion": "npm run self:publish --tag=`./tasks/select-publish-tag`"
   },
   "husky": {
     "hooks": {

@@ -36,9 +36,8 @@
     "build-and-test": "npm run build && npm run test",
     "pack-npjl": "npmPkgJsonLint -c ./tasks/publish-npjl-config.json .",
     "prepublishOnly": "npm run pack-npjl",
-    "self:publish": "(cd build/dist && npm publish)",
+    "self:publish": "cd build/dist && npm publish",
     "version": "versync -b sync -a",
-    "postversion": "npm run self:publish",
     "clean": "rm -rf build"
   }
 }
