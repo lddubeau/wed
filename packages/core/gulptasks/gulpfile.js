@@ -1,7 +1,5 @@
 const gulp = require("gulp");
 const gulpNewer = require("gulp-newer");
-const gulpFilter = require("gulp-filter");
-const less = require("gulp-less");
 const Promise = require("bluebird");
 const path = require("path");
 const log = require("fancy-log");
@@ -88,36 +86,10 @@ gulp.task("copy-js-web",
 
 gulp.task("build-standalone-web", ["copy-js-web"]);
 
-const lessInc = "src/wed/less-inc/";
-
 gulp.task("stamp-dir", () => mkdirp(config.internals.stampDir));
 
 gulp.task("build-standalone-wed-less",
-          ["stamp-dir", "build-standalone-wed"],
-          (callback) => {
-            const dest = "build/standalone/lib";
-            const stamp = stampPath("less");
-            const incFiles = `${lessInc}**/*.less`;
-
-            // We have to filter out the included files from the less
-            // transformation but we do include them literally in the final
-            // package so that modes developed by users of wed can use them.
-            const filter = gulpFilter(["src/**/*", `!${incFiles}`],
-                                      { restore: true });
-            // This is a bit of a compromise. This will actually run less for
-            // *all* less files if *any* of the less files changes.
-            gulp.src(["src/**/*.less", incFiles, "!**/*_flymake.*"])
-              .pipe(gulpNewer(stamp))
-              .pipe(filter)
-              .pipe(less({
-                paths: [lessInc, "../../node_modules/bootstrap/dist/css"],
-              }))
-              .pipe(filter.restore)
-              .pipe(gulp.dest(dest))
-              .on("end", () => {
-                Promise.resolve(touch(stamp)).asCallback(callback);
-              });
-          });
+          () => execFileAndReport("npm", ["run", "less"]));
 
 gulp.task("copy-bin", () => gulp.src("bin/**/*")
           // Update all paths that point into the build directory be relative
