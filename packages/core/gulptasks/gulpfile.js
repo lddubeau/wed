@@ -3,7 +3,6 @@ const Promise = require("bluebird");
 const path = require("path");
 const log = require("fancy-log");
 const requireDir = require("require-dir");
-const replace = require("gulp-replace");
 const argparse = require("argparse");
 const touch = require("touch");
 
@@ -84,19 +83,10 @@ gulp.task("stamp-dir", () => mkdirp(config.internals.stampDir));
 gulp.task("build-standalone-wed-less",
           () => execFileAndReport("npm", ["run", "less"]));
 
-gulp.task("copy-bin", () => gulp.src("bin/**/*")
-          // Update all paths that point into the build directory be relative
-          // to .. instead.
-          .pipe(replace("../build/", "../"))
-          .pipe(gulp.dest("build/bin")));
+gulp.task("copy-bin", () => execFileAndReport("npm", ["run", "bin"]));
 
-gulp.task("build-info", Promise.coroutine(function *task() {
-  const dest = "build/standalone/lib/wed/build-info.js";
-  yield mkdirp(path.dirname(dest));
-
-  yield exec("node tasks/generate_build_info.js --unclean " +
-             `--module > ${dest}`);
-}));
+gulp.task("build-info",
+          () => execFileAndReport("npm", ["run", "generate-build-info"]));
 
 gulp.task("build-samples", () => execFileAndReport("tasks/make-samples"));
 
