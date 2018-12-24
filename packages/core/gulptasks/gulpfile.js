@@ -3,9 +3,7 @@ const gulpNewer = require("gulp-newer");
 const gulpFilter = require("gulp-filter");
 const less = require("gulp-less");
 const rename = require("gulp-rename");
-const changed = require("gulp-changed");
 const through2 = require("through2");
-const vinylFile = require("vinyl-file");
 const Promise = require("bluebird");
 const path = require("path");
 const log = require("fancy-log");
@@ -72,23 +70,7 @@ Object.assign(options, parser.parseArgs(process.argv.slice(2)));
 requireDir(".");
 
 
-gulp.task("config", () => {
-  const dest = "build/config";
-  // In effect, anything in localConfigPath overrides the same file in
-  // config.
-  const configPath = "../../config";
-  const localConfigPath = "../../local_config";
-  return gulp.src(path.join(configPath, "**"), { nodir: true })
-    .pipe(through2.obj((file, enc, callback) => vinylFile.read(
-      path.join(localConfigPath, file.relative),
-      { base: localConfigPath })
-                       .then(override => callback(null, override),
-                             () => callback(null, file))))
-  // We do not use newer here as it would sometimes have
-  // unexpected effects.
-    .pipe(changed(dest, { hasChanged: changed.compareContents }))
-    .pipe(gulp.dest(dest));
-});
+gulp.task("config", () => execFileAndReport("npm", ["run", "config"]));
 
 const buildDeps = ["build-standalone", "build-bundled-doc"];
 if (options.optimize) {
