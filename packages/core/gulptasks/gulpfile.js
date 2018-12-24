@@ -77,9 +77,8 @@ if (options.optimize) {
 }
 gulp.task("build", buildDeps);
 
-gulp.task("build-standalone-wed", ["copy-wed-source",
-                                   "convert-wed-yaml",
-                                   "tsc-wed"]);
+gulp.task("build-standalone-wed", ["copy-wed-source", "convert-wed-yaml",
+                                   "tsc"]);
 
 gulp.task("copy-wed-source", () => {
   const dest = "build/standalone/lib";
@@ -106,19 +105,10 @@ gulp.task("convert-wed-yaml", () => {
     .pipe(gulp.dest(dest));
 });
 
-function tsc(tsconfigPath, dest) {
-  return execFileAndReport(`${devBins}/tsc`,
-                           ["-p", tsconfigPath, "--outDir", dest]);
-}
-
 gulp.task("generate-ts",
           () => execFileAndReport("npm", ["run", "generate-ts"]));
 
-gulp.task("tsc-wed", ["generate-ts"],
-          () => Promise.all([
-            tsc("src/tsconfig.json", "build/standalone/lib"),
-            tsc("src/wed/cli/tsconfig.json", "build/standalone/lib"),
-          ]));
+gulp.task("tsc", () => execFileAndReport("npm", ["run", "tsc"]));
 
 gulp.task("copy-js-web",
           () => gulp.src("web/**/*.{js,html,css}")

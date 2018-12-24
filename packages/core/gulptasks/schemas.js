@@ -5,7 +5,7 @@ const Promise = require("bluebird");
 const { options } = require("./config");
 const { del, newer, checkOutputFile, exec, mkdirp } = require("./util");
 
-gulp.task("wed-metadata-prereq", ["copy-bin", "tsc-wed"]);
+gulp.task("wed-metadata-prereq", ["copy-bin", "tsc"]);
 
 gulp.task("copy-schemas",
           () => gulp.src(["schemas/*.js", "schemas/**/*.rng"], { base: "." })
