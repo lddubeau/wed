@@ -61,48 +61,19 @@ Object.assign(options, parser.parseArgs(process.argv.slice(2)));
 // this allows having code that depends on the configuration values.
 requireDir(".");
 
-
-gulp.task("config", () => execFileAndReport("npm", ["run", "config"]));
-
 const buildDeps = ["build-standalone", "build-bundled-doc"];
 if (options.optimize) {
   buildDeps.push("webpack");
 }
 gulp.task("build", buildDeps);
 
-gulp.task("build-standalone-wed",
-          () => execFileAndReport("npm", ["run", "build-dev"]));
-
-gulp.task("tsc", () => execFileAndReport("npm", ["run", "tsc"]));
-
 gulp.task("generate-ts",
           () => execFileAndReport("npm", ["run", "generate-ts"]));
 
 gulp.task("stamp-dir", () => mkdirp(config.internals.stampDir));
 
-gulp.task("build-standalone-wed-less",
-          () => execFileAndReport("npm", ["run", "less"]));
-
-gulp.task("copy-bin", () => execFileAndReport("npm", ["run", "bin"]));
-
-gulp.task("build-info",
-          () => execFileAndReport("npm", ["run", "generate-build-info"]));
-
-gulp.task("build-samples", () => execFileAndReport("tasks/make-samples"));
-
-gulp.task("build-web", () => execFileAndReport("npm", ["run", "copy-web"]));
-
 gulp.task("build-standalone",
-          [].concat(
-            "build-standalone-wed",
-            "build-standalone-wed-less",
-            "config",
-            "copy-bin",
-            "build-web",
-            "build-schemas",
-            "build-samples",
-            "build-info"),
-          () => mkdirp("build/ajax"));
+          () => execFileAndReport("npm", ["run", "build-dev"]));
 
 gulp.task("build-bundled-doc", ["build-standalone"],
           Promise.coroutine(function *task() {

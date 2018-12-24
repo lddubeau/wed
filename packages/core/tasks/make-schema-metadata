@@ -1,0 +1,105 @@
+#!/usr/bin/env node
+
+"use strict";
+
+const path = require("path");
+
+const log = require("fancy-log");
+
+const { options } = require("./config");
+const { del, mkdirp, exec, newer, checkOutputFile } =
+      require("../gulptasks/util");
+
+process.on("unhandledRejection", (err) => {
+  // eslint-disable-next-line no-console
+  console.log(err);
+  process.exit(1);
+});
+
+// Try to load local configuration options.
+let localConfig = {};
+try {
+  // eslint-disable-next-line global-require, import/no-unresolved
+  localConfig = require("../gulp.local");
+}
+catch (e) {
+  if (e.code !== "MODULE_NOT_FOUND") {
+    throw e;
+  }
+}
+
+Object.assign(options, localConfig);
+
+async function xmlToJsonChain(name, dest) {
+  const xml = `schemas/${name}.xml`;
+  const compiled = `schemas/out/${name}.compiled`;
+  const json = `schemas/out/${name}.json`;
+  const metaJson = `build/schemas/${dest}`;
+
+  if (!await newer(xml, compiled)) {
+    log(`Skipped running teitoodd for ${compiled}.`);
+  }
+  else {
+    await mkdirp(`schemas/out`);
+    await exec(`teitoodd --localsource=${options.tei} ${xml} ${compiled}`);
+  }
+
+  if (!await newer(compiled, json)) {
+    log(`Skipped running saxon for ${json}.`);
+  }
+  else {
+    await exec(`${options.saxon} -xsl:` +
+               "/usr/share/xml/tei/stylesheet/odds/odd2json.xsl" +
+               ` -s:${compiled} -o:${json} callback=''`);
+  }
+
+  const fragment = "schemas/tei-meta-fragment.yml";
+  if (!await newer([json, fragment], metaJson)) {
+    log(`Skipping generation of ${metaJson}`);
+    return undefined;
+  }
+
+  await mkdirp(path.dirname(metaJson));
+  return checkOutputFile("build/bin/wed-metadata",
+                         ["--tei", "--merge", fragment].concat(json,
+                                                               metaJson));
+}
+
+const myTEI = xmlToJsonChain("myTEI", "tei-metadata.json");
+
+async function teiDoc() {
+  await myTEI;
+  const src = "schemas/out/myTEI.compiled";
+  const dest = "build/schemas/tei-doc";
+
+  const isNewer = await newer(src, dest, true /* forceDestFile */);
+  if (!isNewer) {
+    log(`Skipping generation of ${dest}`);
+    return;
+  }
+
+  await del(dest);
+  await mkdirp(dest);
+  await checkOutputFile(
+    options.saxon,
+    [`-s:${src}`, `-xsl:${options.odd2html}`,
+     "STDOUT=false", "splitLevel=0", `outputDir=${dest}`]);
+}
+
+async function docbookMetadata() {
+  const fragment = "schemas/docbook-meta-fragment.yml";
+  const metadata = "build/schemas/docbook-metadata.json";
+  const isNewer = await newer(fragment, metadata);
+
+  if (!isNewer) {
+    log(`Skipping generation of ${metadata}`);
+    return;
+  }
+
+  await mkdirp(path.dirname(metadata));
+  await checkOutputFile("build/bin/wed-metadata",
+                        [fragment, metadata]);
+}
+
+Promise.all([docbookMetadata(), teiDoc(),
+             xmlToJsonChain("tei-math", "tei-math-metadata.json"), myTEI]);
