@@ -77,16 +77,10 @@ if (options.optimize) {
 }
 gulp.task("build", buildDeps);
 
-gulp.task("build-standalone-wed", ["copy-wed-source", "convert-wed-yaml",
+gulp.task("build-standalone-wed", ["copy-src", "convert-wed-yaml",
                                    "tsc"]);
 
-gulp.task("copy-wed-source", () => {
-  const dest = "build/standalone/lib";
-  return gulp.src(["src/**/*.@(js|json|d.ts|xml|html|xsl)",
-                   "!src/**/*_flymake.*", "!src/**/flycheck*"])
-    .pipe(gulpNewer(dest))
-    .pipe(gulp.dest(dest));
-});
+gulp.task("copy-src", () => execFileAndReport("npm", ["run", "copy-src"]));
 
 gulp.task("convert-wed-yaml", () => {
   const dest = "build/standalone/lib";
