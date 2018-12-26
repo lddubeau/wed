@@ -1,0 +1,72 @@
+#!/usr/bin/env node
+
+"use strict";
+
+const log = require("fancy-log");
+const touch = require("touch");
+
+const { fs, newer, checkOutputFile, stampPath, spawn, makeStampDir } =
+      require("../gulptasks/util");
+const { options } = require("./config");
+
+process.on("unhandledRejection", (err) => {
+  // eslint-disable-next-line no-console
+  console.log(err);
+  process.exit(1);
+});
+
+// Try to load local configuration options.
+let localConfig = {};
+try {
+  // eslint-disable-next-line global-require, import/no-unresolved
+  localConfig = require("../gulp.local");
+}
+catch (e) {
+  if (e.code !== "MODULE_NOT_FOUND") {
+    throw e;
+  }
+}
+
+Object.assign(options, localConfig);
+
+async function run() {
+  const sources = ["src/**/*.ts"];
+  const stamp = stampPath("typedoc");
+  const hashPath = "./build/typedoc.hash.txt";
+
+  const [savedHash, [currentHash]] = await Promise.all(
+    [fs.readFile(hashPath)
+     .then(hash => hash.toString())
+     .catch(() => undefined),
+     checkOutputFile("git", ["rev-parse", "--short", "HEAD"]),
+    ]);
+
+  if ((currentHash === savedHash) && !(await newer(sources, stamp))) {
+    log("No change, skipping typedoc.");
+    return;
+  }
+
+  const tsoptions = [
+    "--out", "./build/api",
+    "--name", "wed",
+    "--tsconfig", "./src/tsconfig.json",
+    "--exclude", "**/src/tests/**/*",
+    "--listInvalidSymbolLinks",
+  ];
+
+  // For now we require that private entities be included in the documentation
+  // due to an issue in typedoc whereby public object properties defined in a
+  // private constructor won't be included in the documentation.
+
+  // eslint-disable-next-line no-constant-condition
+  if (false && !options.doc_private) {
+    tsoptions.push("--excludePrivate");
+  }
+
+  await spawn(`./node_modules/.bin/typedoc`, tsoptions, { stdio: "inherit" });
+
+  await Promise.all([fs.writeFile(hashPath, currentHash),
+                     () => makeStampDir().then(() => touch(stamp))]);
+}
+
+run();

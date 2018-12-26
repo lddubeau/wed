@@ -25,6 +25,7 @@
     "test-karma-webpack": "karma start karma-webpack.conf.js --single-run",
     "test": "npm run build-test-files && npm run test-karma && npm run test-karma-webpack",
     "selenium-test": "npm run build-test-files && behave selenium_test",
+    "typedoc": "./tasks/run-typedoc",
     "posttest": "versync -v && npm run lint",
     "build-and-test": "npm run build-prod && npm run test",
     "clean": "rm -rf build gh-pages",

@@ -64,7 +64,7 @@ gulp.task("default", () => execFileAndReport("npm", ["run", "build-dev"]));
 
 gulp.task("build-prod", () => execFileAndReport("npm", ["run", "build-prod"]));
 
-gulp.task("doc", ["typedoc"]);
+gulp.task("doc", () => execFileAndReport("npm", ["run", "typedoc"]));
 
 // We make this a different task so that the check can be performed as
 // early as possible.
