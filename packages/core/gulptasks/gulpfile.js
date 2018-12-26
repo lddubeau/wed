@@ -10,8 +10,6 @@ const {
   cprpdir, defineTask, spawn, sequence, mkdirp, fs,
 } = require("./util");
 
-const { internals: { devBins } } = config;
-
 const { test, seleniumTest } = require("./tests");
 
 const { ArgumentParser } = argparse;
@@ -59,25 +57,14 @@ Object.assign(options, parser.parseArgs(process.argv.slice(2)));
 // this allows having code that depends on the configuration values.
 requireDir(".");
 
-const buildDeps = ["build-standalone"];
-if (options.optimize) {
-  buildDeps.push("webpack");
-}
-gulp.task("build", buildDeps);
-
 gulp.task("generate-ts",
           () => execFileAndReport("npm", ["run", "generate-ts"]));
 
 gulp.task("stamp-dir", () => mkdirp(config.internals.stampDir));
 
-gulp.task("build-standalone",
-          () => execFileAndReport("npm", ["run", "build-dev"]));
+gulp.task("default", () => execFileAndReport("npm", ["run", "build-dev"]));
 
-gulp.task("webpack", ["build-standalone"],
-          () => execFileAndReport(`${devBins}/webpack`, ["--color"],
-                                  { maxBuffer: 300 * 1024 }));
-
-gulp.task("default", ["build"]);
+gulp.task("build-prod", () => execFileAndReport("npm", ["run", "build-prod"]));
 
 gulp.task("doc", ["typedoc"]);
 

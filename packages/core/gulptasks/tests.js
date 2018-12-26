@@ -93,14 +93,14 @@ function runKarma(localOptions) {
 
 const testKarma = {
   name: "test-karma",
-  deps: ["build-standalone", "build-test-files"],
+  deps: ["default", "build-test-files"],
   func: () => runKarma(["start", "--single-run"]),
 };
 defineTask(testKarma);
 
 const testKarmaWebpack = {
   name: "test-karma-webpack",
-  deps: ["webpack", "build-test-files"],
+  deps: ["build-prod", "build-test-files"],
   func: () => runKarma(["start", "karma-webpack.conf.js", "--single-run"]),
 };
 defineTask(testKarmaWebpack);
