@@ -5,7 +5,7 @@
   "description": "Wed is a schema-aware editor for XML documents.",
   "author": "Louis-Dominique Dubeau <louisd@mangalamresearch.org>",
   "scripts": {
-    "config": "mkdir -p build/config && cp -rp ../../config ../../local_config build/config",
+    "config": "mkdir -p build/config && cp -rp ../../config/* build/config && cp -rp ../../local_config/* build/config",
     "generate-ts": "./tasks/generate-ts",
     "tsc": "npm run generate-ts && tsc -p src/tsconfig.json --outDir build/standalone/lib && tsc -p src/wed/cli/tsconfig.json --outDir build/standalone/lib",
     "copy-src": "mkdir -p build/standalone/lib && (cd src; cp --parents `find . -regex '.*\\.\\(js\\|json\\|d.ts\\|xml\\|html\\|xsl\\)$' \\! -regex '.*/\\(\\(tsconfig\\|tslint\\).json\\|.*_flymake.*\\|.*/flycheck.*\\)$'` ../build/standalone/lib/)",
