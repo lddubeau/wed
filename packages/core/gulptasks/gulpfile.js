@@ -1,12 +1,11 @@
 const gulp = require("gulp");
-const Promise = require("bluebird");
 const path = require("path");
 const requireDir = require("require-dir");
 const argparse = require("argparse");
 
 const config = require("./config");
 const {
-  del, exec, execFile, execFileAndReport, checkOutputFile, cprp,
+  del, exec, execFile, execFileAndReport, cprp,
   cprpdir, defineTask, spawn, sequence, mkdirp, fs,
 } = require("./util");
 
@@ -63,61 +62,6 @@ gulp.task("stamp-dir", () => mkdirp(config.internals.stampDir));
 gulp.task("default", () => execFileAndReport("npm", ["run", "build-dev"]));
 
 gulp.task("build-prod", () => execFileAndReport("npm", ["run", "build-prod"]));
-
-gulp.task("doc", () => execFileAndReport("npm", ["run", "typedoc"]));
-
-// We make this a different task so that the check can be performed as
-// early as possible.
-gulp.task("gh-pages-check", Promise.coroutine(function *task() {
-  let [out] = yield checkOutputFile("git",
-                                    ["rev-parse", "--abbrev-ref", "HEAD"]);
-  out = out.trim();
-  if (out !== "master" && !options.force_gh_pages_build) {
-    throw new Error(`***
-Not on master branch. Don't build gh-pages-build on
-a branch other than master.
-***`);
-  }
-
-  if (!options.unsafe_deployment) {
-    // We use this only for the side effect it has:
-    // it fails of the current working directory is
-    // unclean.
-    yield exec("node ./tasks/generate_build_info.js > /dev/null");
-  }
-}));
-
-function *ghPages() {
-  const dest = "gh-pages";
-  const merged = "build/merged-gh-pages";
-  yield fs.emptyDir(dest);
-  yield del(merged);
-  yield cprp("doc", merged);
-
-  // Yep we invoke make on the documentation.
-  yield exec(`make -C ${merged} html`);
-
-  yield exec(`cp -rp ${merged}/_build/html/* build/api ${dest}`);
-
-  const destBuild = `${dest}/build`;
-  yield mkdirp(destBuild);
-  yield cprpdir(["build/samples", "build/schemas", "build/standalone",
-                 "build/packed"], destBuild);
-
-  for (const tree of ["standalone", "packed"]) {
-    const globalConfig = `${dest}/build/${tree}/lib/global-config.js`;
-    yield fs.move(globalConfig, `${globalConfig}.t`);
-    yield exec("node tasks/modify_config.js -d config.ajaxlog -d config.save " +
-               `${globalConfig}.t > ${globalConfig}`);
-  }
-
-  const tutorialData = `${dest}/tutorial_data`;
-  yield cprpdir("build/standalone/lib/tests/wed_test_data/unit_selection.xml",
-                tutorialData);
-}
-
-gulp.task("gh-pages", ["gh-pages-check", "default", "doc"],
-          Promise.coroutine(ghPages));
 
 const LATEST_DIST = "./build/LATEST-DIST.tgz";
 const packNoTest = {
