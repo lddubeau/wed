@@ -10,8 +10,6 @@ const {
   cprpdir, defineTask, spawn, sequence, mkdirp, fs,
 } = require("./util");
 
-const { test, seleniumTest } = require("./tests");
-
 const { ArgumentParser } = argparse;
 
 // Try to load local configuration options.
