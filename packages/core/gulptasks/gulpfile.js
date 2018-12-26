@@ -217,15 +217,3 @@ function publish() {
 gulp.task("publish", ["pack"], publish);
 
 gulp.task("publish-notest", ["pack-notest"], publish);
-
-gulp.task("clean", () => del(["build", "gh-pages", "*.html"]));
-
-gulp.task("distclean", ["clean"],
-          () => del(["downloads", "node_modules"]));
-
-const venvPath = ".venv";
-gulp.task("venv", [],
-          () => fs.access(venvPath).catch(() => exec("virtualenv .venv")));
-
-gulp.task("dev-venv", ["venv"],
-          () => exec(".venv/bin/pip install -r dev_requirements.txt"));

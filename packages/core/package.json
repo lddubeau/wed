@@ -17,7 +17,11 @@
     "generate-build-info": "mkdir -p build/standalone/lib/wed && node tasks/generate_build_info.js --unclean --module > build/standalone/lib/wed/build-info.js",
     "build-dev": "npm run config && npm run copy-src && npm run bin && npm run copy-web && npm run yml-to-json && npm run tsc && npm run less && npm run copy-schemas && tasks/make-schema-metadata && tasks/make-samples && npm run generate-build-info && mkdir -p build/ajax",
     "build": "gulp",
-    "build-and-test": "gulp test"
+    "build-and-test": "gulp test",
+    "clean": "rm -rf build gh-pages",
+    "distclean": "npm run clean && rm -rf node_modules",
+    "venv": "[ -e .venv ] || virtualenv .venv",
+    "dev-venv": "npm run venv && .venv/bin/pip install -r dev_requirements.txt"
   },
   "repository": {
     "type": "git",
