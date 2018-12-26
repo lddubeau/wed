@@ -1,4 +1,4 @@
-const gulp = require("gulp");
+const vfs = require("vinyl-fs");
 const gulpNewer = require("gulp-newer");
 const childProcess = require("child_process");
 const Promise = require("bluebird");
@@ -85,7 +85,7 @@ exports.newer = function newer(src, dest, forceDestFile) {
   }
 
   return new Promise((resolve) => {
-    const stream = gulp.src(src, { read: false })
+    const stream = vfs.src(src, { read: false })
             .pipe(gulpNewer(options));
 
     function end() {
@@ -100,12 +100,6 @@ exports.newer = function newer(src, dest, forceDestFile) {
 
     stream.on("end", end);
   });
-};
-
-exports.copyIfNewer = function copyIfNewer(src, dest) {
-  return src
-    .pipe(gulpNewer(dest))
-    .pipe(gulp.dest(dest));
 };
 
 exports.sameFiles = function sameFiles(a, b) {
@@ -164,78 +158,18 @@ exports.spawn = function spawn(cmd, args, options) {
 
     child.on("exit", (code, signal) => {
       if (code) {
-        reject(new Error(`child terminated with code: ${code}`));
+        reject(new Error(`${cmd} terminated with code: ${code}`));
         return;
       }
 
       if (signal) {
-        reject(new Error(`child terminated with signal: ${signal}`));
+        reject(new Error(`${cmd} terminated with signal: ${signal}`));
         return;
       }
 
       resolve();
     });
   });
-};
-
-exports.defineTask = function defineTask(task) {
-  let { func } = task;
-  if (func && func.constructor.name === "GeneratorFunction") {
-    func = Promise.coroutine(func);
-  }
-  gulp.task(task.name, task.deps, func);
-};
-
-exports.sequence = function sequence(name, ...tasks) {
-  const allDeps = [];
-  const funcs = [];
-
-  // The last element of tasks can be a final function to run after
-  // all the tasks.
-  let final = tasks[tasks.length - 1];
-
-  if (final instanceof Function) {
-    tasks.pop();
-  } // Normalize the array.
-  else {
-    final = undefined;
-  } // No final function to run.
-
-  for (const task of tasks) {
-    let { func } = task;
-    if (func) {
-      // Ideally we'd use a instanceof test but apparently babel
-      // does not make a GeneratorFunction global available...
-      if (func.constructor.name === "GeneratorFunction") {
-        func = Promise.coroutine(func);
-      }
-      funcs.push(func);
-    }
-    allDeps.push(task.deps);
-  }
-
-  const flattened = [].concat(...allDeps);
-
-  if (final) {
-    if (final.constructor.name === "GeneratorFunction") {
-      final = Promise.coroutine(final);
-    }
-    funcs.push(final);
-  }
-
-  function *routine() {
-    for (const func of funcs) {
-      yield func();
-    }
-  }
-
-  gulp.task(name, flattened, Promise.coroutine(routine));
-
-  return {
-    name,
-    deps: flattened,
-    func: routine,
-  };
 };
 
 /**

@@ -25,6 +25,147 @@
         "text-encoding": "^0.6.1"
       }
     },
+    "@wedxml/ajax-saver": {
+      "version": "1.0.0",
+      "requires": {
+        "@wedxml/base-saver": "1.0.0",
+        "@wedxml/client-api": "1.0.0",
+        "@wedxml/common": "1.0.0"
+      },
+      "dependencies": {
+        "@wedxml/base-saver": {
+          "version": "1.0.0",
+          "bundled": true,
+          "requires": {
+            "@wedxml/client-api": "1.0.0",
+            "@wedxml/common": "1.0.0"
+          },
+          "dependencies": {
+            "@wedxml/client-api": {
+              "version": "1.0.0",
+              "bundled": true
+            },
+            "@wedxml/common": {
+              "version": "1.0.0",
+              "bundled": true,
+              "requires": {
+                "@wedxml/client-api": "^1.0.0"
+              },
+              "dependencies": {
+                "@wedxml/client-api": {
+                  "version": "1.0.0",
+                  "bundled": true
+                }
+              }
+            }
+          }
+        },
+        "@wedxml/client-api": {
+          "version": "1.0.0",
+          "bundled": true
+        },
+        "@wedxml/common": {
+          "version": "1.0.0",
+          "bundled": true,
+          "requires": {
+            "@wedxml/client-api": "^1.0.0"
+          },
+          "dependencies": {
+            "@wedxml/client-api": {
+              "version": "1.0.0",
+              "bundled": true
+            }
+          }
+        }
+      }
+    },
+    "@wedxml/base-saver": {
+      "requires": {
+        "@wedxml/client-api": "1.0.0",
+        "@wedxml/common": "1.0.0"
+      },
+      "dependencies": {
+        "@wedxml/client-api": {
+          "version": "1.0.0",
+          "bundled": true
+        },
+        "@wedxml/common": {
+          "version": "1.0.0",
+          "bundled": true,
+          "requires": {
+            "@wedxml/client-api": "^1.0.0"
+          },
+          "dependencies": {}
+        }
+      }
+    },
+    "@wedxml/client-api": {
+      "version": "1.0.0"
+    },
+    "@wedxml/common": {
+      "version": "1.0.0",
+      "requires": {
+        "@wedxml/client-api": "^1.0.0"
+      },
+      "dependencies": {
+        "@wedxml/client-api": {
+          "version": "1.0.0",
+          "bundled": true
+        }
+      }
+    },
+    "@wedxml/default-runtime": {
+      "version": "1.0.0",
+      "requires": {
+        "@wedxml/client-api": "1.0.0",
+        "@wedxml/common": "1.0.0"
+      },
+      "dependencies": {
+        "@wedxml/client-api": {
+          "version": "1.0.0",
+          "bundled": true
+        },
+        "@wedxml/common": {
+          "version": "1.0.0",
+          "bundled": true,
+          "requires": {
+            "@wedxml/client-api": "^1.0.0"
+          },
+          "dependencies": {
+            "@wedxml/client-api": {
+              "version": "1.0.0",
+              "bundled": true
+            }
+          }
+        }
+      }
+    },
+    "@wedxml/trivial-grammar-loader": {
+      "version": "1.0.0",
+      "requires": {
+        "@wedxml/client-api": "1.0.0",
+        "@wedxml/common": "1.0.0"
+      },
+      "dependencies": {
+        "@wedxml/client-api": {
+          "version": "1.0.0",
+          "bundled": true
+        },
+        "@wedxml/common": {
+          "version": "1.0.0",
+          "bundled": true,
+          "requires": {
+            "@wedxml/client-api": "^1.0.0"
+          },
+          "dependencies": {
+            "@wedxml/client-api": {
+              "version": "1.0.0",
+              "bundled": true
+            }
+          }
+        }
+      }
+    },
     "ajv": {
       "version": "6.6.2",
       "resolved": "https://registry.npmjs.org/ajv/-/ajv-6.6.2.tgz",

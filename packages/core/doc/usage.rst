@@ -128,32 +128,14 @@ Building
 
 Everything generated during a build is output to the ``build/`` subdirectory,
 except for some documentation files like ``README.html`` and ``CHANGELOG.html``,
-which are in the root directory.
+which are in the root directory. You run a build with::
 
-Wed uses gulp to build itself. You may want to create a ``gulp.local.js`` file
-to record settings specific to your own build environment. Run ``gulp --help``
-to see what variables you can set. Note that the variable names when use on the
-command line have dashes where they would have underscore in
-``gulp.local.js``. For instance, on the command line you'd use
-``--behave-params`` to set the parameters passed to ``behave`` but in
-``gulp.local.js`` it would be ``behave_params``. Also note that your
-``gulp.local.js`` file should return a single anonymous object whose fields are
-the values you want to set. For instance::
+  npm run build
 
-  module.export = {
-      behave_params: "foo"
-  };
-
-When everything is set, install gulp locally (``npm install gulp``) and run::
-
-    $ gulp
-
-Gulp will install locally some packages with ``npm`` and download some external
-packages that cannot be installed with ``npm`` for whatever reason and place
-them in ``downloads/``. It will then create a tree of files that could be served
-by a web server. The files will be in ``build/standalone/``. As the name
-"standalone" implies, this build includes **everything** needed to run wed on
-your own server, except the configuration for RequireJS.
+It will create a tree of files that could be served by a web server. The files
+will be in ``build/standalone/``. As the name "standalone" implies, this build
+includes **everything** needed to run wed on your own server, except the
+configuration for RequireJS.
 
 Gulp will additionally create an optimized version of wed in
 ``build/packed/``. This is a version that has been optimized using Webpack. This

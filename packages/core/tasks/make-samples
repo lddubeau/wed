@@ -7,28 +7,13 @@ const path = require("path");
 const log = require("fancy-log");
 const { options } = require("./config");
 
-const { newer, checkOutputFile, copy, existsInFile } =
-      require("../gulptasks/util");
+const { newer, checkOutputFile, copy, existsInFile } = require("./util");
 
 process.on("unhandledRejection", (err) => {
   // eslint-disable-next-line no-console
   console.log(err);
   process.exit(1);
 });
-
-// Try to load local configuration options.
-let localConfig = {};
-try {
-  // eslint-disable-next-line global-require, import/no-unresolved
-  localConfig = require("../gulp.local");
-}
-catch (e) {
-  if (e.code !== "MODULE_NOT_FOUND") {
-    throw e;
-  }
-}
-
-Object.assign(options, localConfig);
 
 Promise.all(glob.sync("sample_documents/*.xml").map(async (sample) => {
   const dest = `build/samples/${path.basename(sample)}`;

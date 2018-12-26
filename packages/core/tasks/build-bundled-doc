@@ -8,7 +8,7 @@ const log = require("fancy-log");
 const touch = require("touch");
 
 const { del, exec, fs, newer, cprp, stampPath, makeStampDir } =
-      require("../gulptasks/util");
+      require("./util");
 
 process.on("unhandledRejection", (err) => {
   // eslint-disable-next-line no-console

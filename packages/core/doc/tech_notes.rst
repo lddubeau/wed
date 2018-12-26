@@ -261,10 +261,10 @@ Karma-Based Tests
 
 To run the Karma-based tests do::
 
-    $ gulp test-karma
+    $ npm run build-and-test
 
 These tests are located in the ``lib/tests/``. You can also run ``karma``
-directly from the command line but having ``gulp`` build the ``test`` target
+directly from the command line but having ``npm`` build the ``test`` target
 will trigger a build to ensure that the tests are run against the latest code.
 
 .. warning:: Keep in mind that tests are **always** run against the code present
@@ -318,12 +318,11 @@ adds some values. For instance::
 
 Finally, to run the suite issue::
 
-    $ gulp selenium-test --behave-params="-D browser=<platform>,<browser>,<version>"
+    $ npm run selenium-test -- -D browser=<platform>,<browser>,<version>
 
 Behind the scenes, this will launch Behave. An instance of ``./server.js`` will
 be launched automatically to respond to the requests of the browser that the
-test suite launches. See the gulpfile :github:`gulpfile.babel.js` for
-information about how behave is run.
+test suite launches.
 
 The ``browser`` variable determines which browser will run the test. You may
 omit any of ``platform``, ``browser`` or ``versions`` so long as the parts that

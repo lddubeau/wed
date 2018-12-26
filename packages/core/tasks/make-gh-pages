@@ -3,7 +3,7 @@
 "use strict";
 
 const { del, cprp, checkOutputFile, exec, fs, mkdirp, cprpdir } =
-      require("../gulptasks/util");
+      require("./util");
 
 process.on("unhandledRejection", (err) => {
   // eslint-disable-next-line no-console

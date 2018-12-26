@@ -6,7 +6,7 @@ const log = require("fancy-log");
 const touch = require("touch");
 
 const { fs, newer, checkOutputFile, stampPath, spawn, makeStampDir } =
-      require("../gulptasks/util");
+      require("./util");
 const { options } = require("./config");
 
 process.on("unhandledRejection", (err) => {
@@ -14,20 +14,6 @@ process.on("unhandledRejection", (err) => {
   console.log(err);
   process.exit(1);
 });
-
-// Try to load local configuration options.
-let localConfig = {};
-try {
-  // eslint-disable-next-line global-require, import/no-unresolved
-  localConfig = require("../gulp.local");
-}
-catch (e) {
-  if (e.code !== "MODULE_NOT_FOUND") {
-    throw e;
-  }
-}
-
-Object.assign(options, localConfig);
 
 async function run() {
   const sources = ["src/**/*.ts"];
