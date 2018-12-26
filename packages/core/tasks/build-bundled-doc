@@ -1,0 +1,46 @@
+#!/usr/bin/env node
+
+"use strict";
+
+const path = require("path");
+
+const log = require("fancy-log");
+const touch = require("touch");
+
+const { del, exec, fs, newer, cprp, stampPath, makeStampDir } =
+      require("../gulptasks/util");
+
+process.on("unhandledRejection", (err) => {
+  // eslint-disable-next-line no-console
+  console.log(err);
+  process.exit(1);
+});
+
+// The strategy here is to remove everything except what is in the help.rst
+// file, which becomes index.rst.
+
+async function doit() {
+  const stamp = stampPath("bundled-doc");
+  const buildBundledDoc = "build/bundled-doc";
+  const standaloneDoc = "build/standalone/doc";
+
+  if (!await newer("doc/**/*", stamp)) {
+    log("Skipping generation of bundled documentation.");
+    return;
+  }
+
+  await del([buildBundledDoc, standaloneDoc]);
+  await cprp("doc", buildBundledDoc);
+
+  // help.rst becomes our index.rst.
+  await cprp("doc/help.rst", path.join(buildBundledDoc, "index.rst"));
+
+  // Then we keep only the index and make that.
+  await del(["*.rst", "!index.rst"], { cwd: buildBundledDoc });
+  await exec(`make -C ${buildBundledDoc} html`);
+  await fs.rename(path.join(buildBundledDoc, "_build/html"), standaloneDoc);
+  await makeStampDir();
+  await touch(stamp);
+}
+
+doit();

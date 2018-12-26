@@ -1,15 +1,13 @@
 const gulp = require("gulp");
 const Promise = require("bluebird");
 const path = require("path");
-const log = require("fancy-log");
 const requireDir = require("require-dir");
 const argparse = require("argparse");
-const touch = require("touch");
 
 const config = require("./config");
 const {
-  del, newer, exec, execFile, execFileAndReport, checkOutputFile, cprp,
-  cprpdir, defineTask, spawn, sequence, mkdirp, fs, stampPath,
+  del, exec, execFile, execFileAndReport, checkOutputFile, cprp,
+  cprpdir, defineTask, spawn, sequence, mkdirp, fs,
 } = require("./util");
 
 const { internals: { devBins } } = config;
@@ -61,7 +59,7 @@ Object.assign(options, parser.parseArgs(process.argv.slice(2)));
 // this allows having code that depends on the configuration values.
 requireDir(".");
 
-const buildDeps = ["build-standalone", "build-bundled-doc"];
+const buildDeps = ["build-standalone"];
 if (options.optimize) {
   buildDeps.push("webpack");
 }
@@ -74,37 +72,6 @@ gulp.task("stamp-dir", () => mkdirp(config.internals.stampDir));
 
 gulp.task("build-standalone",
           () => execFileAndReport("npm", ["run", "build-dev"]));
-
-gulp.task("build-bundled-doc", ["build-standalone"],
-          Promise.coroutine(function *task() {
-            // The strategy here is to remove everything except what is in the
-            // help.rst ifle, which becomes index.rst and is modified to deal
-            // with a theme bug.
-
-            const stamp = stampPath("bundled-doc");
-            const buildBundledDoc = "build/bundled-doc";
-            const standaloneDoc = "build/standalone/doc";
-
-            const isNewer = yield newer("doc/**/*", stamp);
-
-            if (!isNewer) {
-              log("Skipping generation of bundled documentation.");
-              return;
-            }
-
-            yield del([buildBundledDoc, standaloneDoc]);
-            yield cprp("doc", buildBundledDoc);
-
-            // help.rst becomes our index.rst.
-            yield cprp("doc/help.rst", path.join(buildBundledDoc, "index.rst"));
-
-            // Then we keep only the index and make that.
-            yield del(["*.rst", "!index.rst"], { cwd: buildBundledDoc });
-            yield exec(`make -C ${buildBundledDoc} html`);
-            yield fs.rename(path.join(buildBundledDoc, "_build/html"),
-                            standaloneDoc);
-            yield touch(stamp);
-          }));
 
 gulp.task("webpack", ["build-standalone"],
           () => execFileAndReport(`${devBins}/webpack`, ["--color"],

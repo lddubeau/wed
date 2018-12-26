@@ -150,6 +150,10 @@ exports.stampPath = function stampPath(name) {
   return path.join(internals.stampDir, `${name}.stamp`);
 };
 
+exports.makeStampDir = async function makeStampDir() {
+  return fs.ensureDir(internals.stampDir);
+};
+
 exports.existsInFile = function existsInFile(fpath, re) {
   return fs.readFile(fpath).then(data => data.toString().search(re) !== -1);
 };
