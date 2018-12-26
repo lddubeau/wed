@@ -1,0 +1,47 @@
+#!/usr/bin/env node
+
+"use strict";
+
+const path = require("path");
+const util = require("util");
+
+const glob = util.promisify(require("glob"));
+
+const { checkOutputFile, cprp, existsInFile, mkdirp, newer } =
+      require("../gulptasks/util");
+const { options } = require("./config");
+
+const xsl = "src/tests/xml-to-xml-tei.xsl";
+
+process.on("unhandledRejection", (err) => {
+  // eslint-disable-next-line no-console
+  console.log(err);
+  process.exit(1);
+});
+
+async function convert() {
+  const files = await glob("src/tests/!(convert)_test_data/**",
+                           { nodir: true });
+  return Promise.all(files.map(async (file) => {
+    const ext = path.extname(file);
+    const destFile = file.replace(/^src/, "lib")
+          .substring(0, file.length - ext.length);
+    const dest = `${path.join("build/standalone", destFile)}_converted.xml`;
+
+    const tei = await existsInFile(file, /http:\/\/www.tei-c.org\/ns\/1.0/);
+
+    if (!await newer(tei ? [file, xsl] : file, dest)) {
+      return;
+    }
+
+    if (tei) {
+      await checkOutputFile(options.xsltproc, ["-o", dest, xsl, file]);
+    }
+    else {
+      await mkdirp(path.dirname(dest));
+      await cprp(file, dest);
+    }
+  }));
+}
+
+convert();

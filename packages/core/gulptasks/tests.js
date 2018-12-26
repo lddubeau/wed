@@ -1,6 +1,5 @@
 const gulp = require("gulp");
 const log = require("fancy-log");
-const path = require("path");
 const shell = require("shell-quote");
 const eslint = require("gulp-eslint");
 const versync = require("versync");
@@ -9,54 +8,10 @@ const Promise = require("bluebird");
 const glob = Promise.promisify(require("glob"));
 
 const { options, internals: { devBins } } = require("./config");
-const {
-  checkOutputFile, cprp, defineTask, existsInFile, mkdirp, newer,
-  sequence, spawn,
-} = require("./util");
+const { defineTask, execFileAndReport, sequence, spawn } = require("./util");
 
-const xsl = "src/tests/xml-to-xml-tei.xsl";
-gulp.task(
-  "convert-xml-test-files",
-  () => Promise.all(
-    glob("src/tests/!(convert)_test_data/**", { nodir: true })
-      .then(files => files.map(Promise.coroutine(function *dataPromise(file) {
-        const ext = path.extname(file);
-        const destFile = file.replace(/^src/, "lib")
-              .substring(0, file.length - ext.length);
-        const dest = `${path.join("build/standalone", destFile)}_converted.xml`;
-
-        const tei =
-              yield existsInFile(file,
-                                 /http:\/\/www.tei-c.org\/ns\/1.0/);
-
-        const isNewer = yield newer(tei ? [file, xsl] : file, dest);
-        if (!isNewer) {
-          return;
-        }
-
-        if (tei) {
-          yield checkOutputFile(options.xsltproc, ["-o", dest, xsl, file]);
-        }
-        else {
-          yield mkdirp(path.dirname(dest));
-          yield cprp(file, dest);
-        }
-      })))));
-
-gulp.task("build-test-files", ["convert-xml-test-files"]);
-
-// function runTslint(program) {
-//   const files = tslint.Linter.getFileNames(program);
-//   ts.getPreEmitDiagnostics(program);
-//   return gulp.src(files)
-//     .pipe(gulpTslint({
-//       formatter: "verbose",
-//       program,
-//     }))
-//     .pipe(gulpTslint.report({
-//       summarizeFailureOutput: true,
-//     }));
-// }
+gulp.task("build-test-files",
+          () => execFileAndReport("npm", ["run", "build-test-files"]));
 
 function runTslint(tsconfig) {
   // We do not need to pass the path to the tslint.json because when tslint

@@ -18,6 +18,7 @@
     "build-bundled-doc": "./tasks/build-bundled-doc",
     "build-dev": "npm run config && npm run copy-src && npm run bin && npm run copy-web && npm run yml-to-json && npm run tsc && npm run less && npm run copy-schemas && tasks/make-schema-metadata && tasks/make-samples && npm run generate-build-info && npm run build-bundled-doc && mkdir -p build/ajax",
     "build": "gulp",
+    "build-test-files": "./tasks/build-test-files",
     "build-and-test": "gulp test",
     "build-prod": "npm run build-dev && webpack",
     "clean": "rm -rf build gh-pages",
