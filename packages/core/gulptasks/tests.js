@@ -1,7 +1,6 @@
 const gulp = require("gulp");
 const log = require("fancy-log");
 const shell = require("shell-quote");
-const eslint = require("gulp-eslint");
 const versync = require("versync");
 const Promise = require("bluebird");
 
@@ -13,28 +12,10 @@ const { defineTask, execFileAndReport, sequence, spawn } = require("./util");
 gulp.task("build-test-files",
           () => execFileAndReport("npm", ["run", "build-test-files"]));
 
-function runTslint(tsconfig) {
-  // We do not need to pass the path to the tslint.json because when tslint
-  // lints a file it automatically looks up for the tslint.json file that
-  // governs it. (Looks up the directory chain.)
-  return spawn(`${devBins}/tslint`,
-               ["--project", tsconfig, "-t", "verbose"], { stdio: "inherit" });
-}
-
-gulp.task("tslint-wed", ["generate-ts"], () => runTslint("src/tsconfig.json"));
-
-gulp.task("tslint", ["tslint-wed"]);
-
-gulp.task("eslint",
-          () => gulp.src(["src/**/*.js", "*.js", "bin/**", "config/**/*.js",
-                          "web/**/*.js", "gulptasks/**/*.js", "tasks/**/*.js"])
-          .pipe(eslint())
-          .pipe(eslint.format())
-          .pipe(eslint.failAfterError()));
-
 const lint = {
   name: "lint",
-  deps: ["eslint", "tslint"],
+  deps: [],
+  func: () => execFileAndReport("npm", ["run", "lint"]),
 };
 defineTask(lint);
 

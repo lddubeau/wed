@@ -21,6 +21,7 @@
     "build-test-files": "./tasks/build-test-files",
     "build-and-test": "gulp test",
     "build-prod": "npm run build-dev && webpack",
+    "lint": "npm run generate-ts && tslint -t verbose -p src/tsconfig.json && eslint 'src/**/*.js' *.js bin/* 'config/**/*.js' 'web/**/*.js' 'tasks/**/*.js'",
     "clean": "rm -rf build gh-pages",
     "distclean": "npm run clean && rm -rf node_modules",
     "venv": "[ -e .venv ] || virtualenv .venv",
