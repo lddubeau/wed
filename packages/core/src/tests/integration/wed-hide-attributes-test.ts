@@ -8,7 +8,7 @@ import mergeOptions from "merge-options";
 import { Editor } from "wed/editor";
 
 import * as globalConfig from "../base-config";
-import { EditorSetup } from "../wed-test-util";
+import { dataPath, EditorSetup } from "../wed-test-util";
 
 const options = {
   mode: {
@@ -23,10 +23,9 @@ describe("wed hides attributes:", () => {
   let editor: Editor;
 
   before(() => {
-    setup = new EditorSetup(
-      "/base/build/dev/lib/tests/wed_test_data/source_converted.xml",
-      mergeOptions(globalConfig.config, options),
-      document);
+    setup = new EditorSetup(`${dataPath}/wed_test_data/source_converted.xml`,
+                            mergeOptions(globalConfig.config, options),
+                            document);
     ({ editor } = setup);
     return setup.init().then(() => {
       // tslint:disable-next-line:no-any

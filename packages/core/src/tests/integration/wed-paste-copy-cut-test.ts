@@ -10,7 +10,7 @@ import { Editor } from "wed/editor";
 
 import * as globalConfig from "../base-config";
 import { makeFakePasteEvent } from "../util";
-import { dataCaretCheck, EditorSetup } from "../wed-test-util";
+import { dataCaretCheck, dataPath, EditorSetup } from "../wed-test-util";
 
 const assert = chai.assert;
 
@@ -20,10 +20,9 @@ describe("wed paste copy cut:", () => {
   let caretManager: CaretManager;
 
   before(() => {
-    setup = new EditorSetup(
-      "/base/build/dev/lib/tests/wed_test_data/source_converted.xml",
-      globalConfig.config,
-      document);
+    setup = new EditorSetup(`${dataPath}/wed_test_data/source_converted.xml`,
+                            globalConfig.config,
+                            document);
     ({ editor } = setup);
     return setup.init().then(() => {
       // tslint:disable-next-line:no-any

@@ -45,17 +45,17 @@ async function ghPages() {
 
   const destBuild = `${dest}/build`;
   await mkdirp(destBuild);
-  await cprpdir(["build/samples", "build/schemas", "build/dev",
-                 "build/packed"], destBuild);
+  await cprpdir(["build/samples", "build/schemas", "build/dist/dev",
+                 "build/dist/packed"], destBuild);
 
   await Promise.all(["dev", "packed"].map(async (tree) => {
-    const globalConfig = `${dest}/build/${tree}/lib/global-config.js`;
+    const globalConfig = `${dest}/build/dist/${tree}/lib/global-config.js`;
     await fs.move(globalConfig, `${globalConfig}.t`);
     await exec("node tasks/modify_config.js -d config.ajaxlog -d config.save " +
                `${globalConfig}.t > ${globalConfig}`);
   }));
 
-  await cprpdir("build/dev/lib/tests/wed_test_data/unit_selection.xml",
+  await cprpdir("build/dist/dev/lib/tests/wed_test_data/unit_selection.xml",
                 `${dest}/tutorial_data`);
 }
 

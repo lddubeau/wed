@@ -12,7 +12,7 @@ import { SEARCH_BACKWARDS, SEARCH_FORWARD } from "wed/key-constants";
 
 import * as globalConfig from "../../base-config";
 
-import { EditorSetup } from "../../wed-test-util";
+import { dataPath, EditorSetup } from "../../wed-test-util";
 
 const expect = chai.expect;
 
@@ -33,10 +33,9 @@ describe("dialog-search-replace", () => {
   let firstABCAttribute: DLocRange;
 
   before(() => {
-    setup = new EditorSetup(
-      "/base/build/dev/lib/tests/search_test_data/source_converted.xml",
-      globalConfig.config,
-      document);
+    setup = new EditorSetup(`${dataPath}/search_test_data/source_converted.xml`,
+                            globalConfig.config,
+                            document);
     ({ editor } = setup);
     return setup.init();
   });

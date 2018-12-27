@@ -10,7 +10,7 @@ import { Editor } from "wed/editor";
 
 import * as globalConfig from "../base-config";
 import { waitForSuccess } from "../util";
-import { activateContextMenu, contextMenuHasOption, EditorSetup,
+import { activateContextMenu, contextMenuHasOption, dataPath, EditorSetup,
          getAttributeNamesFor } from "../wed-test-util";
 
 const options = {
@@ -26,10 +26,9 @@ describe("wed wildcard support:", () => {
   let guiRoot: Element;
 
   before(async () => {
-    setup = new EditorSetup(
-      "/base/build/dev/lib/tests/wed_test_data/wildcard_converted.xml",
-      mergeOptions(globalConfig.config, options),
-      document);
+    setup = new EditorSetup(`${dataPath}/wed_test_data/wildcard_converted.xml`,
+                            mergeOptions(globalConfig.config, options),
+                            document);
     ({ editor } = setup);
 
     await setup.init();

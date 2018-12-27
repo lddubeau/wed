@@ -9,7 +9,7 @@ import * as keyConstants from "wed/key-constants";
 
 import * as globalConfig from "../base-config";
 import { waitForSuccess } from "../util";
-import { EditorSetup } from "../wed-test-util";
+import { dataPath, EditorSetup } from "../wed-test-util";
 
 const assert = chai.assert;
 
@@ -22,10 +22,9 @@ describe("wed file state:", () => {
   let titles: HTMLCollectionOf<Element>;
 
   beforeEach(() => {
-    setup = new EditorSetup(
-      "/base/build/dev/lib/tests/wed_test_data/source_converted.xml",
-      globalConfig.config,
-      document);
+    setup = new EditorSetup(`${dataPath}/wed_test_data/source_converted.xml`,
+                            globalConfig.config,
+                            document);
     ({ editor } = setup);
     return setup.init().then(() => {
       // tslint:disable-next-line:no-any

@@ -9,6 +9,7 @@ import * as convert from "wed/convert";
 import * as domutil from "wed/domutil";
 
 import { DataProvider } from "../util";
+import { dataPath } from "../wed-test-util";
 
 const assert = chai.assert;
 
@@ -41,8 +42,7 @@ describe("domutil", () => {
   let sourceDoc: Document;
 
   before(() => {
-    provider =
-      new DataProvider("/base/build/dev/lib/tests/domutil_test_data/");
+    provider = new DataProvider(`${dataPath}/domutil_test_data/`);
     return provider.getText("source_converted.xml").then((data) => {
       const parser = new DOMParser();
       sourceDoc = parser.parseFromString(data, "application/xml");

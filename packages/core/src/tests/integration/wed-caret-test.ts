@@ -15,7 +15,7 @@ import * as keyConstants from "wed/key-constants";
 import { distFromRect } from "wed/util";
 
 import * as globalConfig from "../base-config";
-import { caretCheck, dataCaretCheck, EditorSetup, firstGUI,
+import { caretCheck, dataCaretCheck, dataPath, EditorSetup, firstGUI,
          getAttributeValuesFor, getElementNameFor,
          lastGUI } from "../wed-test-util";
 
@@ -28,8 +28,7 @@ describe("wed caret", () => {
   let ps: NodeListOf<Element>;
 
   before(() => {
-    setup = new EditorSetup(
-      "/base/build/dev/lib/tests/wed_test_data/source_converted.xml",
+    setup = new EditorSetup(`${dataPath}/wed_test_data/source_converted.xml`,
       globalConfig.config,
       document);
     ({ editor } = setup);

@@ -38,7 +38,7 @@ describe("validator", () => {
         grammar = readTreeFromJSON(schema);
       }),
       provider.getDoc(
-        "dev/lib/tests/validator_test_data/to_parse_converted.xml")
+        "dist/dev/lib/tests/validator_test_data/to_parse_converted.xml")
         .then((doc) => {
           genericTree = doc;
         }),

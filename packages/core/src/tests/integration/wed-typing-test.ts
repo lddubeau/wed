@@ -11,7 +11,7 @@ import * as key from "wed/key";
 import * as keyConstants from "wed/key-constants";
 
 import * as globalConfig from "../base-config";
-import { caretCheck, EditorSetup,
+import { caretCheck, dataPath, EditorSetup,
          getAttributeValuesFor } from "../wed-test-util";
 
 const assert = chai.assert;
@@ -25,10 +25,9 @@ describe("wed typing:", () => {
   let titles: HTMLCollectionOf<Element>;
 
   before(() => {
-    setup = new EditorSetup(
-      "/base/build/dev/lib/tests/wed_test_data/source_converted.xml",
-      globalConfig.config,
-      document);
+    setup = new EditorSetup(`${dataPath}/wed_test_data/source_converted.xml`,
+                            globalConfig.config,
+                            document);
     ({ editor } = setup);
     return setup.init().then(() => {
       // tslint:disable-next-line:no-any

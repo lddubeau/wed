@@ -16,7 +16,7 @@ import { ModeTree } from "wed/mode-tree";
 
 import * as globalConfig from "../base-config";
 import { expectError } from "../util";
-import { EditorSetup } from "../wed-test-util";
+import { dataPath, EditorSetup } from "../wed-test-util";
 
 const options: Options = {
   schema: "/base/build/schemas/tei-simplified-rng.js",
@@ -60,10 +60,9 @@ describe("ModeTree", () => {
   let editor: Editor;
 
   before(() => {
-    setup = new EditorSetup(
-      "/base/build/dev/lib/tests/wed_test_data/source_converted.xml",
-      mergeOptions(globalConfig.config, options),
-      document);
+    setup = new EditorSetup(`${dataPath}/wed_test_data/source_converted.xml`,
+                            mergeOptions(globalConfig.config, options),
+                            document);
     ({ editor } = setup);
     return setup.init();
   });

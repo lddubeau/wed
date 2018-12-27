@@ -13,6 +13,7 @@ import { linkTrees } from "wed/domutil";
 import * as guiroot from "wed/guiroot";
 
 import { DataProvider } from "../util";
+import { dataPath } from "../wed-test-util";
 
 const assert = chai.assert;
 
@@ -32,8 +33,7 @@ describe("guiroot", () => {
   let htmlTree: Node;
   let xmlDoc: Document;
 
-  before(() =>
-         new DataProvider("/base/build/dev/lib/tests/guiroot_test_data/")
+  before(() => new DataProvider(`${dataPath}/guiroot_test_data/`)
          .getText("source_converted.xml")
          .then((sourceXML) => {
            root = document.createElement("div");
@@ -153,6 +153,7 @@ describe("guiroot", () => {
         targetDataNode = xmlDoc.getElementsByTagName("quote")[1];
         const targetGuiNode = $.data(targetDataNode, "wed_mirror_node");
         const guiPath = rootObj.nodeToPath(targetGuiNode);
+        // tslint:disable-next-line:no-shadowed-variable
         const dataPath = dataRootObj.nodeToPath(targetDataNode);
 
         // Both paths should be equal.

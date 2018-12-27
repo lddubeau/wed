@@ -19,6 +19,10 @@ const { childByClass, childrenByClass } = domutil;
 import { makeEditor } from "./entry";
 import { DataProvider } from "./util";
 
+export const devPath = "/base/build/dist/dev";
+
+export const dataPath = `${devPath}/lib/tests`;
+
 export function activateContextMenu(editor: Editor, el: Element): void {
   // tslint:disable-next-line:no-any
   function computeValues(): any {

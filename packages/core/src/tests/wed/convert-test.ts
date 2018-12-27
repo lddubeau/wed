@@ -9,6 +9,7 @@ import * as browsers from "@wedxml/common/browsers";
 import * as convert from "wed/convert";
 
 import { DataProvider } from "../util";
+import { dataPath } from "../wed-test-util";
 
 const assert = chai.assert;
 
@@ -18,8 +19,7 @@ describe("convert", () => {
 
   before(() => {
     parser = new DOMParser();
-    provider =
-      new DataProvider("/base/build/dev/lib/tests/convert_test_data/");
+    provider = new DataProvider(`${dataPath}/convert_test_data/`);
   });
 
   function makeTest(name: string, differsOnIE: boolean = false): void {

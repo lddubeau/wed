@@ -11,7 +11,7 @@ import * as keyConstants from "wed/key-constants";
 import * as onerror from "wed/onerror";
 
 import * as globalConfig from "../base-config";
-import { EditorSetup, WedServer } from "../wed-test-util";
+import { dataPath, EditorSetup, WedServer } from "../wed-test-util";
 
 const assert = chai.assert;
 
@@ -22,8 +22,7 @@ describe("wed error handling:", () => {
 
   beforeEach(() => {
     setup = new EditorSetup(
-      "/base/build/dev/lib/tests/wed_test_data/\
-server_interaction_converted.xml",
+      `${dataPath}/wed_test_data/server_interaction_converted.xml`,
       globalConfig.config,
       document);
     ({ editor, server } = setup);

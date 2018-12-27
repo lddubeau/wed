@@ -7,7 +7,7 @@ import { CaretManager } from "wed/caret-manager";
 import { Editor } from "wed/editor";
 
 import * as globalConfig from "../base-config";
-import { EditorSetup } from "../wed-test-util";
+import { dataPath, EditorSetup } from "../wed-test-util";
 
 const assert = chai.assert;
 
@@ -18,10 +18,9 @@ describe("wed location bar", () => {
   let locationBar: HTMLElement;
 
   before(() => {
-    setup = new EditorSetup(
-      "/base/build/dev/lib/tests/wed_test_data/source_converted.xml",
-      globalConfig.config,
-      document);
+    setup = new EditorSetup(`${dataPath}/wed_test_data/source_converted.xml`,
+                            globalConfig.config,
+                            document);
     ({ editor } = setup);
     return setup.init().then(() => {
       caretManager = editor.caretManager;

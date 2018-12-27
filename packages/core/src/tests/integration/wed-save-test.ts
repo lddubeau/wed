@@ -9,7 +9,7 @@ import { keyConstants, version } from "wed";
 import { Editor } from "wed/editor";
 
 import * as globalConfig from "../base-config";
-import { EditorSetup, WedServer } from "../wed-test-util";
+import { dataPath, EditorSetup, WedServer } from "../wed-test-util";
 
 const assert = chai.assert;
 
@@ -20,8 +20,7 @@ describe("wed save:", () => {
 
   before(() => {
     setup = new EditorSetup(
-      "/base/build/dev/lib/tests/wed_test_data/\
-server_interaction_converted.xml",
+      `${dataPath}/wed_test_data/server_interaction_converted.xml`,
       globalConfig.config,
       document);
     ({ editor, server } = setup);

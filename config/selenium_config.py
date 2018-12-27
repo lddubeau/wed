@@ -227,10 +227,10 @@ if CONFIG.remote and not REMOTE_SERVICE:
 # Location of our server. Changing this use dev rather than packed will
 # run the tests on the non-optimized version of the code.
 #
-WED_ROOT = "/forever/build/packed"
+WED_ROOT = "/forever/build/dist/packed"
 
 # We need this for some tests.
-WED_UNOPTIMIZED_ROOT = "/forever/build/dev"
+WED_UNOPTIMIZED_ROOT = "/forever/build/dist/dev"
 
 #
 # This is a setting local to this project. When set to an object:

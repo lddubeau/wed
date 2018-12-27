@@ -18,7 +18,7 @@ import { Mode } from "wed/mode";
 
 import * as globalConfig from "../base-config";
 import { makeFakePasteEvent } from "../util";
-import { EditorSetup } from "../wed-test-util";
+import { dataPath, EditorSetup } from "../wed-test-util";
 
 const options: Options = {
   schema: "/base/build/schemas/tei-simplified-rng.js",
@@ -63,9 +63,8 @@ describe("InputTrigger", () => {
   });
 
   beforeEach(() => {
-    setup = new EditorSetup(
-      "/base/build/dev/lib/tests/input_trigger_test_data/\
-source_converted.xml",
+    setup = new EditorSetup(`${dataPath}/input_trigger_test_data/\
+source_converted.xml`,
       mergeOptions(globalConfig.config, options),
       document);
     ({ editor } = setup);

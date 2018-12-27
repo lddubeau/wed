@@ -8,8 +8,8 @@ import { Editor } from "wed/editor";
 import { Transformation } from "wed/transformation";
 
 import * as globalConfig from "../base-config";
-import { caretCheck, EditorSetup, getAttributeNamesFor, getAttributeValuesFor,
-         getElementNameFor } from "../wed-test-util";
+import { caretCheck, dataPath, EditorSetup, getAttributeNamesFor,
+         getAttributeValuesFor, getElementNameFor } from "../wed-test-util";
 
 const assert = chai.assert;
 
@@ -21,10 +21,9 @@ describe("wed transformation:", () => {
   let guiRoot: Element;
 
   before(() => {
-    setup = new EditorSetup(
-      "/base/build/dev/lib/tests/wed_test_data/source_converted.xml",
-      globalConfig.config,
-      document);
+    setup = new EditorSetup(`${dataPath}/wed_test_data/source_converted.xml`,
+                            globalConfig.config,
+                            document);
     ({ editor } = setup);
     return setup.init().then(() => {
       // tslint:disable-next-line:no-any

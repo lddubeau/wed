@@ -11,7 +11,7 @@ import { BACKSPACE, DELETE, ENTER } from "wed/key-constants";
 import { Mode } from "wed/mode";
 
 import { makeFakePasteEvent } from "../util";
-import { EditorSetup } from "../wed-test-util";
+import { dataPath, EditorSetup } from "../wed-test-util";
 
 const assert = chai.assert;
 
@@ -35,7 +35,8 @@ describe("input_trigger_factory", () => {
   let setup: EditorSetup;
   let editor: Editor;
   let mode: Mode;
-  const dataDir = "/base/build/dev/lib/tests/input_trigger_test_data";
+  // tslint:disable-next-line:mocha-no-side-effect-code
+  const dataDir = `${dataPath}/input_trigger_test_data`;
 
   // tslint:disable-next-line:mocha-no-side-effect-code
   const srcStack: string[] = [`${dataDir}/source_converted.xml`];

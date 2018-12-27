@@ -16,6 +16,7 @@ import { BeforeDeleteNodeEvent, BeforeInsertNodeAtEvent, DeleteNodeEvent,
          TreeUpdaterEvents } from "wed/tree-updater";
 
 import { DataProvider } from "../util";
+import { dataPath } from "../wed-test-util";
 
 const assert = chai.assert;
 
@@ -49,9 +50,7 @@ describe("TreeUpdater", () => {
   let root: HTMLElement;
   let htmlTree: Node;
 
-  before(() =>
-         new DataProvider(
-           "/base/build/dev/lib/tests/tree_updater_test_data/")
+  before(() => new DataProvider(`${dataPath}/tree_updater_test_data/`)
          .getText("source_converted.xml")
          .then((sourceXML) => {
            root = document.createElement("div");

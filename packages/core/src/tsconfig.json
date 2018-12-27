@@ -12,7 +12,7 @@
       "merge-options": ["../../../types/merge-options"]
     },
     "types": ["reflect-metadata", "mocha"],
-    "outDir": "build/dev/lib"
+    "outDir": "build/dist/dev/lib"
   },
   "exclude": [
     "wed/cli"

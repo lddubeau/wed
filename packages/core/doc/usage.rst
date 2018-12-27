@@ -132,7 +132,7 @@ which are in the root directory. You run a build with::
 
   npm run build
 
-It will create an optimized version of wed in ``build/packed/``. This is a
+It will create an optimized version of wed in ``build/dist/packed/``. This is a
 version that has been optimized using Webpack. See the
 :ref:`tech_notes_deployment_considerations` section in :doc:`tech_notes` to
 determine whether this is the optimization you want to use to deploy wed.
@@ -158,10 +158,10 @@ Demos Saving to a Server
 
 Once the server is started, point your browser to either:
 
-* `<http://localhost:8888/build/dev/kitchen-sink.html>`_ to view the demo
+* `<http://localhost:8888/build/dist/dev/kitchen-sink.html>`_ to view the demo
   with the unoptimized file tree.
 
-* or `<http://localhost:8888/build/packed/kitchen-sink.html>`_ to
+* or `<http://localhost:8888/build/dist/packed/kitchen-sink.html>`_ to
   view the demo with an optimized file tree.
 
 The demo currently starts with an empty document using a vanilla TEI schema. See

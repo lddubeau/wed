@@ -9,7 +9,7 @@ import { Editor } from "wed/editor";
 import { encodeAttrName } from "wed/util";
 
 import { config } from "../submode-config";
-import { activateContextMenu, contextMenuHasOption, EditorSetup,
+import { activateContextMenu, contextMenuHasOption, dataPath, EditorSetup,
          getAttributeValuesFor } from "../wed-test-util";
 
 describe("wed submodes", () => {
@@ -18,8 +18,7 @@ describe("wed submodes", () => {
 
   before(() => {
     setup = new EditorSetup(
-      "/base/build/dev/lib/tests/wed_test_data/\
-source_for_submodes_converted.xml",
+      `${dataPath}/wed_test_data/source_for_submodes_converted.xml`,
       config,
       document);
     ({ editor } = setup);

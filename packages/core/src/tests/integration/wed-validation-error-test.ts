@@ -15,7 +15,7 @@ import { ValidationController } from "wed/validation-controller";
 
 import * as globalConfig from "../base-config";
 import { makeFakePasteEvent, waitForSuccess } from "../util";
-import { EditorSetup, firstGUI } from "../wed-test-util";
+import { dataPath, EditorSetup, firstGUI } from "../wed-test-util";
 
 const assert = chai.assert;
 const _slice = Array.prototype.slice;
@@ -30,10 +30,9 @@ describe("wed validation errors:", () => {
   let guiRoot: Element;
 
   before(async () => {
-    setup = new EditorSetup(
-      "/base/build/dev/lib/tests/wed_test_data/source_converted.xml",
-      globalConfig.config,
-      document);
+    setup = new EditorSetup(`${dataPath}/wed_test_data/source_converted.xml`,
+                            globalConfig.config,
+                            document);
     ({ editor } = setup);
     await setup.init();
 

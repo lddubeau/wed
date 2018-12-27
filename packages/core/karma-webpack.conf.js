@@ -3,7 +3,7 @@
 const commonConfig = require("./karma-common.conf.js");
 
 module.exports = function configure(config) {
-  const dist = "build/packed/";
+  const dist = "build/dist/packed/";
   const options = commonConfig(config, dist, "karma-main-webpack");
   options.files.push({
     pattern: `${dist}lib/*.@(js|map)`,
@@ -14,7 +14,7 @@ module.exports = function configure(config) {
     included: false,
   });
   options.files.push({
-    pattern: "build/dev/lib/tests/{*,*_data/**/*,integration/wed-save-test}.@(js|map|xml|html|json)",
+    pattern: "build/dist/dev/lib/tests/{*,*_data/**/*,integration/wed-save-test}.@(js|map|xml|html|json)",
     included: false,
   });
   config.set(options);

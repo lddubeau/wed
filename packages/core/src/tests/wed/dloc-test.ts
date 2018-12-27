@@ -13,6 +13,7 @@ import { isAttr } from "wed/domutil";
 import { encodeAttrName } from "wed/util";
 
 import { DataProvider } from "../util";
+import { dataPath } from "../wed-test-util";
 
 const assert = chai.assert;
 
@@ -31,8 +32,7 @@ describe("dloc", () => {
   let rootObj: DLocRoot;
   let encodedType: string;
 
-  before(() =>
-         new DataProvider("/base/build/dev/lib/tests/dloc_test_data/")
+  before(() => new DataProvider(`${dataPath}/dloc_test_data/`)
          .getText("source_converted.xml")
          .then((sourceXML) => {
            root = document.createElement("div");

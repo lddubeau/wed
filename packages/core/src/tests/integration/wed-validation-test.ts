@@ -17,7 +17,7 @@ import { ValidationController } from "wed/validation-controller";
 import { INVALID, Validator } from "wed/validator";
 
 import * as globalConfig from "../base-config";
-import { EditorSetup, getAttributeValuesFor } from "../wed-test-util";
+import { dataPath, EditorSetup, getAttributeValuesFor } from "../wed-test-util";
 
 const expect = chai.expect;
 
@@ -34,10 +34,9 @@ describe("wed validation:", () => {
   let startSpy: sinon.SinonSpy;
 
   before(async () => {
-    setup = new EditorSetup(
-      "/base/build/dev/lib/tests/wed_test_data/source_converted.xml",
-      globalConfig.config,
-      document);
+    setup = new EditorSetup(`${dataPath}/wed_test_data/source_converted.xml`,
+                            globalConfig.config,
+                            document);
     ({ editor } = setup);
 
     await setup.init();
