@@ -18,7 +18,7 @@ describe("wed submodes", () => {
 
   before(() => {
     setup = new EditorSetup(
-      "/base/build/standalone/lib/tests/wed_test_data/\
+      "/base/build/dev/lib/tests/wed_test_data/\
 source_for_submodes_converted.xml",
       config,
       document);

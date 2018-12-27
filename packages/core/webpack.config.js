@@ -7,7 +7,7 @@ const path = require("path");
 const { NormalModuleReplacementPlugin } = require("webpack");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 
-const buildDir = "build/standalone/lib/";
+const buildDir = "build/dev/lib/";
 
 const externals = {};
 
@@ -79,7 +79,7 @@ module.exports = {
     // loaded.
     new NormalModuleReplacementPlugin(/^rangy$/, (resource) => {
       if (resource.contextInfo.issuer !==
-          path.join(__dirname, "build/standalone/lib/wed/glue/rangy-glue.js")) {
+          path.join(__dirname, "build/dev/lib/wed/glue/rangy-glue.js")) {
         resource.request = "wed/glue/rangy-glue";
       }
     }),
@@ -95,7 +95,7 @@ module.exports = {
         from: {
           glob: name,
         },
-        context: "./build/standalone/lib",
+        context: "./build/dev/lib",
       }))),
   ],
 };

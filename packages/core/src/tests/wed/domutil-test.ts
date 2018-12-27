@@ -42,7 +42,7 @@ describe("domutil", () => {
 
   before(() => {
     provider =
-      new DataProvider("/base/build/standalone/lib/tests/domutil_test_data/");
+      new DataProvider("/base/build/dev/lib/tests/domutil_test_data/");
     return provider.getText("source_converted.xml").then((data) => {
       const parser = new DOMParser();
       sourceDoc = parser.parseFromString(data, "application/xml");

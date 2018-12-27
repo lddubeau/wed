@@ -14,7 +14,7 @@ module.exports = function configure(config) {
     included: false,
   });
   options.files.push({
-    pattern: "build/standalone/lib/tests/{*,*_data/**/*,integration/wed-save-test}.@(js|map|xml|html|json)",
+    pattern: "build/dev/lib/tests/{*,*_data/**/*,integration/wed-save-test}.@(js|map|xml|html|json)",
     included: false,
   });
   config.set(options);

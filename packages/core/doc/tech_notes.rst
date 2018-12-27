@@ -28,10 +28,6 @@ case to work around a bug in gitflow.
 Deployment Considerations
 =========================
 
-It is possible to deploy wed using the ``build/standalone/`` file tree but you
-will pay in execution time and bandwidth because the files in this tree are not
-optimized.
-
 The ``build/packed/`` file tree is optimized with Webpack. This optimization is
 designed to provide a balance between performance and flexibility. Greater
 performance could have been achieved by incorporating into one file all of the
@@ -41,6 +37,13 @@ might already be using jQuery and Bootstrap, perhaps different versions from
 those used to build wed, etc. The optimization described above could conceivably
 be used on this hypothetical server, provided that the configuration is updated
 to look for the external libraries at the right places.
+
+The ``build/dev/`` file tree is unoptimized. It is *possible* do deploy directly
+from it, but not recommended. You will pay in execution time and bandwidth
+because the files in this tree are not optimized, and you need to configure a
+module loader like SystemJS or RequireJS to load external packages. Otherwise,
+this tree could be used as the input to a custom webpack configuration to
+produce a bundle customized to your own needs.
 
 Schema and Structure Considerations
 ===================================
@@ -268,9 +271,9 @@ directly from the command line but having ``npm`` build the ``test`` target
 will trigger a build to ensure that the tests are run against the latest code.
 
 .. warning:: Keep in mind that tests are **always** run against the code present
-             in ``build/standalone/``. If you modify your source and fail to
-             rebuild before running the test suite, the suite will run against
-             **old code!
+             in ``build/dev/``. If you modify your source and fail to rebuild
+             before running the test suite, the suite will run against **old
+             code!
 
 In September 2017 we started implementing some of the tests in Karma and moving
 the tests that used to run in plain Node (i.e. Mocha running tests straight in

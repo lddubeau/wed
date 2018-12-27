@@ -38,7 +38,7 @@ describe("search", () => {
 
   before(() => {
     setup = new EditorSetup(
-      "/base/build/standalone/lib/tests/search_test_data/source_converted.xml",
+      "/base/build/dev/lib/tests/search_test_data/source_converted.xml",
       globalConfig.config,
       document);
     ({ editor } = setup);

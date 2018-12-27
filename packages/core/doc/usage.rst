@@ -132,15 +132,8 @@ which are in the root directory. You run a build with::
 
   npm run build
 
-It will create a tree of files that could be served by a web server. The files
-will be in ``build/standalone/``. As the name "standalone" implies, this build
-includes **everything** needed to run wed on your own server, except the
-configuration for RequireJS.
-
-Gulp will additionally create an optimized version of wed in
-``build/packed/``. This is a version that has been optimized using Webpack. This
-optimization exists for illustration purposes, for testing wed, and as a
-possible candidate for deploying wed. See the
+It will create an optimized version of wed in ``build/packed/``. This is a
+version that has been optimized using Webpack. See the
 :ref:`tech_notes_deployment_considerations` section in :doc:`tech_notes` to
 determine whether this is the optimization you want to use to deploy wed.
 
@@ -165,7 +158,7 @@ Demos Saving to a Server
 
 Once the server is started, point your browser to either:
 
-* `<http://localhost:8888/build/standalone/kitchen-sink.html>`_ to view the demo
+* `<http://localhost:8888/build/dev/kitchen-sink.html>`_ to view the demo
   with the unoptimized file tree.
 
 * or `<http://localhost:8888/build/packed/kitchen-sink.html>`_ to
@@ -217,14 +210,8 @@ variable to anything that exposes members that are not exposed through
 without notice, no complaints, no recourse.
 
 Also note that under the new regime the only module that is generally legitimate
-to load is ``wed``, and nothing else. You can probably still load individual
-modules from the ``standalone`` subdirectory as you used to, but this way of
-operating is deprecated and will most likely be gone by version 1.0. There are a
-few exceptions to the rule just given:
-
-* You may load ``wed/onerror`` by itself to set an error handler.
-
-* You may load ``wed/log`` by itself if you need to mess with logging.
+to load is ``wed``, and nothing else. There are a few exceptions to the rule
+just given:
 
 * The files in ``wed/glue``, ``wed/patches`` and ``wed/polyfills`` can (and
   sometimes *must*) be used indepdently of the main ``wed`` module.

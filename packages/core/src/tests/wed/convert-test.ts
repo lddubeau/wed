@@ -19,7 +19,7 @@ describe("convert", () => {
   before(() => {
     parser = new DOMParser();
     provider =
-      new DataProvider("/base/build/standalone/lib/tests/convert_test_data/");
+      new DataProvider("/base/build/dev/lib/tests/convert_test_data/");
   });
 
   function makeTest(name: string, differsOnIE: boolean = false): void {

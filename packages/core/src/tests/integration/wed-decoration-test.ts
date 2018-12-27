@@ -19,7 +19,7 @@ describe("wed decoration:", () => {
 
   before(() => {
     setup = new EditorSetup(
-      "/base/build/standalone/lib/tests/wed_test_data/source_converted.xml",
+      "/base/build/dev/lib/tests/wed_test_data/source_converted.xml",
       globalConfig.config,
       document);
     ({ editor } = setup);

@@ -26,7 +26,7 @@ async function convert() {
     const ext = path.extname(file);
     const destFile = file.replace(/^src/, "lib")
           .substring(0, file.length - ext.length);
-    const dest = `${path.join("build/standalone", destFile)}_converted.xml`;
+    const dest = `${path.join("build/dev", destFile)}_converted.xml`;
 
     const tei = await existsInFile(file, /http:\/\/www.tei-c.org\/ns\/1.0/);
 

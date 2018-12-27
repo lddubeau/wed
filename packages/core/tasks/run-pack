@@ -17,15 +17,14 @@ async function run() {
   await del("build/wed-*.tgz");
   const dist = "build/dist";
   await fs.emptyDir(dist);
-  await cprpdir(["build/standalone", "build/packed", "build/bin",
-                 "package.json", "npm-shrinkwrap.json"],
-                dist);
+  await cprpdir(["build/dev", "build/packed", "build/bin", "package.json",
+                 "npm-shrinkwrap.json"], dist);
   await fs.writeFile(path.join(dist, ".npmignore"), `\
 *
-!standalone/**
+!dev/**
 !bin/**
 !packed/**
-standalone/lib/tests/**
+dev/lib/tests/**
 `);
   await exec(`sed -e'/"private": true/d' package.json > ${dist}/package.json`);
   await cprp("README.md", `${dist}/README.md`);

@@ -32,7 +32,7 @@ describe("dloc", () => {
   let encodedType: string;
 
   before(() =>
-         new DataProvider("/base/build/standalone/lib/tests/dloc_test_data/")
+         new DataProvider("/base/build/dev/lib/tests/dloc_test_data/")
          .getText("source_converted.xml")
          .then((sourceXML) => {
            root = document.createElement("div");

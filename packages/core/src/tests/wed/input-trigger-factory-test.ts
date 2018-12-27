@@ -35,7 +35,7 @@ describe("input_trigger_factory", () => {
   let setup: EditorSetup;
   let editor: Editor;
   let mode: Mode;
-  const dataDir = "/base/build/standalone/lib/tests/input_trigger_test_data";
+  const dataDir = "/base/build/dev/lib/tests/input_trigger_test_data";
 
   // tslint:disable-next-line:mocha-no-side-effect-code
   const srcStack: string[] = [`${dataDir}/source_converted.xml`];

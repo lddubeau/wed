@@ -30,7 +30,7 @@ def load_and_wait_for_editor(context, text=None, options=None,
     }
 
     if text is not None:
-        query["file"] = "../standalone/" + text
+        query["file"] = "../dev/" + text
 
     if options is not None:
         query["options"] = options

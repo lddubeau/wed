@@ -27,7 +27,7 @@ describe("wed wildcard support:", () => {
 
   before(async () => {
     setup = new EditorSetup(
-      "/base/build/standalone/lib/tests/wed_test_data/wildcard_converted.xml",
+      "/base/build/dev/lib/tests/wed_test_data/wildcard_converted.xml",
       mergeOptions(globalConfig.config, options),
       document);
     ({ editor } = setup);

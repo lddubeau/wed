@@ -20,7 +20,7 @@ describe("wed save:", () => {
 
   before(() => {
     setup = new EditorSetup(
-      "/base/build/standalone/lib/tests/wed_test_data/\
+      "/base/build/dev/lib/tests/wed_test_data/\
 server_interaction_converted.xml",
       globalConfig.config,
       document);

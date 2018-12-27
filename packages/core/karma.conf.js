@@ -3,7 +3,7 @@
 const commonConfig = require("./karma-common.conf.js");
 
 module.exports = function configure(config) {
-  const dist = "build/standalone/";
+  const dist = "build/dev/";
   const options = commonConfig(config, dist, "karma-main-unit");
 
   options.files.push({

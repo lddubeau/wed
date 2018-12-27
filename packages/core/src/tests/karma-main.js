@@ -8,7 +8,7 @@
   window.__karma__.loaded = function loaded() {};
 
   var baseUrlMap = {
-    unit: "/base/build/standalone/lib/",
+    unit: "/base/build/dev/lib/",
     webpack: "/base/build/packed/lib/",
   };
   var karmaBaseUrl = baseUrlMap[karmaTestType];
@@ -54,7 +54,7 @@
   if (karmaTestType === "webpack") {
     // When we are testing the webpack bundle, we need to remap the entry module
     // to the actual bundle.
-    config.packages["/base/build/standalone/lib/tests"] = {
+    config.packages["/base/build/dev/lib/tests"] = {
       map: {
         "./entry": "wed.js",
       },

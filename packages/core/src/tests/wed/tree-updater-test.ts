@@ -51,7 +51,7 @@ describe("TreeUpdater", () => {
 
   before(() =>
          new DataProvider(
-           "/base/build/standalone/lib/tests/tree_updater_test_data/")
+           "/base/build/dev/lib/tests/tree_updater_test_data/")
          .getText("source_converted.xml")
          .then((sourceXML) => {
            root = document.createElement("div");
