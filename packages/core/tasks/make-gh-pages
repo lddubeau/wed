@@ -32,7 +32,7 @@ a branch other than master.
 
 async function ghPages() {
   await check();
-  const dest = "gh-pages";
+  const dest = "build/gh-pages";
   const merged = "build/merged-gh-pages";
   await fs.emptyDir(dest);
   await del(merged);
