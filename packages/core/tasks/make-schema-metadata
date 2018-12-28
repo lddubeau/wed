@@ -45,7 +45,7 @@ async function xmlToJsonChain(name, dest) {
   }
 
   await mkdirp(path.dirname(metaJson));
-  return checkOutputFile("build/bin/wed-metadata",
+  return checkOutputFile("build/dist/bin/wed-metadata",
                          ["--tei", "--merge", fragment].concat(json,
                                                                metaJson));
 }
@@ -82,7 +82,7 @@ async function docbookMetadata() {
   }
 
   await mkdirp(path.dirname(metadata));
-  await checkOutputFile("build/bin/wed-metadata",
+  await checkOutputFile("build/dist/bin/wed-metadata",
                         [fragment, metadata]);
 }
 
