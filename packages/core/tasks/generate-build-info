@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 "use strict";
 
 /* eslint-disable no-console */
@@ -46,8 +48,17 @@ parser.addArgument(["--module"], {
   help: "Output a module.",
   action: "storeTrue",
 });
+parser.addArgument(["--silent-check"], {
+  dest: "silentCheck",
+  help: "Only check for cleanliness. Do not output anything.",
+  action: "storeTrue",
+});
 
 const args = parser.parseArgs();
+
+if (args.unclean && args.silentCheck) {
+  throw new Fatal("cannot use --unclean with --silent-check");
+}
 
 let git = spawn("git", ["status", "--porcelain"]);
 
@@ -62,7 +73,17 @@ git.on("close", (code) => {
   }
 
   if (!args.unclean && uncleanWT) {
-    throw new Fatal("Unclean tree. Stopping.");
+    if (args.silentCheck) {
+      // Exit without error when the user requests a silent check.
+      process.exit(1);
+    }
+    else {
+      throw new Fatal("Unclean tree. Stopping.");
+    }
+  }
+
+  if (args.silentCheck) {
+    return;
   }
 
   git = spawn("git", ["describe", "--match", "v*"],

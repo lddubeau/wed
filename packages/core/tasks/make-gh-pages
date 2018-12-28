@@ -23,10 +23,7 @@ a branch other than master.
   }
 
   if (!process.env.npm_config_unsafe_deployment) {
-    // We use this only for the side effect it has:
-    // it fails of the current working directory is
-    // unclean.
-    await exec("node ./tasks/generate_build_info.js > /dev/null");
+    await exec("./tasks/generate-build-info --silent-check");
   }
 }
 

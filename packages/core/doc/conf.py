@@ -80,10 +80,9 @@ copyright = u'Mangalam Research Center for Buddhist Languages'
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 
-# Get current version information from the generate_build_info.js utility
+# Get current version information from the generate-build-info utility
 build_info = subprocess.check_output(
-    ['node', os.path.join(wed_root, 'tasks/generate_build_info.js'),
-     '--unclean']).strip()
+    [os.path.join(wed_root, 'tasks/generate-build-info'), '--unclean']).strip()
 
 if not build_info:
     raise Exception('Unable to determine project version.')
