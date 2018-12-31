@@ -3,7 +3,6 @@
   "version": "2.0.0",
   "private": true,
   "description": "Wed is a schema-aware editor for XML documents.",
-  "versionedSources": "lib/wed/editor.ts",
   "keywords": [
     "RelaxNG",
     "rng",

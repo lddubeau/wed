@@ -22,6 +22,7 @@
   "bin": {
     "wed-metadata": "./bin/wed-metadata"
   },
+  "versionedSources": "src/wed/editor.ts",
   "dependencies": {
     "@wedxml/ajax-saver": "1.0.0",
     "@wedxml/client-api": "1.0.0",
