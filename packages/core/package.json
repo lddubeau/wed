@@ -65,7 +65,7 @@
     "build-and-test": "npm run build-prod && npm run test",
     "clean": "rm -rf build gh-pages",
     "distclean": "npm run clean && rm -rf node_modules",
-    "venv": "[ -e .venv ] || virtualenv .venv",
-    "dev-venv": "npm run venv && .venv/bin/pip install -r dev_requirements.txt"
+    "venv": "[ -e .wed-venv ] || virtualenv .wed-venv",
+    "dev-venv": "npm run venv && .wed-venv/bin/pip install -r dev_requirements.txt"
   }
 }
