@@ -1,6 +1,6 @@
 {
   "name": "@wedxml/common",
-  "version": "1.0.0",
+  "version": "5.0.0-alpha.1",
   "private": true,
   "description": "The common infrastructure for code using wed editors.",
   "keywords": [

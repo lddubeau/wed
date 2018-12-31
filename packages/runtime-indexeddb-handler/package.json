@@ -1,6 +1,6 @@
 {
   "name": "@wedxml/runtime-indexeddb-handler",
-  "version": "1.0.0",
+  "version": "5.0.0-alpha.1",
   "private": true,
   "description": "A handler for the indexeddb:// scheme.",
   "keywords": [

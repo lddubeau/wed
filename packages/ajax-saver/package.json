@@ -1,6 +1,6 @@
 {
   "name": "@wedxml/ajax-saver",
-  "version": "1.0.0",
+  "version": "5.0.0-alpha.1",
   "private": true,
   "description": "A saver for wed that uses an AJAX-based protocol to save.",
   "versionedSources": "src/ajax-saver.ts",

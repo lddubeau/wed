@@ -1,6 +1,6 @@
 {
   "name": "@wedxml/base-saver",
-  "version": "1.0.0",
+  "version": "5.0.0-alpha.1",
   "private": true,
   "description": "The a base class for savers providing some boilerplate.",
   "versionedSources": "src/base-saver.ts",

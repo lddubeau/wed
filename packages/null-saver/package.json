@@ -1,6 +1,6 @@
 {
   "name": "@wedxml/null-saver",
-  "version": "1.0.0",
+  "version": "5.0.0-alpha.1",
   "private": true,
   "description": "A saver for wed that does nothing.",
   "keywords": [
