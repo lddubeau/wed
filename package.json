@@ -122,7 +122,7 @@
     "lint": "npmPkgJsonLint package.json",
     "self:publish": "./tasks/run-all self:publish",
     "self:test-publish": "env npm_config_registry=http://localhost:4873 npm_config_tag=`./tasks/select-publish-tag` ./tasks/run-all self:publish",
-    "preversion": "./tasks/run-all --no-script version $npm_package_version",
+    "preversion": "./tasks/run-all --serial --no-script version $npm_package_version",
     "version": "git commit -m'build: version bump' && git tag -a v$npm_package_version",
     "postversion": "npm run self:publish"
   },
