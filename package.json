@@ -122,9 +122,10 @@
     "postinstall": "link-parent-bin",
     "lint": "npmPkgJsonLint package.json",
     "self:publish": "./tasks/run-all self:publish",
+    "self:test-publish": "env npm_config_registry=http://localhost:4873 npm_config_tag=`./tasks/select-publish-tag` ./tasks/run-all self:publish",
     "preversion": "./tasks/run-all version",
     "version": "versync -b sync -a && ./tasks/run-all version && git commit -m'build: version bump' && git tag -a v$npm_package_version",
-    "postversion": "npm run self:publish --tag=`./tasks/select-publish-tag`"
+    "postversion": "npm run self:publish"
   },
   "husky": {
     "hooks": {

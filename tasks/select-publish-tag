@@ -1,0 +1,26 @@
+#!/usr/bin/env node
+
+"use strict";
+
+const fs = require("fs");
+const semver = require("semver");
+
+const pkg = JSON.parse(fs.readFileSync("./package.json").toString());
+
+const pre = semver.prerelease(pkg.version);
+
+let tag = "latest";
+if (pre !== null) {
+  const kind = pre[0];
+  tag = {
+    alpha: "dev",
+    beta: "dev",
+    rc: "next",
+  }[kind];
+
+  if (tag === undefined) {
+    throw new Error("cannot parse release");
+  }
+}
+
+console.log(tag);
