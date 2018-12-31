@@ -30,7 +30,7 @@
     "build": "npm run yml-to-json && npm run json-schema-to-ts && npm run tsc && npm run copy && npm run clean-package",
     "lint": "tslint --format verbose -p tsconfig.json -c ../../tslint.json && eslint 'tasks/**/*.js' && npmPkgJsonLint package.json",
     "build-and-test": "npm run build && npm run lint",
-    "pack-npjl": "npmPkgJsonLint -c ./tasks/publish-npjl-config.json .",
+    "pack-npjl": "npmPkgJsonLint -c ../../../../tasks/publish-npjl-config.json .",
     "prepublishOnly": "npm run pack-npjl",
     "self:publish": "cd build/dist && npm publish",
     "version": "versync -b sync -a",
