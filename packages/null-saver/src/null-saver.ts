@@ -16,6 +16,8 @@ import { RUNTIME } from "@wedxml/common/tokens";
 // We reexport it as a convenience.
 export { SAVER_OPTIONS };
 
+export const version = "1.0.0";
+
 /**
  * A saver that does nothing. This saver does not raise any errors. Recoveries
  * are always considered to be successful, even though nothing happened.

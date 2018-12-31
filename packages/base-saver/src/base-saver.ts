@@ -16,6 +16,8 @@ import { RUNTIME } from "@wedxml/common/tokens";
 import * as serializer from "./serializer";
 import { SAVER_OPTIONS } from "./tokens";
 
+export const version = "1.0.0";
+
 function deltaToString(delta: number): string {
   // tslint:disable-next-line:no-parameter-reassignment
   delta = Math.round(delta / 1000);
@@ -159,18 +161,18 @@ export abstract class BaseSaver implements Saver {
    * This method must be called before using the saver. **MUST BE CALLED ONLY
    * ONCE.**
    *
-   * @param version The version of wed for which this object is created.
+   * @param wedVersion The version of wed for which this object is created.
    *
    * @param dataTree The editor's data tree.
    *
    * @returns A promise that is resolved when the saver is initialized.
    */
-  async init(version: string, dataTree: Node): Promise<void> {
+  async init(wedVersion: string, dataTree: Node): Promise<void> {
     if (this.initCalled) {
       throw new Error("init called more than once");
     }
     this.initCalled = true;
-    this.version = version;
+    this.version = wedVersion;
     this.dataTree = dataTree;
 
     return this._init();

@@ -33,7 +33,6 @@
     "pack-npjl": "npmPkgJsonLint -c ../../../../tasks/publish-npjl-config.json .",
     "prepublishOnly": "npm run pack-npjl",
     "self:publish": "cd build/dist && npm publish",
-    "version": "versync -b sync -a",
     "clean": "rm -rf build"
   }
 }

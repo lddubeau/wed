@@ -22,6 +22,7 @@
   "author": "Louis-Dominique Dubeau <louisd@mangalamresearch.org>",
   "license": "MPL-2.0",
   "main": "build/dist/runtime-indexeddb-handler",
+  "versionedSources": "src/runtime-indexeddb-handler.ts",
   "dependencies": {
     "@wedxml/default-runtime": "1.0.0"
   },

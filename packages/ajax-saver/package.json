@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "description": "A saver for wed that uses an AJAX-based protocol to save.",
+  "versionedSources": "src/ajax-saver.ts",
   "keywords": [
     "RelaxNG",
     "rng",

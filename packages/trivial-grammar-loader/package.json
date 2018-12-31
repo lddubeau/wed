@@ -21,6 +21,7 @@
   "author": "Louis-Dominique Dubeau <louisd@mangalamresearch.org>",
   "license": "MPL-2.0",
   "main": "build/dist/trivial-grammar-loader.js",
+  "versionedSources": "src/trivial-grammar-loader.ts",
   "dependencies": {
     "@wedxml/client-api": "1.0.0",
     "@wedxml/common": "1.0.0"

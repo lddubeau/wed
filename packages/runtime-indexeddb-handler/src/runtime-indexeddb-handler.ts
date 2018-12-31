@@ -8,6 +8,8 @@ import { Dexie } from "dexie";
 
 import { RuntimeURISchemeHandler } from "@wedxml/default-runtime";
 
+export const version = "1.0.0";
+
 /**
  * Handler supporting the ``indexeddb`` scheme.
  *
@@ -47,15 +49,15 @@ export class RuntimeIndexedDBHandler implements RuntimeURISchemeHandler {
 
     const path = uri.substr(schemeSep + 3);
     const parts = path.split("/");
-    const version = parts[0];
+    const schemeVersion = parts[0];
     const db = parts[1];
     const table = parts[2];
     const keyType = parts[3];
     let key: string | number = parts[4];
     const property = parts[5];
 
-    if (version !== "v1") {
-      throw new Error(`unsupported version number: ${version}`);
+    if (schemeVersion !== "v1") {
+      throw new Error(`unsupported version number: ${schemeVersion}`);
     }
 
     switch (keyType) {

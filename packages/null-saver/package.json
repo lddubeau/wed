@@ -21,6 +21,7 @@
   "author": "Louis-Dominique Dubeau <louisd@mangalamresearch.org>",
   "license": "MPL-2.0",
   "main": "build/dist/null-saver.js",
+  "versionedSources": "src/null-saver.ts",
   "dependencies": {
     "@wedxml/base-saver": "1.0.0",
     "@wedxml/client-api": "1.0.0",
