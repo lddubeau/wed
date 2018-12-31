@@ -196,3 +196,9 @@ exports.execFileAndReport = function execFileAndReport(...args) {
 };
 
 exports.execFile = execFile;
+
+exports.addVenv = function addVenv() {
+  const pathEnv = process.env.PATH;
+  process.env.PATH =
+    `${path.join(__dirname, "..", ".wed-venv", "bin")}:${pathEnv}`;
+};

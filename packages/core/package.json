@@ -56,7 +56,7 @@
     "test-karma": "karma start --single-run",
     "test-karma-webpack": "karma start karma-webpack.conf.js --single-run",
     "test": "npm run build-test-files && npm run test-karma && npm run test-karma-webpack",
-    "selenium-test": "npm run build-test-files && behave selenium_test",
+    "selenium-test": "npm run build-test-files && .wed-venv/bin/behave selenium_test",
     "typedoc": "./tasks/run-typedoc",
     "gh-pages": "npm run build-prod && npm run typedoc && ./tasks/make-gh-pages",
     "prepack": "node -e 'require(\"assert\")(!require(\"./package.json\").private)'",

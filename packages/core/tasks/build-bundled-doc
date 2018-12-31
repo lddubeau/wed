@@ -7,7 +7,7 @@ const path = require("path");
 const log = require("fancy-log");
 const touch = require("touch");
 
-const { del, exec, fs, newer, cprp, stampPath, makeStampDir } =
+const { addVenv, del, exec, fs, newer, cprp, stampPath, makeStampDir } =
       require("./util");
 
 process.on("unhandledRejection", (err) => {
@@ -16,10 +16,12 @@ process.on("unhandledRejection", (err) => {
   process.exit(1);
 });
 
-// The strategy here is to remove everything except what is in the help.rst
-// file, which becomes index.rst.
+addVenv();
 
 async function doit() {
+  // The strategy here is to remove everything except what is in the help.rst
+  // file, which becomes index.rst.
+
   const stamp = stampPath("bundled-doc");
   const buildBundledDoc = "build/bundled-doc";
   const devDoc = "build/dist/dev/doc";
