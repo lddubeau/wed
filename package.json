@@ -120,7 +120,7 @@
     "update-versions": "./tasks/update-versions",
     "postinstall": "link-parent-bin",
     "lint": "npmPkgJsonLint package.json",
-    "self:publish": "./tasks/run-all self:publish",
+    "self:publish": "env npm_config_tag=`./tasks/select-publish-tag` ./tasks/run-all self:publish",
     "self:test-publish": "env npm_config_registry=http://localhost:4873 npm_config_tag=`./tasks/select-publish-tag` ./tasks/run-all self:publish",
     "preversion": "./tasks/run-all --serial --no-script version $npm_package_version",
     "postversion": "git add package.json package-lock.json && git commit -m'build: version bump' && git tag -a v$npm_package_version && npm run build-and-test && npm run self:publish"
