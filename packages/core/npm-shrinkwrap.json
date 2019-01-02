@@ -1,6 +1,6 @@
 {
   "name": "@wedxml/core",
-  "version": "5.0.0-alpha.3",
+  "version": "5.0.0-alpha.4",
   "lockfileVersion": 1,
   "requires": true,
   "dependencies": {
@@ -26,34 +26,36 @@
       }
     },
     "@wedxml/ajax-saver": {
-      "version": "1.0.0",
+      "version": "5.0.0-alpha.3",
+      "dev": true,
       "requires": {
-        "@wedxml/base-saver": "1.0.0",
-        "@wedxml/client-api": "1.0.0",
-        "@wedxml/common": "1.0.0"
+        "@wedxml/base-saver": "5.0.0-alpha.3",
+        "@wedxml/client-api": "5.0.0-alpha.3",
+        "@wedxml/common": "5.0.0-alpha.3"
       },
       "dependencies": {
         "@wedxml/base-saver": {
-          "version": "1.0.0",
+          "version": "5.0.0-alpha.3",
           "bundled": true,
+          "dev": true,
           "requires": {
-            "@wedxml/client-api": "1.0.0",
-            "@wedxml/common": "1.0.0"
+            "@wedxml/client-api": "5.0.0-alpha.3",
+            "@wedxml/common": "5.0.0-alpha.3"
           },
           "dependencies": {
             "@wedxml/client-api": {
-              "version": "1.0.0",
+              "version": "5.0.0-alpha.3",
               "bundled": true
             },
             "@wedxml/common": {
-              "version": "1.0.0",
+              "version": "5.0.0-alpha.3",
               "bundled": true,
               "requires": {
-                "@wedxml/client-api": "^1.0.0"
+                "@wedxml/client-api": "5.0.0-alpha.3"
               },
               "dependencies": {
                 "@wedxml/client-api": {
-                  "version": "1.0.0",
+                  "version": "5.0.0-alpha.3",
                   "bundled": true
                 }
               }
@@ -61,18 +63,20 @@
           }
         },
         "@wedxml/client-api": {
-          "version": "1.0.0",
-          "bundled": true
+          "version": "5.0.0-alpha.3",
+          "bundled": true,
+          "dev": true
         },
         "@wedxml/common": {
-          "version": "1.0.0",
+          "version": "5.0.0-alpha.3",
           "bundled": true,
+          "dev": true,
           "requires": {
-            "@wedxml/client-api": "^1.0.0"
+            "@wedxml/client-api": "5.0.0-alpha.3"
           },
           "dependencies": {
             "@wedxml/client-api": {
-              "version": "1.0.0",
+              "version": "5.0.0-alpha.3",
               "bundled": true
             }
           }
@@ -81,59 +85,64 @@
     },
     "@wedxml/base-saver": {
       "requires": {
-        "@wedxml/client-api": "1.0.0",
-        "@wedxml/common": "1.0.0"
+        "@wedxml/client-api": "5.0.0-alpha.3",
+        "@wedxml/common": "5.0.0-alpha.3"
       },
       "dependencies": {
         "@wedxml/client-api": {
-          "version": "1.0.0",
+          "version": "5.0.0-alpha.3",
           "bundled": true
         },
         "@wedxml/common": {
-          "version": "1.0.0",
+          "version": "5.0.0-alpha.3",
           "bundled": true,
           "requires": {
-            "@wedxml/client-api": "^1.0.0"
+            "@wedxml/client-api": "5.0.0-alpha.3"
           },
           "dependencies": {}
         }
       }
     },
     "@wedxml/client-api": {
-      "version": "1.0.0"
+      "version": "5.0.0-alpha.3",
+      "dev": true
     },
     "@wedxml/common": {
-      "version": "1.0.0",
+      "version": "5.0.0-alpha.3",
+      "dev": true,
       "requires": {
-        "@wedxml/client-api": "^1.0.0"
+        "@wedxml/client-api": "5.0.0-alpha.3"
       },
       "dependencies": {
         "@wedxml/client-api": {
-          "version": "1.0.0",
+          "version": "5.0.0-alpha.3",
           "bundled": true
         }
       }
     },
     "@wedxml/default-runtime": {
-      "version": "1.0.0",
+      "version": "5.0.0-alpha.3",
+      "dev": true,
       "requires": {
-        "@wedxml/client-api": "1.0.0",
-        "@wedxml/common": "1.0.0"
+        "@wedxml/client-api": "5.0.0-alpha.3",
+        "@wedxml/common": "5.0.0-alpha.3"
       },
       "dependencies": {
         "@wedxml/client-api": {
-          "version": "1.0.0",
-          "bundled": true
+          "version": "5.0.0-alpha.3",
+          "bundled": true,
+          "dev": true
         },
         "@wedxml/common": {
-          "version": "1.0.0",
+          "version": "5.0.0-alpha.3",
           "bundled": true,
+          "dev": true,
           "requires": {
-            "@wedxml/client-api": "^1.0.0"
+            "@wedxml/client-api": "5.0.0-alpha.3"
           },
           "dependencies": {
             "@wedxml/client-api": {
-              "version": "1.0.0",
+              "version": "5.0.0-alpha.3",
               "bundled": true
             }
           }
@@ -141,25 +150,28 @@
       }
     },
     "@wedxml/trivial-grammar-loader": {
-      "version": "1.0.0",
+      "version": "5.0.0-alpha.3",
+      "dev": true,
       "requires": {
-        "@wedxml/client-api": "1.0.0",
-        "@wedxml/common": "1.0.0"
+        "@wedxml/client-api": "5.0.0-alpha.3",
+        "@wedxml/common": "5.0.0-alpha.3"
       },
       "dependencies": {
         "@wedxml/client-api": {
-          "version": "1.0.0",
-          "bundled": true
+          "version": "5.0.0-alpha.3",
+          "bundled": true,
+          "dev": true
         },
         "@wedxml/common": {
-          "version": "1.0.0",
+          "version": "5.0.0-alpha.3",
           "bundled": true,
+          "dev": true,
           "requires": {
-            "@wedxml/client-api": "^1.0.0"
+            "@wedxml/client-api": "5.0.0-alpha.3"
           },
           "dependencies": {
             "@wedxml/client-api": {
-              "version": "1.0.0",
+              "version": "5.0.0-alpha.3",
               "bundled": true
             }
           }
