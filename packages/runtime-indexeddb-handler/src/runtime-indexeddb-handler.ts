@@ -8,7 +8,7 @@ import { Dexie } from "dexie";
 
 import { RuntimeURISchemeHandler } from "@wedxml/default-runtime";
 
-export const version = "5.0.0-alpha.5";
+export const version = "5.0.0-alpha.6";
 
 /**
  * Handler supporting the ``indexeddb`` scheme.

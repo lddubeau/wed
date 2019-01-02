@@ -1,6 +1,6 @@
 {
   "name": "@wedxml/core",
-  "version": "5.0.0-alpha.5",
+  "version": "5.0.0-alpha.6",
   "private": true,
   "description": "Wed is a schema-aware editor for XML documents.",
   "keywords": [
