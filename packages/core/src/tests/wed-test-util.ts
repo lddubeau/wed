@@ -302,7 +302,7 @@ export class EditorSetup {
 
     this.editor = makeEditor(this.wedroot, options, {
       url: "/build/ajax/save.txt",
-    });
+    }) as Editor;
   }
 
   async init(): Promise<Editor> {

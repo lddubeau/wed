@@ -3,22 +3,24 @@
  */
 import { Container } from "inversify";
 
-import { makeEditor, Options, tokens } from "wed";
-import { Editor } from "wed/editor";
+import { makeEditor } from "wed";
 
 import { AjaxSaver } from "@wedxml/ajax-saver";
 import { SAVER_OPTIONS } from "@wedxml/base-saver/tokens";
+import { EditorInstance, Options } from "@wedxml/client-api";
+import { EDITOR_OPTIONS, EDITOR_WIDGET, GRAMMAR_LOADER,
+         SAVER } from "@wedxml/common/tokens";
 import { TrivialGrammarLoader } from "@wedxml/trivial-grammar-loader";
 
 function myMakeEditor(wedroot: Element, options: Options,
-                      saverOptions: {}): Editor {
+                      saverOptions: {}): EditorInstance {
   const container = new Container();
-  container.bind(tokens.EDITOR_WIDGET).toConstantValue(wedroot);
-  container.bind(tokens.EDITOR_OPTIONS).toConstantValue(options);
-  container.bind(tokens.SAVER).to(AjaxSaver);
+  container.bind(EDITOR_WIDGET).toConstantValue(wedroot);
+  container.bind(EDITOR_OPTIONS).toConstantValue(options);
+  container.bind(SAVER).to(AjaxSaver);
   container.bind(SAVER_OPTIONS).toConstantValue(saverOptions);
-  container.bind(tokens.GRAMMAR_LOADER).to(TrivialGrammarLoader);
-  return makeEditor(container) as Editor;
+  container.bind(GRAMMAR_LOADER).to(TrivialGrammarLoader);
+  return makeEditor(container);
 }
 
 export * from "wed";
