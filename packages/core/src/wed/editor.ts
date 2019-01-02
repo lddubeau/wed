@@ -76,7 +76,7 @@ import { Validator } from "./validator";
 import { boundaryXY, getGUINodeIfExists } from "./wed-util";
 import * as wundo from "./wundo";
 
-export const version = "5.0.0-alpha.1";
+export const version = "5.0.0-alpha.2";
 
 export type KeydownHandler = (wedEv: JQueryEventObject,
                               ev: JQueryKeyEventObject) => boolean;

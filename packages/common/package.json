@@ -1,6 +1,6 @@
 {
   "name": "@wedxml/common",
-  "version": "5.0.0-alpha.1",
+  "version": "5.0.0-alpha.2",
   "private": true,
   "description": "The common infrastructure for code using wed editors.",
   "keywords": [
@@ -23,7 +23,7 @@
   "main": "build/dist/index.js",
   "versionedSources": "src/index.ts",
   "dependencies": {
-    "@wedxml/client-api": "^1.0.0"
+    "@wedxml/client-api": "5.0.0-alpha.2"
   },
   "scripts": {
     "tsc": "tsc -p tsconfig.json",
