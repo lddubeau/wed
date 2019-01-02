@@ -1,6 +1,6 @@
 {
   "name": "@wedxml/runtime-indexeddb-handler",
-  "version": "5.0.0-alpha.4",
+  "version": "5.0.0-alpha.5",
   "private": true,
   "description": "A handler for the indexeddb:// scheme.",
   "keywords": [
@@ -24,7 +24,7 @@
   "main": "build/dist/runtime-indexeddb-handler",
   "versionedSources": "src/runtime-indexeddb-handler.ts",
   "dependencies": {
-    "@wedxml/default-runtime": "5.0.0-alpha.4"
+    "@wedxml/default-runtime": "5.0.0-alpha.5"
   },
   "scripts": {
     "tsc": "tsc -p tsconfig.json",
