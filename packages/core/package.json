@@ -24,17 +24,19 @@
   },
   "versionedSources": "src/wed/editor.ts",
   "dependencies": {
-    "@wedxml/ajax-saver": "1.0.0",
-    "@wedxml/client-api": "1.0.0",
-    "@wedxml/common": "1.0.0",
-    "@wedxml/default-runtime": "1.0.0",
-    "@wedxml/trivial-grammar-loader": "1.0.0",
     "ajv": "^6.6.2",
     "argparse": "^1.0.3",
     "inversify": "^4.13.0",
     "js-yaml": "^3.12.0",
     "reflect-metadata": "^0.1.12",
     "salve": "^9.0.1"
+  },
+  "devDependencies": {
+    "@wedxml/ajax-saver": "1.0.0",
+    "@wedxml/client-api": "1.0.0",
+    "@wedxml/common": "1.0.0",
+    "@wedxml/default-runtime": "1.0.0",
+    "@wedxml/trivial-grammar-loader": "1.0.0"
   },
   "scripts": {
     "config": "mkdir -p build/config && cp -rp ../../config/* build/config && cp -rp ../../local_config/* build/config",
