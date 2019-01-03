@@ -33,6 +33,13 @@
     "reflect-metadata": "^0.1.12",
     "salve": "^9.0.1"
   },
+  "devDependencies": {
+    "@wedxml/ajax-saver": "5.0.0-alpha.4",
+    "@wedxml/client-api": "5.0.0-alpha.4",
+    "@wedxml/common": "5.0.0-alpha.4",
+    "@wedxml/default-runtime": "5.0.0-alpha.4",
+    "@wedxml/trivial-grammar-loader": "5.0.0-alpha.4"
+  },
   "scripts": {
     "config": "mkdir -p build/config && cp -rp ../../config/* build/config && cp -rp ../../local_config/* build/config",
     "generate-ts": "./tasks/generate-ts",
