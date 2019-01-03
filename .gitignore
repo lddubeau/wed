@@ -1,7 +1,7 @@
 /local_config
 /node_modules
+/packages/*/build
 /packages/**/node_modules
-/packages/**/build
 /packages/core/test_logs
 /packages/core/schemas/out
 *_flymake.*

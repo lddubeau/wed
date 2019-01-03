@@ -1,0 +1,43 @@
+{
+  "name": "@wedxml/build",
+  "version": "5.0.0-alpha.6",
+  "private": true,
+  "description": "A builder for producing custom wed bundles.",
+  "keywords": [
+    "RelaxNG",
+    "rng",
+    "XML",
+    "editor",
+    "wed"
+  ],
+  "homepage": "https://github.com/mangalam-research/wed#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mangalam-research/wed.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mangalam-research/wed/issues"
+  },
+  "author": "Louis-Dominique Dubeau <louisd@mangalamresearch.org>",
+  "license": "MPL-2.0",
+  "bin": {
+    "wed-build": "./bin/wed-build"
+  },
+  "dependencies": {
+    "argparse": "^1.0.3",
+    "copy-webpack-plugin": "^4.6.0",
+    "webpack": "^4.27.1"
+  },
+  "scripts": {
+    "copy": "mkdir -p build/dist && cp -rp bin build/dist/",
+    "clean-package": "../../tasks/clean-package package.json build/dist/package.json",
+    "build": "npm run copy && npm run clean-package",
+    "lint": "eslint 'bin/**/*' && npmPkgJsonLint package.json",
+    "build-and-test": "npm run build && npm run lint",
+    "pack-npjl": "npmPkgJsonLint -c ../../../../tasks/publish-npjl-config.json .",
+    "prepublishOnly": "npm run pack-npjl",
+    "self:publish": "cd build/dist && npm publish",
+    "version": "git add package.json",
+    "clean": "rm -rf build"
+  }
+}

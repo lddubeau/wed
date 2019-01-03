@@ -1,13 +1,40 @@
+#!/usr/bin/env node
+
 "use strict";
 
 /* global __dirname */
 
 const path = require("path");
 
-const { NormalModuleReplacementPlugin } = require("webpack");
+const { ArgumentParser } = require("argparse");
+const webpack = require("webpack");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 
-const buildDir = "build/dist/dev/lib/";
+const { NormalModuleReplacementPlugin } = webpack;
+
+const parser = new ArgumentParser({
+  addHelp: true,
+  description: "Build a custom wed pack.",
+});
+
+parser.addArgument("conf", {
+  description: "The configuration to use.",
+});
+
+const { conf } = parser.parseArgs();
+
+// eslint-disable-next-line import/no-dynamic-require
+const wedConfig = require(path.resolve(conf));
+
+// eslint-disable-next-line prefer-const
+let { outDir, wedDir, entry } = wedConfig;
+
+if (!wedDir) {
+  wedDir = path.dirname(require.resolve("@wedxml/core/package.json"));
+}
+
+const buildDir = "build/wed-dev/";
+const wedBuildDir = path.join(wedDir, "dev/lib");
 
 const externals = {};
 
@@ -45,17 +72,17 @@ const externals = {};
   externals[name] = name;
 });
 
-module.exports = {
+const config = {
   mode: "production",
   resolve: {
-    modules: [buildDir, "node_modules"],
+    modules: [buildDir, wedBuildDir, "node_modules"],
     alias: {
       "rangy-textrange": "rangy/lib/rangy-textrange",
     },
   },
   entry: {
     // We have to use the test entry point to build our bundle.
-    wed: "tests/entry.js",
+    wed: entry,
   },
   module: {
     rules: [{
@@ -67,11 +94,16 @@ module.exports = {
   externals,
   devtool: "source-map",
   output: {
-    path: `${__dirname}/build/dist/packed/lib`,
+    path: path.resolve(outDir),
     filename: "[name].js",
     sourceMapFilename: "[name].map.js",
     library: "wed",
     libraryTarget: "amd",
+  },
+  performance: {
+    assetFilter(assetFilename) {
+      return assetFilename.endsWith(".js");
+    },
   },
   plugins: [
     // This causes webpack to load wed/glue/rangy-glue whenever rangy is
@@ -79,7 +111,7 @@ module.exports = {
     // loaded.
     new NormalModuleReplacementPlugin(/^rangy$/, (resource) => {
       if (resource.contextInfo.issuer !==
-          path.join(__dirname, "build/dist/dev/lib/wed/glue/rangy-glue.js")) {
+          path.join(wedBuildDir, "wed/glue/rangy-glue.js")) {
         resource.request = "wed/glue/rangy-glue";
       }
     }),
@@ -95,7 +127,26 @@ module.exports = {
         from: {
           glob: name,
         },
-        context: "./build/dist/dev/lib",
+        context: wedBuildDir,
       }))),
   ],
 };
+
+webpack(config, (err, stats) => {
+  if (err) {
+    console.error(err.stack || err);
+    if (err.details) {
+      console.error(err.details);
+    }
+    return;
+  }
+
+  console.log(stats.toString({
+    assets: false,
+    colors: true,
+  }));
+
+  if (stats.hasErrors()) {
+    process.exit(1);
+  }
+});

@@ -19,10 +19,12 @@
   },
   "author": "Louis-Dominique Dubeau <louisd@mangalamresearch.org>",
   "license": "MPL-2.0",
+  "types": "dev/lib/wed.d.ts",
+  "versionedSources": "src/wed/editor.ts",
   "bin": {
     "wed-metadata": "./bin/wed-metadata"
   },
-  "versionedSources": "src/wed/editor.ts",
+  "browser": "dev/lib/wed.js",
   "dependencies": {
     "ajv": "^6.6.2",
     "argparse": "^1.0.3",
@@ -47,7 +49,7 @@
     "build-dev": "npm run config && npm run clean-package && npm run copy-src && npm run bin && npm run copy-web && npm run yml-to-json && npm run tsc && npm run less && npm run copy-schemas && tasks/make-schema-metadata && tasks/make-samples && npm run generate-build-info && npm run build-bundled-doc && cp -p README.md npm-shrinkwrap.json build/dist && echo 'dist/dev/lib/tests/**' > build/dist/.npmignore && mkdir -p build/ajax",
     "build": "npm run build-dev",
     "build-test-files": "./tasks/build-test-files",
-    "build-prod": "npm run build-dev && webpack",
+    "build-prod": "npm run build-dev && ../build/bin/wed-build wed.config.js",
     "lint": "npm run generate-ts && tslint -t verbose -p src/tsconfig.json && eslint 'src/**/*.js' *.js bin/* 'config/**/*.js' 'web/**/*.js' 'tasks/**/*.js' && npmPkgJsonLint package.json",
     "test-karma": "karma start --single-run",
     "test-karma-webpack": "karma start karma-webpack.conf.js --single-run",
