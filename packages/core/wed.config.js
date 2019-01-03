@@ -3,5 +3,5 @@
 module.exports = {
   entry: "tests/entry",
   wedDir: "./build/dist",
-  outDir: "./build/dist/packed/lib/",
+  outDir: "./build/dist/packed/",
 };

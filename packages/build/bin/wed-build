@@ -33,8 +33,7 @@ if (!wedDir) {
   wedDir = path.dirname(require.resolve("@wedxml/core/package.json"));
 }
 
-const buildDir = "build/wed-dev/";
-const wedBuildDir = path.join(wedDir, "dev/lib");
+const wedBuildDir = path.join(wedDir, "dev", "lib");
 
 const externals = {};
 
@@ -75,7 +74,7 @@ const externals = {};
 const config = {
   mode: "production",
   resolve: {
-    modules: [buildDir, wedBuildDir, "node_modules"],
+    modules: [wedBuildDir, "node_modules"],
     alias: {
       "rangy-textrange": "rangy/lib/rangy-textrange",
     },
@@ -94,7 +93,7 @@ const config = {
   externals,
   devtool: "source-map",
   output: {
-    path: path.resolve(outDir),
+    path: path.join(path.resolve(outDir), "lib/"),
     filename: "[name].js",
     sourceMapFilename: "[name].map.js",
     library: "wed",
