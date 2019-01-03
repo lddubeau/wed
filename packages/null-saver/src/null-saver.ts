@@ -16,7 +16,7 @@ import { RUNTIME } from "@wedxml/common/tokens";
 // We reexport it as a convenience.
 export { SAVER_OPTIONS };
 
-export const version = "5.0.0-alpha.6";
+export const version = "5.0.0-alpha.7";
 
 /**
  * A saver that does nothing. This saver does not raise any errors. Recoveries
