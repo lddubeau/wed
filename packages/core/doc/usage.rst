@@ -13,12 +13,11 @@ supported by wed.
 Known limitations:
 
 * Wed does not load documents containing XML comments (``<!-- ... -->``) or
-    CDATA sections.
+  CDATA sections.
 
-* Wed does not load documents that include processing instructions other than
-  the ``<?xml ...>`` declaration at the very top of documents. (Some hold that
-  the XML declaration is not a processing instruction. The distinction is
-  irrelevant to the point being made here.)
+* Wed does not load documents that include processing instructions. (The ``<?xml
+  ...>`` at the very top of documents is not a processing instruction, but an
+  XML declaration, which wed handles just fine.)
 
 * Wed supports most of Relax NG, with a few limitations. See the `salve
   <https://github.com/mangalam-research/salve/>`_ package for details.
