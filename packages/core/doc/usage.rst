@@ -173,8 +173,6 @@ serve it intelligently.
 
 :kbd:`Ctrl-\`` allows to go into development mode. Since this is meant only for
 developers, you should read the source code of wed to know what this allows.
-(In particular, search for ``this._development_mode`` in the
-``_globalKeydownHandler`` method.)
 
 It is possible to run the kitchen sink with a different mode than the default
 one (generic) by passing a ``mode`` parameter in the URL, for instance the URL
