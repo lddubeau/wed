@@ -80,7 +80,6 @@
     "last-resort": "^1.0.1",
     "less": "^2",
     "link-parent-bin": "^0.2.3",
-    "localforage": "^1.7.3",
     "log4javascript": "^1.4.15",
     "merge-options": "^1.0.1",
     "mocha": "^5.2.0",
