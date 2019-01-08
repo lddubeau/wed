@@ -182,7 +182,6 @@ function _handler(ev: any): boolean {
 
   // tslint:disable-next-line:no-floating-promises
   Promise.all(editors
-    .filter(editor => editor.saver !== undefined)
     .map(editor =>
          (async (): Promise<[Editor, any]> => {
            try {

@@ -1189,9 +1189,7 @@ export class Editor implements EditorAPI {
     //
 
     // Turn off autosaving.
-    if (this.saver !== undefined) {
-      this.saver.setAutosaveInterval(0);
-    }
+    this.saver.setAutosaveInterval(0);
 
     if (this.saveStatusInterval !== undefined) {
       clearInterval(this.saveStatusInterval);
@@ -3265,19 +3263,19 @@ cannot be cut.`, { type: "danger" });
   }
 
   private refreshSaveStatus(): void {
-    if (this.saver !== undefined) {
-      const saveStatus = this.saver.getSavedWhen();
-      this.$saveStatus.children("span").first()
-        .text(saveStatus !== undefined ? saveStatus : "");
-      if (saveStatus === undefined) {
-        this.$saveStatus.removeClass("label-success label-info")
-          .addClass("label-default");
-      }
-      else {
-        const kind = this.saver.getLastSaveKind();
-        let toAdd;
-        let tip;
-        switch (kind) {
+    const { $saveStatus, saver } = this;
+    const saveStatus = saver.getSavedWhen();
+    $saveStatus.children("span").first()
+      .text(saveStatus !== undefined ? saveStatus : "");
+    if (saveStatus === undefined) {
+      $saveStatus.removeClass("label-success label-info")
+        .addClass("label-default");
+    }
+    else {
+      const kind = saver.getLastSaveKind();
+      let toAdd;
+      let tip;
+      switch (kind) {
         case SaveKind.AUTO:
           toAdd = "label-info";
           tip = "The last save was an autosave.";
@@ -3288,30 +3286,29 @@ cannot be cut.`, { type: "danger" });
           break;
         default:
           throw new Error(`unexpected kind of save: ${kind}`);
-        }
-        this.$saveStatus.removeClass("label-default label-info label-success")
-          .addClass(toAdd);
-        this.$saveStatus.tooltip("destroy");
-        this.$saveStatus.tooltip({
-          title: tip,
-          container: "body",
-          // We cheat due to a bug in the Bootstrap definitions.
-          placement: "auto top" as "auto",
-          trigger: "hover",
-        });
       }
+      $saveStatus.removeClass("label-default label-info label-success")
+        .addClass(toAdd);
+      $saveStatus.tooltip("destroy");
+      $saveStatus.tooltip({
+        title: tip,
+        container: "body",
+        // We cheat due to a bug in the Bootstrap definitions.
+        placement: "auto top" as "auto",
+        trigger: "hover",
+      });
+    }
 
-      const modified = this.saver.getModifiedWhen();
-      if (modified !== false) {
-        this.$modificationStatus.removeClass("label-success");
-        this.$modificationStatus.addClass("label-warning");
-        this.$modificationStatus.children("i").css("visibility", "");
-      }
-      else {
-        this.$modificationStatus.removeClass("label-warning");
-        this.$modificationStatus.addClass("label-success");
-        this.$modificationStatus.children("i").css("visibility", "hidden");
-      }
+    const modified = saver.getModifiedWhen();
+    if (modified !== false) {
+      this.$modificationStatus.removeClass("label-success");
+      this.$modificationStatus.addClass("label-warning");
+      this.$modificationStatus.children("i").css("visibility", "");
+    }
+    else {
+      this.$modificationStatus.removeClass("label-warning");
+      this.$modificationStatus.addClass("label-success");
+      this.$modificationStatus.children("i").css("visibility", "hidden");
     }
   }
 
