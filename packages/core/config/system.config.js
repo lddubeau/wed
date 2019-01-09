@@ -18,7 +18,6 @@ window.systemJSConfig = {
     jquery: "top-npm:jquery",
     log4javascript: "top-npm:log4javascript",
     "font-awesome": "top-npm:font-awesome",
-    text: "top-npm:text",
     bootbox: "top-npm:bootbox",
     typeahead: "top-npm:corejs-typeahead/dist/typeahead.jquery.js",
     bloodhound: "top-npm:corejs-typeahead/dist/bloodhound.js",
