@@ -123,7 +123,7 @@
     "lint": "npmPkgJsonLint package.json",
     "self:publish": "env npm_config_tag=`./tasks/select-publish-tag` monist run-all self:publish",
     "self:test-publish": "env npm_config_registry=http://localhost:4873 npm_config_tag=`./tasks/select-publish-tag` monist run-all self:publish",
-    "preversion": "monist run --serial version $npm_package_version",
+    "preversion": "monist all --serial version $npm_package_version",
     "postversion": "monist update-versions $npm_package_version && monist remove-local-from-lockfiles && git add package.json package-lock.json packages/*/package.json packages/*/package-lock.json packages/*/npm-shrinkwrap.json && git commit -m'build: version bump' && git tag -a v$npm_package_version && npm run build-and-test && npm run self:publish",
     "distclean": "rm -rf node_modules && monist run-all distclean",
     "packages-distclean": "monist run-all distclean"
