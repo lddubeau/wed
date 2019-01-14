@@ -34,6 +34,7 @@
     "prepublishOnly": "npm run pack-npjl",
     "self:publish": "cd build/dist && npm publish",
     "version": "git add package.json",
-    "clean": "rm -rf build"
+    "clean": "rm -rf build",
+    "distclean": "npm run clean && rm -rf node_modules"
   }
 }
