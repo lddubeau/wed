@@ -37,6 +37,8 @@
     "@types/sinon": "^5.0.7",
     "@types/sinon-chai": "^3.2.2",
     "amd-loader": "0.0.8",
+    "ajv": "^6.6.2",
+    "argparse": "^1.0.3",
     "bluebird": "^3.5.3",
     "blueimp-md5": "^2.10.0",
     "bluejax": "^1.1.0",
@@ -68,6 +70,7 @@
     "jq.node": "^2.1.2",
     "jquery": "^2 || ^3",
     "json-schema-to-typescript": "^6.1.0",
+    "js-yaml": "^3.12.0",
     "karma": "^3.1.3",
     "karma-browserstack-launcher": "^1.3.0",
     "karma-chai": "^0.1.0",
@@ -91,6 +94,7 @@
     "raw-loader": "^0.5.1",
     "reflect-metadata": "^0.1.12",
     "rxjs": "^6.3.3",
+    "salve": "^9.0.1",
     "salve-dom": "^5.0.1",
     "semver": "^5.6.0",
     "serve-static": "^1.7.1",
@@ -112,17 +116,17 @@
     "zone.js": "^0.8.10"
   },
   "scripts": {
-    "build": "./tasks/run-all build",
-    "build-and-test": "./tasks/run-all build-and-test",
-    "clean": "./tasks/run-all clean",
-    "run-all": "./tasks/run-all",
-    "update-versions": "./tasks/update-versions",
+    "build": "monist run-all --serial --local-deps=link build",
+    "build-and-test": "monist run-all --serial --local-deps=link build-and-test",
+    "clean": "monist run-all clean",
     "postinstall": "link-parent-bin",
     "lint": "npmPkgJsonLint package.json",
-    "self:publish": "env npm_config_tag=`./tasks/select-publish-tag` ./tasks/run-all self:publish",
-    "self:test-publish": "env npm_config_registry=http://localhost:4873 npm_config_tag=`./tasks/select-publish-tag` ./tasks/run-all self:publish",
-    "preversion": "./tasks/run-all --serial --no-script version $npm_package_version",
-    "postversion": "./tasks/update-versions $npm_package_version && ./tasks/remove-local-from-lockfiles && git add package.json package-lock.json packages/*/package.json packages/*/package-lock.json packages/*/npm-shrinkwrap.json && git commit -m'build: version bump' && git tag -a v$npm_package_version && npm run build-and-test && npm run self:publish"
+    "self:publish": "env npm_config_tag=`./tasks/select-publish-tag` monist run-all self:publish",
+    "self:test-publish": "env npm_config_registry=http://localhost:4873 npm_config_tag=`./tasks/select-publish-tag` monist run-all self:publish",
+    "preversion": "monist run --serial version $npm_package_version",
+    "postversion": "monist update-versions $npm_package_version && monist remove-local-from-lockfiles && git add package.json package-lock.json packages/*/package.json packages/*/package-lock.json packages/*/npm-shrinkwrap.json && git commit -m'build: version bump' && git tag -a v$npm_package_version && npm run build-and-test && npm run self:publish",
+    "distclean": "rm -rf node_modules && monist run-all distclean",
+    "packages-distclean": "monist run-all distclean"
   },
   "husky": {
     "hooks": {

@@ -24,6 +24,7 @@
   "main": "build/dist/runtime-indexeddb-handler",
   "versionedSources": "src/runtime-indexeddb-handler.ts",
   "dependencies": {
+    "@wedxml/common": "5.0.0-alpha.8",
     "@wedxml/default-runtime": "5.0.0-alpha.8"
   },
   "scripts": {

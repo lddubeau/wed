@@ -36,7 +36,7 @@ module.exports = function configure(config, dist, specificMain) {
     },
     files: [
       "../../node_modules/systemjs/dist/system.src.js",
-      "node_modules/reflect-metadata/Reflect.js",
+      "../../node_modules/reflect-metadata/Reflect.js",
       "config/system.config.js",
       `src/tests/${specificMain}.js`,
       "src/tests/karma-main.js",
