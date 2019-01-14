@@ -27,10 +27,14 @@ const { conf } = parser.parseArgs();
 const wedConfig = require(path.resolve(conf));
 
 // eslint-disable-next-line prefer-const
-let { outDir, wedDir, entry } = wedConfig;
+let { outDir, wedDir, entry, nodeModules } = wedConfig;
 
 if (!wedDir) {
   wedDir = path.dirname(require.resolve("@wedxml/core/package.json"));
+}
+
+if (!nodeModules) {
+  nodeModules = path.join(wedDir, "node_modules");
 }
 
 const wedBuildDir = path.join(wedDir, "dev", "lib");
@@ -73,7 +77,7 @@ const externals = {};
 const config = {
   mode: "production",
   resolve: {
-    modules: [wedBuildDir, "node_modules"],
+    modules: [wedBuildDir, nodeModules],
     alias: {
       "rangy-textrange": "rangy/lib/rangy-textrange",
     },
