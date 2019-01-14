@@ -9,7 +9,6 @@ import { Container } from "inversify";
 import { EditorInstance, GrammarLoader, Options,
          Runtime } from "@wedxml/client-api";
 import * as tokens from "@wedxml/common/tokens";
-import { DefaultRuntime } from "@wedxml/default-runtime";
 
 import * as convert from "./wed/convert";
 import * as domtypeguards from "./wed/domtypeguards";
@@ -28,7 +27,6 @@ import * as util from "./wed/util";
 
 export {
   convert,
-  DefaultRuntime,
   domutil,
   domtypeguards,
   EditorInstance,
@@ -48,10 +46,14 @@ export {
   util,
 };
 
-export function makeEditor(container: Container): EditorInstance {
-  container.bind<Runtime>(tokens.RUNTIME).to(DefaultRuntime);
-  container.bind<EditorInstance>(tokens.EDITOR_INSTANCE).to(Editor);
-  return container.get<EditorInstance>(tokens.EDITOR_INSTANCE);
+/**
+ * Bind to the token ``EDITOR_INSTANCE`` the editor class implemented by this
+ * package.
+ *
+ * @param container The container on which to bind the editor.
+ */
+export function bindEditor(container: Container): void {
+  container.bind(tokens.EDITOR_INSTANCE).to(Editor);
 }
 
 export { Action, UnspecifiedAction } from "./wed/action";
