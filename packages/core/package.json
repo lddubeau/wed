@@ -77,7 +77,7 @@
     "prepublishOnly": "npm run pack-npjl",
     "self:publish": "cd build/dist && npm publish",
     "version": "versync -b sync -a",
-    "postversion": "npm shrinkwrap && git add npm-shrinkwrap.json && cp npm-shrinkwrap.json build/dist/",
+    "postversion": "npm shrinkwrap && monist remove-local-from-lockfiles npm-shrinkwrap.json && if [ -e npm-shrinkwrap.json ]; then git add npm-shrinkwrap.json && cp npm-shrinkwrap.json build/dist/; fi",
     "clean": "rm -rf build gh-pages",
     "distclean": "npm run clean && rm -rf node_modules",
     "venv": "[ -e .wed-venv ] || virtualenv .wed-venv",
