@@ -12,7 +12,7 @@ import { SAVER_OPTIONS } from "@wedxml/base-saver/tokens";
 import { Runtime } from "@wedxml/client-api";
 import { RUNTIME } from "@wedxml/common/tokens";
 
-export const version = "5.0.0-alpha.9";
+export const version = "5.0.0-alpha.10";
 
 /**
  * A database backend abstraction used by this saver.
