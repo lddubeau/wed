@@ -11,7 +11,7 @@ import { convertRNGToPattern, Grammar, readTreeFromJSON } from "salve";
 import { GrammarLoader, Runtime } from "@wedxml/client-api";
 import { RUNTIME } from "@wedxml/common/tokens";
 
-export const version = "5.0.0-alpha.10";
+export const version = "5.0.0-alpha.11";
 
 /**
  * A grammar loader capable of loading a serialized representation of a Relax NG

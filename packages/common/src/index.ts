@@ -6,4 +6,4 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 
-export const version = "5.0.0-alpha.10";
+export const version = "5.0.0-alpha.11";

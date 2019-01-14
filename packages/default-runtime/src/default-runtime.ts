@@ -18,7 +18,7 @@ import { RUNTIME_URI_SCHEME_HANDLER } from "./tokens";
 
 export { RuntimeURISchemeHandler, RUNTIME_URI_SCHEME_HANDLER };
 
-export const version = "5.0.0-alpha.10";
+export const version = "5.0.0-alpha.11";
 
 async function readFile(file: Blob): Promise<string> {
   const reader = new FileReader();
