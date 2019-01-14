@@ -1,6 +1,6 @@
 {
   "name": "@wedxml/base-saver",
-  "version": "5.0.0-alpha.8",
+  "version": "5.0.0-alpha.9",
   "private": true,
   "description": "The a base class for savers providing some boilerplate.",
   "versionedSources": "src/base-saver.ts",
@@ -23,8 +23,8 @@
   "license": "MPL-2.0",
   "main": "build/dist/base-saver.js",
   "dependencies": {
-    "@wedxml/client-api": "5.0.0-alpha.8",
-    "@wedxml/common": "5.0.0-alpha.8"
+    "@wedxml/client-api": "5.0.0-alpha.9",
+    "@wedxml/common": "5.0.0-alpha.9"
   },
   "scripts": {
     "tsc": "tsc -p tsconfig.json",

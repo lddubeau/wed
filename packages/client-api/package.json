@@ -1,6 +1,6 @@
 {
   "name": "@wedxml/client-api",
-  "version": "5.0.0-alpha.8",
+  "version": "5.0.0-alpha.9",
   "private": true,
   "description": "The API for code using wed editors (\"client code\").",
   "keywords": [
