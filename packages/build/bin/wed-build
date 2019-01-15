@@ -37,6 +37,9 @@ if (!nodeModules) {
   nodeModules = path.join(wedDir, "node_modules");
 }
 
+// A path to the modules which are siblings of @wedxml/core
+const siblings = path.dirname(path.dirname(wedDir));
+
 const wedBuildDir = path.join(wedDir, "dev", "lib");
 
 const externals = {};
@@ -77,7 +80,7 @@ const externals = {};
 const config = {
   mode: "production",
   resolve: {
-    modules: [wedBuildDir, nodeModules],
+    modules: [wedBuildDir, nodeModules, siblings],
     alias: {
       "rangy-textrange": "rangy/lib/rangy-textrange",
     },
