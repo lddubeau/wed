@@ -44,10 +44,7 @@
       jquery: "top-npm:jquery",
       "merge-options": "top-npm:merge-options/index.js",
       "is-plain-obj": "top-npm:is-plain-obj/index.js",
-      bluejax: "top-npm:bluejax",
-      "bluejax.try": "top-npm:bluejax.try",
-      bluebird: "top-npm:bluebird/js/browser/bluebird.js",
-      qs: "top-npm:qs/dist/qs",
+      fetchiest: "top-npm:fetchiest",
     },
     packages: {
       "": {},

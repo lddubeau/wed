@@ -38,8 +38,6 @@ Other issues brought up by scholarly team Oct 2018
 Short term
 ==========
 
-* Replace bluejax with a some fetch-try-diagnosis port.
-
 * Drop bluebird.
 
 Fix documentation

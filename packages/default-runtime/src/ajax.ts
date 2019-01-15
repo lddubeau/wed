@@ -5,8 +5,9 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import * as bluejax from "bluejax";
 import "bootstrap";
+import { ConnectivityError, DiagnoseOptions, fetch, FetchiestOptions,
+         FetchiestRequestInit } from "fetchiest";
 import $ from "jquery";
 
 // tslint:disable-next-line:no-any
@@ -50,31 +51,39 @@ aria-hidden='true'>&times;</button>\
 const modal = $modal[0];
 
 // tslint:disable:no-any
-type AjaxCall = (settings: any) => Promise<any>;
-type AjaxCall$ = (settings: any) => bluejax.Pair;
+export type FetchCall = typeof fetch;
 
-export function make(baseOpts: any): { ajax: AjaxCall; ajax$: AjaxCall$ } {
-  const bajax = bluejax.make(baseOpts);
+export interface MakeOptions extends FetchiestOptions {
+  diagnose: DiagnoseOptions;
+}
 
-  const diagnose = bluejax.make({
-    diagnose: {
-      on: true,
-      knownServers: baseOpts.diagnose.knownServers,
-    },
-  },
-                                "promise");
+export function make(opts: MakeOptions): FetchCall {
 
-  function ajax$(settings: any): bluejax.Pair {
-    if (arguments.length > 1) {
-      throw new Error(
-        "we do not support passing the URL as a separate argument; " +
-          "please use a single settings argument");
+  const diagnoseOpts = opts.diagnose;
+  let { serverURL } = diagnoseOpts;
+  delete diagnoseOpts.serverURL;
+
+  if (serverURL === undefined) {
+    serverURL = "";
+  }
+
+  return async function fetch$(input: RequestInfo,
+                               init?: FetchiestRequestInit): Promise<Response> {
+    const fetchiestOptions =
+      init !== undefined && init.fetchiestOptions !== undefined ? {
+        ...opts,
+        ...init.fetchiestOptions,
+      } : opts;
+
+    let response: Response;
+    try {
+      response = await fetch(input, {
+        ...init,
+        fetchiestOptions,
+      });
     }
-
-    const ret = bajax.call(undefined, settings);
-    ret.promise = ret.promise.catch(
-      bluejax.ConnectivityError,
-      (err: Error) => {
+    catch (err) {
+      if (err instanceof ConnectivityError) {
         document.body.appendChild(modal);
         // tslint:disable-next-line:no-non-null-assertion
         const reason = modal.querySelector("span.reason")!;
@@ -84,35 +93,28 @@ export function make(baseOpts: any): { ajax: AjaxCall; ajax$: AjaxCall$ } {
           ev.preventDefault();
           // tslint:disable-next-line:no-floating-promises
           suppressUnhandledRejections(
-            diagnose(baseOpts.diagnose.serverURL).then(
-              () => {
-                window.location.reload();
-              }));
+            // tslint:disable-next-line:no-non-null-assertion
+            fetch(serverURL!, {
+              fetchiestOptions: {
+                diagnose: diagnoseOpts,
+              },
+            }).then(() => {
+              window.location.reload();
+            }));
         });
         $modal.modal();
+      }
 
-        // Canceling the promise is something that Bluebird provides. It allows
-        // us to handle the exception here while at the same time declaring that
-        // no future handlers should be run.
-        ret.promise.cancel();
-      });
-
-    return ret;
-  }
-
-  async function ajax(settings: any): Promise<any> {
-    if (arguments.length > 1) {
-      throw new Error(
-        "we do not support passing the URL as a separate argument; " +
-          "please use a single settings argument");
+      throw err;
     }
 
-    return ajax$(settings).promise;
-  }
+    if (!response.ok) {
+      const err = new Error(`cannot retreive: ${response.url}`);
+      (err as any).response = response;
+      throw err;
+    }
 
-  return {
-    ajax: ajax,
-    ajax$: ajax$,
+    return response;
   };
 }
 

@@ -17,14 +17,26 @@ function makeCssMiddleware(/* config */) {
   };
 }
 
+function makeLogMiddleware(/* config */) {
+  return function handle(req, resp, next) {
+    if (/^\/build\/ajax\/log\.txt$/.test(req.url)) {
+      resp.end("{}");
+    }
+    else {
+      next();
+    }
+  };
+}
+
 const absoluteTopDir = path.join("/absolute", path.resolve(__dirname, "../.."));
 module.exports = function configure(config, dist, specificMain) {
   return {
     basePath: "",
-    middleware: ["serve-fake-css-files", "serve-static"],
+    middleware: ["serve-fake-css-files", "serve-log", "serve-static"],
     plugins: [
       "karma-*", // This is the default, which we need to keep here.
       { "middleware:serve-fake-css-files": ["factory", makeCssMiddleware] },
+      { "middleware:serve-log": ["factory", makeLogMiddleware] },
       { "middleware:serve-static": ["factory", makeKarmaMiddleware] },
     ],
     frameworks: ["mocha", "chai", "source-map-support"],

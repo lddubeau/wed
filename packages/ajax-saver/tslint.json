@@ -1,0 +1,6 @@
+{
+  "extends": "../../tslint.json",
+  "rules": {
+    "no-backbone-get-set-outside-model": [false, "False positives."]
+  }
+}

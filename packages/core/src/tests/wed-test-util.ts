@@ -8,8 +8,7 @@
 // tslint:disable-next-line:import-name
 import md5 from "blueimp-md5";
 import { expect } from "chai";
-import qs from "qs";
-import * as sinon from "sinon";
+import sinon from "sinon";
 
 import { DLoc, domutil, onerror, Options, SelectionMode } from "wed";
 import { Editor } from "wed/editor";
@@ -140,35 +139,27 @@ export interface Payload {
 // tslint:disable-next-line:completed-docs
 export class WedServer {
   private _saveRequests: Payload[] = [];
-  private readonly oldUseFilters: boolean;
-    // tslint:disable-next-line:no-any
-  private readonly oldFilters: any[];
-  private readonly xhr: sinon.SinonFakeXMLHttpRequestStatic;
+  private readonly origFetch: typeof window.fetch;
 
   emptyResponseOnSave: boolean = false;
   failOnSave: boolean = false;
   preconditionFailOnSave: boolean = false;
   tooOldOnSave: boolean = false;
 
-  constructor(server: sinon.SinonFakeServer) {
-    // tslint:disable-next-line:no-any
-    const xhr = (server as any).xhr as sinon.SinonFakeXMLHttpRequestStatic;
-    this.xhr = xhr;
+  constructor() {
+    this.origFetch = window.fetch;
+    window.fetch = this.handleFetch.bind(this);
+  }
 
-    // We must save and restore the filter state ourselves because Sinon does
-    // not do it. Fake servers don't restore it, nor do sandboxes.
-    this.oldUseFilters = xhr.useFilters;
-    // tslint:disable-next-line:no-any
-    this.oldFilters = (xhr as any).filters;
+  async handleFetch(input: RequestInfo, init?: RequestInit): Promise<Response> {
+    const url = (typeof input === "string") ? input : input.url;
+    if (/^\/build\/ajax\/save\.txt$/.test(url)) {
+      const request = (input instanceof Request) ? input :
+        new Request(input, init);
+      return this.handleSave(request);
+    }
 
-    xhr.useFilters = true;
-    xhr.addFilter((_method: string, url: string): boolean =>
-                  !/^\/build\/ajax\//.test(url));
-    server.respondImmediately = true;
-    server.respondWith("POST", /^\/build\/ajax\/save\.txt$/,
-                       this.handleSave.bind(this));
-    server.respondWith("POST", "/build/ajax/log.txt",
-                       [200, { "Content-Type": "application/json" }, "{}"]);
+    return this.origFetch.call(window, input, init);
   }
 
   get saveRequests(): ReadonlyArray<Payload> {
@@ -189,27 +180,31 @@ export class WedServer {
   }
 
   restore(): void {
-    const xhr = this.xhr;
-    xhr.useFilters = this.oldUseFilters;
-    // tslint:disable-next-line:no-any
-    (xhr as any).filters = this.oldFilters;
+    window.fetch = this.origFetch;
   }
 
-  private decode(request: sinon.SinonFakeXMLHttpRequest): Payload {
-    const contentType = request.requestHeaders["Content-Type"];
-    const { requestBody } = request;
+  private async decode(request: Request): Promise<Payload> {
+    const contentType = request.headers.get("Content-Type");
+    const body = await request.text();
     switch (contentType) {
-    case "application/x-www-form-urlencoded;charset=utf-8":
-      return qs.parse(requestBody);
-    case "json":
-      return JSON.parse(requestBody);
-    default:
-      throw new Error(`unknown content type: ${contentType}`);
+      case "application/x-www-form-urlencoded;charset=utf-8":
+      case "application/x-www-form-urlencoded;charset=UTF-8":
+        const params = new URLSearchParams(body);
+        const ret: Record<string, string> = {};
+        for (const [name, value] of params) {
+          ret[name] = value;
+        }
+
+        return ret as unknown as Payload;
+      case "json":
+        return JSON.parse(body);
+      default:
+        throw new Error(`unknown content type: ${contentType}`);
     }
   }
 
-  private handleSave(request: sinon.SinonFakeXMLHttpRequest): void {
-    const decoded = this.decode(request);
+  private async handleSave(request: Request): Promise<Response> {
+    const decoded = await this.decode(request);
     this._saveRequests.push(decoded);
     let status = 200;
     const headers: Record<string, string> =
@@ -250,7 +245,10 @@ export class WedServer {
       status = 400;
     }
 
-    request.respond(status, headers, JSON.stringify({ messages }));
+    return new Response(JSON.stringify({ messages }), {
+      status,
+      headers,
+    });
   }
 }
 
@@ -291,11 +289,9 @@ export class EditorSetup {
 
   constructor(public readonly source: string,
               options: Options, doc: Document) {
-    this.sandbox = sinon.createSandbox({
-      useFakeServer: true,
-    });
+    this.sandbox = sinon.createSandbox();
 
-    this.server = new WedServer(this.sandbox.server);
+    this.server = new WedServer();
 
     this.wedroot = makeWedRoot(document);
     doc.body.appendChild(this.wedroot);

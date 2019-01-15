@@ -47,7 +47,6 @@
   config.map.sinon = "top-npm:sinon/pkg/sinon";
   config.map["sinon-chai"] = "top-npm:sinon-chai/lib/sinon-chai";
   config.map["blueimp-md5"] = "top-npm:blueimp-md5/js/md5";
-  config.map.qs = "top-npm:qs/dist/qs";
   config.map["tests/tree_updater_test_data/source_converted.xml"] =
     "text!tests/tree_updater_test_data/source_converted.xml";
 

@@ -5,14 +5,13 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 
-import * as bluejax from "bluejax";
 import { inject, injectable, multiInject, optional } from "inversify";
 import mergeOptions from "merge-options";
 
-import { Options } from "@wedxml/client-api";
+import { Options, Runtime } from "@wedxml/client-api";
 import { EDITOR_OPTIONS } from "@wedxml/common/tokens";
 
-import { make as ajax } from "./ajax";
+import { FetchCall, make, MakeOptions } from "./ajax";
 import { RuntimeURISchemeHandler } from "./runtime-uri-scheme-handler";
 import { RUNTIME_URI_SCHEME_HANDLER } from "./tokens";
 
@@ -51,11 +50,10 @@ const req = (window as any)["require"] as RequireJSCall;
  * running. In particular it allows loading external resources.
  */
 @injectable()
-export class DefaultRuntime {
+export class DefaultRuntime implements Runtime {
   readonly options: Options;
 
-  readonly ajax: bluejax.AjaxCall;
-  readonly ajax$: bluejax.AjaxCall$;
+  readonly fetch: FetchCall;
 
   private readonly handlers: RuntimeURISchemeHandler[];
 
@@ -73,12 +71,11 @@ export class DefaultRuntime {
     // tslint:disable-next-line:no-parameter-reassignment
     options = mergeOptions({}, options);
     this.options = options;
-    const bluejaxOptions = options.bluejaxOptions != null ?
-      options.bluejaxOptions : {
+    const fetchiestOptions = options.fetchiestOptions != null ?
+      options.fetchiestOptions : {
       tries: 3,
       delay: 100,
       diagnose: {
-        on: true,
         // It would be desirable to support this...
         // serverURL: "/ping",
         knownServers: [
@@ -89,10 +86,8 @@ export class DefaultRuntime {
         ],
       },
     };
-    const made = ajax(bluejaxOptions);
 
-    this.ajax = made.ajax;
-    this.ajax$ = made.ajax$;
+    this.fetch = make(fetchiestOptions as MakeOptions);
   }
 
   /**
@@ -117,10 +112,7 @@ export class DefaultRuntime {
     }
 
     if (scheme === "https" || scheme === "http") {
-      return this.ajax({
-        url: uri,
-        dataType: "text",
-      });
+      return (await this.fetch(uri)).text();
     }
 
     throw new Error(`unknown scheme: ${scheme}`);

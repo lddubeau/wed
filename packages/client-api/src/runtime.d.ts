@@ -6,15 +6,14 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 
-import * as bluejax from "bluejax";
+import * as fetchiest from "fetchiest";
 
 import { Options } from "./options";
 
 interface Runtime {
   readonly options: Options;
 
-  readonly ajax: bluejax.AjaxCall;
-  readonly ajax$: bluejax.AjaxCall$;
+  readonly fetch: typeof fetchiest.fetch;
 
   /**
    * Resolve a resource reference.

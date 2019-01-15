@@ -3,8 +3,7 @@
   "compilerOptions": {
     "baseUrl": "../build",
     "paths": {
-      "ajax-saver": ["dist/ajax-saver"],
-      "bluejax": ["../../../types/bluejax"]
+      "ajax-saver": ["dist/ajax-saver"]
     },
     "rootDir": ".",
     "outDir": "",

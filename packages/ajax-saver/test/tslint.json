@@ -1,5 +1,5 @@
 {
-  "extends": "../../../tslint.json",
+  "extends": "../tslint.json",
   "rules": {
     "no-any": [false, "We need casting to any in testing."],
     "chai-vague-errors": [false, "Too picky."],
@@ -10,8 +10,6 @@
     "completed-docs": false,
     "no-non-null-assertion": [false, "We use them too much in testing."],
     "no-object-literal-type-assertion": [false,
-                                         "We need it too much in testing."],
-    "no-backbone-get-set-outside-model": [false,
-                                          "We don't use backbone."]
+                                         "We need it too much in testing."]
   }
 }

@@ -103,9 +103,9 @@ properties:
         type: object
     additionalProperties: false
     required: ["path"]
-  bluejaxOptions:
-    description: Options for configuring bluejax globally. What this can
-      contain is determined by Bluejax.
+  fetchiestOptions:
+    description: Options for configuring fetchiest globally. What this can
+      contain is determined by fetchiest.
     type: object
 additionalProperties: false
 required: ["schema", "mode"]

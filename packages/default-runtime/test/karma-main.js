@@ -43,9 +43,7 @@
       "is-plain-obj": "top-npm:is-plain-obj/index.js",
       jquery: "top-npm:jquery",
       bootstrap: "top-npm:bootstrap",
-      bluejax: "top-npm:bluejax",
-      "bluejax.try": "top-npm:bluejax.try",
-      bluebird: "top-npm:bluebird",
+      fetchiest: "top-npm:fetchiest",
     },
     packages: {
       "": {},

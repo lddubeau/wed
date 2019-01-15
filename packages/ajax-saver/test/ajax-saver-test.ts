@@ -1,10 +1,9 @@
 // tslint:disable-next-line:missing-jsdoc
 import { expect, use } from "chai";
-import $ from "jquery";
+import * as fetchiest from "fetchiest";
 import "mocha";
-import qs from "qs";
 import { first } from "rxjs/operators";
-import * as sinon from "sinon";
+import sinon from "sinon";
 import sinonChai from "sinon-chai";
 
 use(sinonChai);
@@ -13,22 +12,26 @@ import { SaverOptions } from "@wedxml/base-saver";
 import { makeSaverTests } from "@wedxml/base-saver/test/saver-tests";
 import { Options, Runtime } from "@wedxml/client-api";
 import { expectError } from "@wedxml/common/test/util";
-import * as bluejax from "bluejax";
 
 import { AjaxSaver } from "ajax-saver";
 
 class FakeRuntime implements Runtime {
   options: Options;
-  ajax: any;
-  ajax$: any;
 
   constructor() {
     this.options = {} as any;
-    const ajax$ = bluejax.make({});
-    this.ajax$ = ajax$;
-    this.ajax = async (...args: any[]) => {
-      return ajax$(...args).promise;
-    };
+  }
+
+  async fetch(input: RequestInfo,
+              init?: fetchiest.FetchiestRequestInit): Promise<Response> {
+    const resp = await fetch(input, init);
+    if (!resp.ok) {
+      const err = new Error("failed");
+      (err as any).response = resp;
+      throw err;
+    }
+
+    return resp;
   }
 
   async resolve(_uri: string): Promise<any> {
@@ -44,15 +47,17 @@ class FakeRuntime implements Runtime {
   }
 }
 
-function handleSave(request: sinon.SinonFakeXMLHttpRequest): void {
-  const decoded = qs.parse(request.requestBody);
+async function handleSave(input: RequestInfo,
+                          init: RequestInit): Promise<Response> {
+  const request = (input instanceof Request) ? input : new Request(input, init);
+  const decoded = new URLSearchParams(await request.text());
   let status = 200;
   const headers: Record<string, string> =
     { "Content-Type": "application/json" };
   // tslint:disable-next-line:no-reserved-keywords
   const messages: { type: string }[] = [];
 
-  switch (decoded.command) {
+  switch (decoded.get("command")) {
     case "check":
       break;
     case "save":
@@ -64,68 +69,96 @@ function handleSave(request: sinon.SinonFakeXMLHttpRequest): void {
       status = 400;
   }
 
-  request.respond(status, headers, JSON.stringify({ messages }));
+  return new Response(JSON.stringify({ messages }), {
+    status,
+    headers,
+  });
 }
 
 {
-  let sandbox: sinon.SinonSandbox;
+  let origFetch: typeof window.fetch;
   makeSaverTests("AjaxSaver (BaseSaver API)",
                  (options: SaverOptions) =>
                  new AjaxSaver(new FakeRuntime(), {...options, url: "/moo" }),
                  () => {
-                   sandbox = sinon.createSandbox({ useFakeServer: true });
-                   const server = sandbox.server;
-                   server.respondImmediately = true;
-                   server.respondWith(handleSave);
+                   origFetch = window.fetch;
+                   window.fetch = handleSave;
                  },
                  () => {
-                   sandbox.reset();
+                   window.fetch = origFetch;
                  });
 }
 
+function asParams(obj: any): string {
+  const params = new URLSearchParams();
+  // tslint:disable-next-line:forin
+  for (const key in obj) {
+    params.set(key, obj[key]);
+  }
+
+  return params.toString();
+}
+
+type ResponseTuple = [number, Record<string, string>, any];
+
 describe("AjaxSaver", () => {
-  let sandbox: sinon.SinonSandbox;
   let rt: Runtime;
-  let server: sinon.SinonFakeServer;
   let doc: Document;
+  let origFetch: typeof window.fetch;
+  let requests: Request[];
+  let responses: ResponseTuple[];
+
+  async function handleFetch(input: RequestInfo,
+                             init: RequestInit): Promise<Response> {
+    const request = (input instanceof Request) ? input :
+      new Request(input, init);
+    requests.push(request);
+
+    const resp = responses.shift()!;
+
+    return new Response(JSON.stringify(resp[2]), {
+      status: resp[0],
+      headers: resp[1],
+    });
+  }
 
   before(() => {
-    sandbox = sinon.createSandbox({ useFakeServer: true });
     rt = new FakeRuntime();
-    server = sandbox.server;
-    server.respondImmediately = true;
     doc = new DOMParser().parseFromString("<doc/>", "text/xml");
+    origFetch = window.fetch;
+    window.fetch = handleFetch;
   });
 
-  afterEach(() => {
-    sandbox.reset();
+  beforeEach(() => {
+    requests = [];
+    responses = [];
   });
 
   after(() => {
-    sandbox.restore();
+    window.fetch = origFetch;
   });
 
   it("can be created", () => {
     new AjaxSaver(rt, { url: "/moo" });
   });
 
+  function goodResponse(messages: any[]): void {
+    responses.push([200, { "Content-Type": "application/json" }, { messages }]);
+  }
+
   describe("#init", () => {
     it("sends a check command with the editor version", async () => {
       const saver = new AjaxSaver(rt, { url: "/moo" });
-      server.respondWith("POST", "/moo",
-                         [200, { "Content-Type": "application/json" },
-                          JSON.stringify({messages: []})]);
+      goodResponse([]);
       await saver.init("0.30.0", document);
-      expect(server).to.have.property("requests").have.lengthOf(1);
-      expect(server).to.have.nested.property("requests[0].requestBody")
-        .equal($.param({ command: "check", version: "0.30.0" }));
+      expect(requests).to.have.lengthOf(1);
+      expect(await requests[0].text()).to.
+        equal(asParams({ command: "check", version: "0.30.0" }));
     });
 
     it("sets the saver as initialized if the version check works", async () => {
       const saver = new AjaxSaver(rt, { url: "/moo" });
-      server.respondWith("POST", "/moo",
-                         [200, { "Content-Type": "application/json" },
-                          JSON.stringify({messages: []})]);
+      goodResponse([]);
       await saver.init("0.30.0", document);
       expect(saver).to.have.property("initialized").true;
       expect(saver).to.have.property("failed").false;
@@ -133,34 +166,24 @@ describe("AjaxSaver", () => {
 
     it("marks the saver as failed if the version check fails", async () => {
       const saver = new AjaxSaver(rt, { url: "/moo" });
-      server.respondWith("POST", "/moo", [
-        200, { "Content-Type": "application/json" },
-        JSON.stringify({
-          messages: [{ type: "version_too_old_error" }],
-        }),
-      ]);
+      goodResponse([{ type: "version_too_old_error" }]);
       await saver.init("0.30.0", document);
       expect(saver).to.have.property("failed").true;
     });
 
     it("rejects if the underlying ajax fails", async () => {
       const saver = new AjaxSaver(rt, { url: "/moo" });
-      server.respondWith("POST", "/moo", [
-        404, { "Content-Type": "text/plain" }, "",
-      ]);
+      responses.push([404, { "Content-Type": "text/plain" }, ""]);
       await expectError(saver.init("0.30.0", document),
                         Error, /^\/moo is not responding to a check;/);
     });
 
     it("does not set If-Match if there is no etag in the options", async () => {
       const saver = new AjaxSaver(rt, { url: "/moo" });
-      server.respondWith("POST", "/moo",
-                         [200, { "Content-Type": "application/json" },
-                          JSON.stringify({messages: []})]);
+      goodResponse([]);
       await saver.init("0.30.0", document);
-      expect(server).to.have.property("requests").have.lengthOf(1);
-      expect(server).to.not.have.nested
-        .property("requests[0].requestHeaders.If-Match");
+      expect(requests).to.have.lengthOf(1);
+      expect(requests[0].headers.get("If-Match")).to.be.null;
     });
 
     it("sets If-Match if there an etag in the options", async () => {
@@ -168,13 +191,10 @@ describe("AjaxSaver", () => {
         url: "/moo",
         initial_etag: "abc",
       });
-      server.respondWith("POST", "/moo",
-                         [200, { "Content-Type": "application/json" },
-                          JSON.stringify({messages: []})]);
+      goodResponse([]);
       await saver.init("0.30.0", document);
-      expect(server).to.have.property("requests").have.lengthOf(1);
-      expect(server).to.have.nested
-        .property("requests[0].requestHeaders.If-Match").equal("\"abc\"");
+      expect(requests).to.have.lengthOf(1);
+      expect(requests[0].headers.get("If-Match")).to.equal("\"abc\"");
     });
   });
 
@@ -183,26 +203,20 @@ describe("AjaxSaver", () => {
 
     beforeEach(async () => {
       saver = new AjaxSaver(rt, { url: "/moo" });
-      server.respondWith("POST", "/moo",
-                         [200, { "Content-Type": "application/json" },
-                          JSON.stringify({messages: []})]);
+      goodResponse([]);
       await saver.init("0.30.0", doc);
-      server.requests = [];
+      requests = [];
     });
 
     it("is a no-op on an uninitialized saver", async () => {
       await new AjaxSaver(rt, { url: "/blerh" }).save();
-      expect(server).to.have.property("requests").have.lengthOf(0);
+      expect(requests).to.have.lengthOf(0);
     });
 
     it("sends a save command", async () => {
-      server.respondWith("POST", "/moo",
-                         [200, { "Content-Type": "application/json" },
-                          JSON.stringify({messages: [
-                            { type: "save_successful" },
-                          ]})]);
+      goodResponse([{ type: "save_successful" }]);
       await saver.save();
-      const body = server.requests[0].requestBody;
+      const body = await requests[0].text();
       const params = new URLSearchParams(body);
       expect(params.get("command")).to.equal("save");
       expect(params.get("version")).to.equal("0.30.0");
@@ -211,8 +225,7 @@ describe("AjaxSaver", () => {
 
     describe("when the server does not send an HTTP success", () => {
       beforeEach(() => {
-        server.respondWith("POST", "/moo",
-                           [400, { "Content-Type": "text/plain" }, ""]);
+        responses.push([400, { "Content-Type": "text/plain" }, ""]);
       });
 
       it("marks saver as failed", async () => {
@@ -236,9 +249,7 @@ describe("AjaxSaver", () => {
 not return any information regarding whether the save was successful or not.`;
 
       beforeEach(() => {
-        server.respondWith("POST", "/moo",
-                           [200, { "Content-Type": "application/json" },
-                            JSON.stringify({ messages: []})]);
+        goodResponse([]);
       });
 
       it("rejects", async () => {
@@ -262,11 +273,7 @@ not return any information regarding whether the save was successful or not.`;
 a fatal error. Please contact technical support before trying to edit again.`;
 
       beforeEach(() => {
-        server.respondWith("POST", "/moo",
-                           [200, { "Content-Type": "application/json" },
-                            JSON.stringify({ messages: [
-                              { type: "save_fatal_error" },
-                            ]})]);
+        goodResponse([{ type: "save_fatal_error" }]);
       });
 
       it("rejects", async () => {
@@ -287,11 +294,7 @@ a fatal error. Please contact technical support before trying to edit again.`;
 
     describe("when a save_transient_error message is returned", async () => {
       beforeEach(() => {
-        server.respondWith("POST", "/moo",
-                           [200, { "Content-Type": "application/json" },
-                            JSON.stringify({ messages: [
-                              { type: "save_transient_error" },
-                            ]})]);
+        goodResponse([{ type: "save_transient_error" }]);
       });
 
       it("does not reject", async () => {
@@ -314,11 +317,7 @@ a fatal error. Please contact technical support before trying to edit again.`;
 
     describe("when a save_edited message is returned", async () => {
       beforeEach(() => {
-        server.respondWith("POST", "/moo",
-                           [200, { "Content-Type": "application/json" },
-                            JSON.stringify({ messages: [
-                              { type: "save_edited" },
-                            ]})]);
+        goodResponse([{ type: "save_edited" }]);
       });
 
       it("does not reject", async () => {
@@ -344,11 +343,7 @@ a fatal error. Please contact technical support before trying to edit again.`;
 saving. Please contact technical support before trying to edit again.`;
 
       beforeEach(() => {
-        server.respondWith("POST", "/moo",
-                           [200, { "Content-Type": "application/json" },
-                            JSON.stringify({ messages: [
-                              { type: "version_too_old_error" },
-                            ]})]);
+        goodResponse([{ type: "version_too_old_error" }]);
       });
 
       it("rejects", async () => {
@@ -369,14 +364,12 @@ saving. Please contact technical support before trying to edit again.`;
 
     describe("when getting version_too_old_error", async () => {
       beforeEach(() => {
-        server.respondWith("POST", "/moo",
-                           [200, { "Content-Type": "application/json" },
-                            JSON.stringify({ messages: [
-                              { type: "version_too_old_error" },
-                              // We need this. Or we're going to get another
-                              // error.
-                              { type: "save_successful" },
-                            ]})]);
+        goodResponse([
+          { type: "version_too_old_error" },
+          // We need this. Or we're going to get another
+          // error.
+          { type: "save_successful" },
+        ]);
       });
 
       it("does not reject", async () => {
@@ -392,18 +385,13 @@ saving. Please contact technical support before trying to edit again.`;
         const p = saver.events.pipe(first()).toPromise();
         await saver.save();
         expect(await p).to.have.property("name").equal("Failed");
-        expect(await p).to.have.nested.property("error.type")
-          .equal("too_old");
+        expect(await p).to.have.nested.property("error.type").equal("too_old");
       });
     });
 
     describe("when getting save_successful", async () => {
       beforeEach(() => {
-        server.respondWith("POST", "/moo",
-                           [200, { "Content-Type": "application/json" },
-                            JSON.stringify({ messages: [
-                              { type: "save_successful" },
-                            ]})]);
+        goodResponse([{ type: "save_successful" }]);
       });
 
       it("does not reject", async () => {
@@ -436,37 +424,30 @@ saving. Please contact technical support before trying to edit again.`;
 
     beforeEach(async () => {
       saver = new AjaxSaver(rt, { url: "/moo" });
-      server.respondWith("POST", "/moo",
-                         [200, { "Content-Type": "application/json" },
-                          JSON.stringify({messages: []})]);
+      goodResponse([]);
       await saver.init("0.30.0", doc);
-      server.requests = [];
+      requests = [];
     });
 
     it("is a no-op on an uninitialized saver", async () => {
       expect(await new AjaxSaver(rt, { url: "/blerh" }).recover())
         .to.be.undefined;
-      expect(server).to.have.property("requests").have.lengthOf(0);
+      expect(requests).to.have.lengthOf(0);
     });
 
     it("is a no-op on failed saver", async () => {
-      server.respondWith("POST", "/moo",
-                         [400, { "Content-Type": "text/plain" }, ""]);
+      responses.push([400, { "Content-Type": "text/plain" }, ""]);
       await saver.save();
-      server.requests = [];
+      requests = [];
       expect(saver).to.have.property("failed").true;
       expect(await saver.recover()).to.be.undefined;
-      expect(server).to.have.property("requests").have.lengthOf(0);
+      expect(requests).to.have.lengthOf(0);
     });
 
     it("sends a recover command", async () => {
-      server.respondWith("POST", "/moo",
-                         [200, { "Content-Type": "application/json" },
-                          JSON.stringify({messages: [
-                            { type: "save_successful" },
-                          ]})]);
+      goodResponse([{ type: "save_successful" }]);
       await saver.recover();
-      const body = server.requests[0].requestBody;
+      const body = await requests[0].text();
       const params = new URLSearchParams(body);
       expect(params.get("command")).to.equal("recover");
       expect(params.get("version")).to.equal("0.30.0");
@@ -474,44 +455,28 @@ saving. Please contact technical support before trying to edit again.`;
     });
 
     it("returns false on HTTP failures", async () => {
-      server.respondWith("POST", "/moo",
-                         [404, { "Content-Type": "text/plain" }, ""]);
+      responses.push([404, { "Content-Type": "text/plain" }, ""]);
       expect(await saver.recover()).to.be.false;
     });
 
     it("returns false when the response has no messages", async () => {
-      server.respondWith("POST", "/moo",
-                         [200, { "Content-Type": "application/json" },
-                          JSON.stringify({ messages: []})]);
+      goodResponse([]);
       expect(await saver.recover()).to.be.false;
     });
 
     it("returns false on save_fatal_error", async () => {
-      server.respondWith("POST", "/moo",
-                         [200, { "Content-Type": "application/json" },
-                          JSON.stringify({ messages: [
-                            { type: "save_fatal_error" },
-                          ]})]);
+      goodResponse([{ type: "save_fatal_error" }]);
       expect(await saver.recover()).to.be.false;
     });
 
     it("returns false if not save_successful", async () => {
-      server.respondWith("POST", "/moo",
-                         [200, { "Content-Type": "application/json" },
-                          JSON.stringify({ messages: [
-                            { type: "version_too_old_error" },
-                          ]})]);
+      goodResponse([{ type: "version_too_old_error" }]);
       expect(await saver.recover()).to.be.false;
     });
 
     it("returns true on save_successful", async () => {
-      server.respondWith("POST", "/moo",
-                         [200, { "Content-Type": "application/json" },
-                          JSON.stringify({ messages: [
-                            { type: "save_successful" },
-                          ]})]);
+      goodResponse([{ type: "save_successful" }]);
       expect(await saver.recover()).to.be.true;
     });
   });
-
 });

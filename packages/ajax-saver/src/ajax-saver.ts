@@ -25,7 +25,7 @@ interface Message {
   data?: string;
 }
 
-interface Response {
+interface ServerResponse {
   messages: SaveError[];
 }
 
@@ -44,7 +44,7 @@ interface ParsedResponse {
  * @throws {Error} If there is more than one message of the same type in the
  * data being processed.
  */
-function getMessages(data: Response): ParsedResponse | undefined {
+function getMessages(data: ServerResponse): ParsedResponse | undefined {
   const raw = data.messages;
   if (raw === undefined || raw.length === 0) {
     return undefined;
@@ -108,10 +108,9 @@ export class AjaxSaver extends BaseSaver {
   }
 
   async _init(): Promise<void> {
-    let response: Response;
+    let response: ServerResponse;
     try {
-      response = await this._post({ command: "check", version: this.version },
-                                  "json");
+      response = await this._post({ command: "check", version: this.version });
     }
     catch {
       // This effectively aborts the editing session. This is okay, since
@@ -141,13 +140,13 @@ saving is not possible.`);
     // is saved.
     const savingGeneration = this.currentGeneration;
 
-    let response: Response;
+    let response: ServerResponse;
     try {
       response = await this._post({
         command: autosave ? "autosave" : "save",
         version: this.version,
         data: this.getData(),
-      }, "json");
+      });
     }
     catch {
       const error = {
@@ -200,13 +199,13 @@ saving. Please contact technical support before trying to edit again.`);
   }
 
   async _recover(): Promise<boolean> {
-    let data: Response;
+    let data: ServerResponse;
     try {
       data = await this._post({
         command: "recover",
         version: this.version,
         data: this.getData(),
-      }, "json");
+      });
     }
     catch {
       return false;
@@ -229,7 +228,7 @@ saving. Please contact technical support before trying to edit again.`);
    *
    * @returns A promise that resolves when the post is over.
    */
-  private async _post(data: Message, dataType: string): Promise<Response> {
+  private async _post(data: Message): Promise<ServerResponse> {
     let headers;
 
     if (this.etag !== undefined) {
@@ -241,30 +240,34 @@ saving. Please contact technical support before trying to edit again.`);
       headers = this.headers;
     }
 
+    const body = new URLSearchParams();
+    // tslint:disable-next-line:forin
+    for (const prop in data) {
+      // tslint:disable-next-line:no-any
+      body.set(prop, (data as any)[prop]);
+    }
+
     try {
-      const [reply, , jqXHR] = await this.runtime.ajax({
-        type: "POST",
-        url: this.url,
-        data: data,
-        dataType: dataType,
-        headers: headers,
-        bluejaxOptions: {
-          verboseResults: true,
-        },
+      const response = await this.runtime.fetch(this.url, {
+        method: "POST",
+        body,
+        headers,
       });
 
-      const msgs = getMessages(reply);
+      const serverResponse = JSON.parse(await response.text());
+      const msgs = getMessages(serverResponse);
       // Unsuccessful operations don't have a valid etag.
       if (msgs !== undefined && msgs.save_successful !== undefined) {
-        this.etag = jqXHR.getResponseHeader("ETag");
+        const etag = response.headers.get("ETag");
+        this.etag = etag !== null ? etag : undefined;
       }
 
-      return reply;
+      return serverResponse;
     }
-    catch (bluejaxError) {
-      const jqXHR = bluejaxError.jqXHR;
+    catch (err) {
+      const response = err.response;
       // This is a case where a precondition failed.
-      if (jqXHR.status === 412) {
+      if (response.status === 412) {
         // We transform the 412 status into a Response object that will
         // produce the right reaction.
         return {
@@ -274,7 +277,8 @@ saving. Please contact technical support before trying to edit again.`);
           }],
         };
       }
-      throw bluejaxError;
+
+      throw err;
     }
   }
 }

@@ -39,3 +39,8 @@ Miscelaneous changes:
 
 * The Reflection Metadata API must be fully available. You may use
   ``reflect-metadata``.
+
+* The wed runtimes now use ``fetchiest`` instead of ``bluejax`` to provide
+  diagnosis and retry capabilities. Consequently the ``bluejaxOptions`` that
+  used to be passed to wed are now ``fetchiestOptions``. See the documentation
+  of ``fetchiest`` for what is available.

@@ -30,112 +30,62 @@ const options: Options = {
   },
 };
 
-// tslint:disable-next-line:no-any
-type ResponseSpec = [number, any, string];
-
 describe("DefaultRuntime", () => {
-  let xhr: sinon.SinonFakeXMLHttpRequestStatic;
-  let nextResponses: ResponseSpec[] = [];
-  let requests: sinon.SinonFakeXMLHttpRequest[] = [];
+  let sandbox: sinon.SinonSandbox;
+  let fetchStub: sinon.SinonStub;
 
-  const something: ResponseSpec =
-    [200, { "Content-Type": "application/html" }, "something"];
-
-  beforeEach(() => {
-    nextResponses = [something];
-    requests = [];
-    xhr = sinon.useFakeXMLHttpRequest();
-    xhr.onCreate = (request) => {
-      requests.push(request);
-      setTimeout(() => {
-        const nextResponse = nextResponses.shift();
-        if (nextResponse !== undefined) {
-          request.respond(...nextResponse);
-        }
-      }, 1);
-    };
-
+  before(() => {
+    sandbox = sinon.createSandbox({
+      useFakeTimers: false,
+    });
+    fetchStub = sandbox.stub(window, "fetch");
   });
 
   afterEach(() => {
-    if (xhr !== undefined) {
-      xhr.restore();
-    }
+    sandbox.reset();
+  });
+
+  after(() => {
+    sandbox.restore();
   });
 
   it("copies its options", () => {
     expect(makeRuntime(options)).to.have.property("options").not.equal(options);
   });
 
-  // It is not the job of this test suite to check that the ajax methods do
-  // everthing that bluejax provides. We do a minimal amount of testing to check
-  // that they perform retries, that the configuration passed to the runtime is
-  // passed along.
-  describe("ajax", () => {
+  describe("fetch", () => {
     it("returns a response", async () => {
+      const resp = { ok: true };
+      fetchStub.returns(Promise.resolve(resp));
       const runtime = makeRuntime(options);
-      expect(await runtime.ajax("foo")).to.equal("something");
+      expect(await runtime.fetch("foo")).to.equal(resp);
     });
 
     it("should retry", async () => {
+      // tslint:disable-next-line:promise-must-complete no-empty
+      fetchStub.returns(new Promise(() => {}));
       const runtime = makeRuntime(options);
-      nextResponses = [];
       try {
-        await runtime.ajax({ url: "foo", timeout: 10 });
+        await runtime.fetch("foo", { fetchiestOptions: { timeout: 10 } });
       }
       // tslint:disable-next-line:no-empty
       catch {}
       // Retries 3 times + two server checks.
-      expect(requests).to.have.lengthOf(5);
+      expect(fetchStub).to.have.callCount(5);
     });
 
     it("can have retry turned off", async () => {
       const runtime = makeRuntime({...options,
-        bluejaxOptions: {
+        fetchiestOptions: {
           diagnose: {},
         },
       });
-      nextResponses = [];
       try {
-        await runtime.ajax({ url: "foo", timeout: 10 });
+        await runtime.fetch("foo", { fetchiestOptions: { timeout: 10 } });
       }
       // tslint:disable-next-line:no-empty
       catch {}
-      expect(requests).to.have.lengthOf(1);
-    });
-  });
-
-  describe("ajax$", () => {
-    it("returns a response", async () => {
-      const runtime = makeRuntime(options);
-      expect(await runtime.ajax$("foo").promise).to.equal("something");
-    });
-
-    it("should retry", async () => {
-      const runtime = makeRuntime(options);
-      nextResponses = [];
-      try {
-        await runtime.ajax$({ url: "foo", timeout: 10 }).promise;
-      }
-      // tslint:disable-next-line:no-empty
-      catch {}
-      // Retries 3 times + two server checks.
-      expect(requests).to.have.lengthOf(5);
-    });
-
-    it("can have retry turned off", async () => {
-      const runtime = makeRuntime({...options,
-        bluejaxOptions: {
-          diagnose: {},
-        },
-      });
-      nextResponses = [];
-      try {
-        await runtime.ajax$({ url: "foo", timeout: 10 }).promise;
-      }
-      // tslint:disable-next-line:no-empty
-      catch {}
-      expect(requests).to.have.lengthOf(1);
+      expect(fetchStub).to.have.callCount(1);
     });
   });
 });

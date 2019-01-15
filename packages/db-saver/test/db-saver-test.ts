@@ -1,8 +1,9 @@
 // tslint:disable-next-line:missing-jsdoc
 import { expect, use } from "chai";
+import * as fetchiest from "fetchiest";
 import "mocha";
 import { first } from "rxjs/operators";
-import * as sinon from "sinon";
+import sinon from "sinon";
 import sinonChai from "sinon-chai";
 
 use(sinonChai);
@@ -15,17 +16,21 @@ import { DBSaver, Store } from "db-saver";
 
 class FakeRuntime implements Runtime {
   options: Options;
-  ajax: any;
-  ajax$: any;
 
   constructor() {
     this.options = {} as any;
-    this.ajax$ = async () => {
-      throw new Error("ajax$ is not implemented");
-    };
-    this.ajax = async () => {
-      throw new Error("ajax is not implemented");
-    };
+  }
+
+  async fetch(input: RequestInfo,
+              init?: fetchiest.FetchiestRequestInit): Promise<Response> {
+    const resp = await fetch(input, init);
+    if (!resp.ok) {
+      const err = new Error("failed");
+      (err as any).response = resp;
+      throw err;
+    }
+
+    return resp;
   }
 
   async resolve(_uri: string): Promise<any> {
