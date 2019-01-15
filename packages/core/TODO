@@ -35,11 +35,6 @@ Other issues brought up by scholarly team Oct 2018
   files that are not yet valid: if the user want to copy-paste a region with
   errors they currently cannot do it due to the check.
 
-Short term
-==========
-
-* Drop bluebird.
-
 Fix documentation
 =================
 

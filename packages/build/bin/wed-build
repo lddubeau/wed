@@ -70,7 +70,6 @@ const externals = {};
  "typeahead",
  "bloodhound",
  "interactjs",
- "bluebird",
  "bootstrap-notify",
  "dexie",
 ].forEach((name) => {

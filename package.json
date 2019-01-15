@@ -38,7 +38,6 @@
     "ajv": "^6.6.2",
     "amd-loader": "0.0.8",
     "argparse": "^1.0.3",
-    "bluebird": "^3.5.3",
     "blueimp-md5": "^2.10.0",
     "bootbox": "^4.4.0",
     "bootstrap": "^3.4.0",

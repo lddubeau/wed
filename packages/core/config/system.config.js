@@ -24,7 +24,6 @@ window.systemJSConfig = {
     interact: "top-npm:interact",
     "merge-options": "top-npm:merge-options/index.js",
     "is-plain-obj": "top-npm:is-plain-obj/index.js",
-    bluebird: "top-npm:bluebird/js/browser/bluebird.js",
     "last-resort": "top-npm:last-resort",
     "rangy-core": "top-npm:rangy/lib/rangy-core",
     "rangy-textrange": "top-npm:rangy/lib/rangy-textrange",
