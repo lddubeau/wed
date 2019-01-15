@@ -86,55 +86,12 @@ Known limitations:
 * Wed does not use XPath nor is it currently recommended to use XPath. See
   :ref:`tech_notes_xpath`.
 
-Dependencies
+Building Wed
 ============
 
-Wed is packaged as an AMD module. To use it in a browser environment, you need
-to first load RequireJS and pass to it a configuration that will allow it to
-find wed's code. An example of such configuration, which allows running the
-browser-dependent test suite, is located in
-:github:`config/requirejs-config-dev.js`.
-
-.. warning:: If you want to change this configuration for experimentation or to
-             match your local setup, please copy it to the ``local_config``
-             directory and edit it *there*. This directory is not tracked by
-             git. This is true of all files that are stored in
-             :github:`config/`.
-
-Please see the :github:`package.json`, :github:`config/requirejs-config-dev.js`,
-:github:`Makefile` and :github:`build.mk` files for details regarding run-time
-and development dependencies. Running the test suite also requires that `saxon
-<http://saxon.sourceforge.net/>`_ and ``xsltproc`` be installed.
-
-Wed works with jQuery 3.x and 2.x. We strongly recommend using jQuery
-3.x. jQuery 2.x is no longer maintained by its development team and thus no
-longer receives security patches. There is no formal support for running wed
-with jQuery 1.x or earlier versions.
-
-The optimized builds of wed include jQuery 3.x.
-
-Running wed's selenium-based tests or building the documentation
-**additionally** requires Python 2.7 and the Python packages listed in
-``dev_requirements.txt``.
-
-If you want to contribute to wed, your code will have to pass the checks listed
-in :github:`.glerbl/repo_conf.py`. So you either have to install glerbl to get
-those checks done for you or run the checks through other means. See
-Contributing_.
-
-Building
-========
-
-Everything generated during a build is output to the ``build/`` subdirectory,
-except for some documentation files like ``README.html`` and ``CHANGELOG.html``,
-which are in the root directory. You run a build with::
-
-  npm run build
-
-It will create an optimized version of wed in ``build/dist/packed/``. This is a
-version that has been optimized using Webpack. See the
-:ref:`tech_notes_deployment_considerations` section in :doc:`tech_notes` to
-determine whether this is the optimization you want to use to deploy wed.
+In order to use wed as part of your own application, you must select the
+components that you want to use and run ``wed-build`` on it. See the
+documentation for ``@wedxml/build`` for the details of how to build it.
 
 Testing
 =======
@@ -204,82 +161,13 @@ just given:
 
 To include wed in a web page you must:
 
-* Require ``wed``
-
-* Instantiate an ``Editor`` object of that module as follows::
-
-    var editor = wed.makeEditor(widget, options);
-    [...]
-    editor.init(data);
-
-  Between the creation of the ``Editor`` object and the call to ``init``, there
-  conceivably could be some calls to add event handlers or condition
-  handlers. The ``widget`` parameter must be an element (preferably a ``div``)
-  that wed will take over to install its GUI. The ``options`` parameter is
-  either an anonymous JavaScript object that contains the options to pass to the
-  editor, or it can be a ``Runtime`` object. If the latter, the options are
-  passed to the ``Runtime`` and the runtime is passed to the ``Editor``
-  instance. The ``data`` parameter is a string containing the document to edit,
-  in XML format.
-
-Options
--------
-
-The ``options`` parameter is a dictionary which at present understands the
-following keys:
-
-* ``schema``: the path to the schema to use for interpreting the document. This
-  file must contain the result of doing the schema conversion required by salve
-  since wed uses salve. See salve's documentation.
-
-* ``mode``: a simple object recording mode parameters. This object must have a
-  ``path`` field set to the RequireJS path of the mode. An optional ``options``
-  field may contain options to be passed to the mode. Wed comes bundled with a
-  generic mode located at :github:`lib/wed/modes/generic/generic.js`.
-
-* ``ajaxlog``: See the documentation about :ref:`remote logging
-  <remote_logging>`.
-
-* ``save``: See the documentation about :ref:`saving <saving>`.
-
-* ``bluejaxOptions``: This is passed directly to `Bluejax
-  <https://github.com/lddubeau/bluejax>`_ when the editor uses Bluejax. So you
-  can use this to configure how many times wed would retry a failing connection,
-  and whether it would provide error checking. The default value is::
-
-        {
-          tries: 3,
-          delay: 100,
-          diagnose: {
-            on: true,
-            knownServers: [
-              "http://www.google.com/",
-              "http://www.cloudfront.com/",
-            ],
-          },
-        };
-
-  There is no ``serverURL`` set because there's no good default value for it.
-
-Here is an example of an ``options`` object::
-
-    {
-         schema: 'test/tei-simplified-rng.js',
-         mode: {
-             path: 'wed/modes/generic/generic',
-             options: {
-                 metadata: '.../path/to/metadata'
-             }
-         }
-    }
-
-The ``mode.options`` will be passed to the generic mode when it is created. What
-options are accepted and what they mean is determined by each mode.
+* Require the bundle you created with ``wed-build`` and use the function you
+  exported from that bundle to create an editor.
 
 Errors
 ======
 
-The :github:`lib/wed/onerror.js` module provides an error handler that could be
+The ``onerror`` object exported by wed provides an error handler that could be
 used with `last-resort <https://github.com/lddubeau/last-resort>`_ or with any
 other error handler that can call a handler that takes a single argument which
 is an ``error`` DOM event. This handler tries to save the data in all editors
@@ -287,10 +175,10 @@ that exist in the window. Here is an example that uses ``last-resort``::
 
     define(function (require) {
 
+    var wed = require("wed");
     var lr = require("last-resort");
-    var onerror = require("wed/onerror");
     var onError = lr.install(window);
-    onError.register(onerror.handler);
+    onError.register(wed.onerror.handler);
     //...
 
 .. warning:: **IF YOU DO NOT SET THE HANDLER TO BE CALLED ON UNCAUGHT
