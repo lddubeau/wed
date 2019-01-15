@@ -16,7 +16,7 @@ import { RUNTIME } from "@wedxml/common/tokens";
 import * as serializer from "./serializer";
 import { SAVER_OPTIONS } from "./tokens";
 
-export const version = "5.0.0-alpha.11";
+export const version = "5.0.0-alpha.12";
 
 function deltaToString(delta: number): string {
   // tslint:disable-next-line:no-parameter-reassignment
