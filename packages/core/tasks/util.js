@@ -1,7 +1,6 @@
 const vfs = require("vinyl-fs");
 const gulpNewer = require("gulp-newer");
 const childProcess = require("child_process");
-const Promise = require("bluebird");
 const log = require("fancy-log");
 const fs = require("fs-extra");
 const _del = require("del");
@@ -20,21 +19,21 @@ const cprp = exports.cprp = function cprp(src, dest) {
   return copy(src, dest, { overwrite: true, preserveTimestamps: true });
 };
 
-exports.cprpdir = function cprpdir(src, dest) {
+exports.cprpdir = async function cprpdir(src, dest) {
   if (!(src instanceof Array)) {
     src = [src];
   }
-  const promises = [];
+
   for (const s of src) {
     const basename = path.basename(s);
-    promises.push(cprp(s, path.join(dest, basename)));
+    //
+    // Yes, we wait for each source to be copied. This provides some sane
+    // semantics: if a later source overlaps with an ealier one, it overwrites
+    // the earlier one. Using Promise.all would yield indeterminate results.
+    //
+    // eslint-disable-next-line no-await-in-loop
+    await cprp(s, path.join(dest, basename));
   }
-
-  if (promises.length === 0) {
-    return promises[0];
-  }
-
-  return Promise.each(promises, () => {});
 };
 
 exports.exec = function exec(command, options) {
@@ -47,13 +46,6 @@ exports.exec = function exec(command, options) {
       }
       resolve(stdout, stderr);
     });
-  });
-};
-
-exports.checkStatusFile = function checkStatusFile(file, args, options) {
-  return new Promise((resolve) => {
-    childProcess.execFile(file, args, options,
-                          err => resolve(err ? err.code : 0));
   });
 };
 
@@ -72,7 +64,7 @@ exports.checkOutputFile = function checkOutputFile(file, args, options) {
   });
 };
 
-exports.newer = function newer(src, dest, forceDestFile) {
+exports.newer = async function newer(src, dest, forceDestFile) {
   // We use gulp-newer to perform the test and convert it to a promise.
   const options = {
     dest,
@@ -86,7 +78,7 @@ exports.newer = function newer(src, dest, forceDestFile) {
 
   return new Promise((resolve) => {
     const stream = vfs.src(src, { read: false })
-            .pipe(gulpNewer(options));
+          .pipe(gulpNewer(options));
 
     function end() {
       resolve(false);
@@ -100,44 +92,6 @@ exports.newer = function newer(src, dest, forceDestFile) {
 
     stream.on("end", end);
   });
-};
-
-exports.sameFiles = function sameFiles(a, b) {
-  return Promise.coroutine(function *gen() {
-    const [statsA, statsB] = yield Promise.all([
-      fs.stat(a).catch(() => null),
-      fs.stat(b).catch(() => null)]);
-
-    if (!statsA || !statsB || statsA.size !== statsB.size) {
-      return false;
-    }
-
-    const { size } = statsA;
-
-    const [fdA, fdB] = yield Promise.all([
-      fs.open(a, "r"),
-      fs.open(b, "r")]);
-
-    const bufsize = 64 * 1024;
-    const bufA = Buffer.alloc(bufsize);
-    const bufB = Buffer.alloc(bufsize);
-    let read = 0;
-
-    while (read < size) {
-      yield Promise.all([
-        fs.read(fdA, bufA, 0, bufsize, read),
-        fs.read(fdB, bufB, 0, bufsize, read),
-      ]);
-      // The last read will probably be partially filling the buffer but it does
-      // not matter because in the previous iteration, the data was equal.
-      if (!bufA.equals(bufB)) {
-        return false;
-      }
-      read += bufsize;
-    }
-
-    return true;
-  })();
 };
 
 exports.stampPath = function stampPath(name) {
@@ -170,29 +124,6 @@ exports.spawn = function spawn(cmd, args, options) {
       resolve();
     });
   });
-};
-
-/**
- * Why use this over spawn with { stdio: "inherit" }? If you use this function,
- * the results will be shown in one shot, after the process exits, which may
- * make things tidier.
- *
- * However, not all processes are amenable to this. When running Karma, for
- * instance, it is desirable to see the progress "live" and so using spawn is
- * better.
- */
-exports.execFileAndReport = function execFileAndReport(...args) {
-  return execFile(...args)
-    .then((result) => {
-      if (result.stdout) {
-        log(result.stdout);
-      }
-    }, (err) => {
-      if (err.stdout) {
-        log(err.stdout);
-      }
-      throw err;
-    });
 };
 
 exports.execFile = execFile;
