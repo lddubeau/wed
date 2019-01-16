@@ -13,8 +13,9 @@ import * as keyConstants from "wed/key-constants";
 import { TaskRunner } from "wed/task-runner";
 import { ValidationController } from "wed/validation-controller";
 
+import { waitForSuccess } from "@wedxml/common/test/util";
 import * as globalConfig from "../base-config";
-import { makeFakePasteEvent, waitForSuccess } from "../util";
+import { makeFakePasteEvent } from "../util";
 import { dataPath, EditorSetup, firstGUI } from "../wed-test-util";
 
 const assert = chai.assert;

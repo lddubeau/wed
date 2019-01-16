@@ -8,8 +8,8 @@ import mergeOptions from "merge-options";
 import { CaretManager } from "wed/caret-manager";
 import { Editor } from "wed/editor";
 
+import { waitForSuccess } from "@wedxml/common/test/util";
 import * as globalConfig from "../base-config";
-import { waitForSuccess } from "../util";
 import { activateContextMenu, contextMenuHasOption, dataPath, EditorSetup,
          getAttributeNamesFor } from "../wed-test-util";
 

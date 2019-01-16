@@ -4,52 +4,6 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import { AssertionError } from "chai";
-
-export function delay(timeout: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, timeout));
-}
-
-export function waitFor(fn: () => boolean | Promise<boolean>,
-                        pollDelay: number = 100,
-                        timeout?: number): Promise<boolean> {
-  const start = Date.now();
-
-  function check(): boolean | Promise<boolean> {
-    const ret = fn();
-    if (ret) {
-      return ret;
-    }
-
-    if ((timeout !== undefined) && (Date.now() - start > timeout)) {
-      return false;
-    }
-
-    return delay(pollDelay).then(check);
-  }
-
-  // TypeScript does not like Promise.resolve(check).
-  return Promise.resolve().then(check);
-}
-
-export function waitForSuccess(fn: () => void,
-                               pollDelay?: number,
-                               timeout?: number): Promise<void> {
-  return waitFor(() => {
-    try {
-      fn();
-      return true;
-    }
-    catch (e) {
-      if (e instanceof AssertionError) {
-        return false;
-      }
-
-      throw e;
-    }
-  }, pollDelay, timeout).then(() => undefined);
-}
-
 // tslint:disable-next-line:completed-docs
 export class DataProvider {
   private readonly cache: Record<string, string> = Object.create(null);

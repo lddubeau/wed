@@ -9,8 +9,8 @@ import { EditingMenuManager } from "wed/gui/editing-menu-manager";
 import * as keyConstants from "wed/key-constants";
 import { encodeAttrName } from "wed/util";
 
+import { delay } from "@wedxml/common/test/util";
 import * as globalConfig from "../base-config";
-import { delay } from "../util";
 import { activateContextMenu, contextMenuHasOption, dataPath, EditorSetup,
          getAttributeValuesFor} from "../wed-test-util";
 
