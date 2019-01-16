@@ -1,6 +1,6 @@
 {
   "name": "@wedxml/build",
-  "version": "5.0.0-alpha.12",
+  "version": "5.0.0-alpha.13",
   "private": true,
   "description": "A builder for producing custom wed bundles.",
   "keywords": [
