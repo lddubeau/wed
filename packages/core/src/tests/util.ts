@@ -48,9 +48,6 @@ export class DataProvider {
 }
 
 // tslint:disable-next-line:no-any
-export type ErrorClass = { new (...args: any[]): Error };
-
-// tslint:disable-next-line:no-any
 export function makeFakePasteEvent(clipboardData: any): any {
   const event = new $.Event("paste");
   event.originalEvent = {
