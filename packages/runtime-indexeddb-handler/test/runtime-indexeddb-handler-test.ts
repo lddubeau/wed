@@ -1,9 +1,9 @@
 import { expect } from "chai";
 import Dexie from "dexie";
+import { expectRejection } from "expect-rejection";
 import { Container } from "inversify";
 import "mocha";
 
-import { expectError } from "@wedxml/common/test/util";
 import { EDITOR_OPTIONS, RUNTIME } from "@wedxml/common/tokens";
 import { DefaultRuntime,
          RUNTIME_URI_SCHEME_HANDLER } from "@wedxml/default-runtime";
@@ -98,46 +98,49 @@ describe("RuntimeIndexedDBHandler", () => {
   describe("#resolve", () => {
     it("rejects on bad scheme",
        // tslint:disable-next-line:no-http-string
-       async () => expectError(handler.resolve("http://example.com"),
-                               Error,
-                               /^unknown scheme: http$/));
+       async () => expectRejection(handler.resolve("http://example.com"),
+                                   Error,
+                                   /^unknown scheme: http$/));
 
     it("rejects on bad version",
        async () =>
-       expectError(handler.resolve("indexeddb://v999/wed/someTable/number/1"),
-                   Error,
-                   /^unsupported version number: v999$/));
+       expectRejection(
+         handler.resolve("indexeddb://v999/wed/someTable/number/1"),
+         Error,
+         /^unsupported version number: v999$/));
 
     it("rejects on bad db",
        async () =>
-       expectError(handler.resolve("indexeddb://v1/xxx/someTable/number/1"),
-                   Error,
-                   /^Database xxx doesnt exist$/));
+       expectRejection(handler.resolve("indexeddb://v1/xxx/someTable/number/1"),
+                       Error,
+                       /^Database xxx doesnt exist$/));
 
     it("rejects on bad table",
        async () =>
-       expectError(handler.resolve("indexeddb://v1/wed/xxx/number/1"),
-                   Error,
-                   /^Table xxx does not exist$/));
+       expectRejection(handler.resolve("indexeddb://v1/wed/xxx/number/1"),
+                       Error,
+                       /^Table xxx does not exist$/));
 
     it("rejects on bad key type",
        async () =>
-       expectError(handler.resolve("indexeddb://v1/wed/someTable/xxx/1"),
-                   Error,
-                   /^unknown key type: xxx$/));
+       expectRejection(handler.resolve("indexeddb://v1/wed/someTable/xxx/1"),
+                       Error,
+                       /^unknown key type: xxx$/));
 
     it("rejects on bad key",
        async () =>
-       expectError(handler.resolve("indexeddb://v1/wed/someTable/number/999"),
-                   Error,
-                   new RegExp(`^cannot resolve key from: indexeddb://v1/wed/\
+       expectRejection(
+         handler.resolve("indexeddb://v1/wed/someTable/number/999"),
+         Error,
+         new RegExp(`^cannot resolve key from: indexeddb://v1/wed/\
 someTable/number/999$`)));
 
     it("rejects on non-existent field",
        async () =>
-       expectError(handler.resolve("indexeddb://v1/wed/someTable/number/1/xxx"),
-                   Error,
-                   new RegExp(`^cannot resolve property in the record of: \
+       expectRejection(
+         handler.resolve("indexeddb://v1/wed/someTable/number/1/xxx"),
+         Error,
+         new RegExp(`^cannot resolve property in the record of: \
 indexeddb://v1/wed/someTable/number/1/xxx$`)));
 
     // tslint:disable-next-line:mocha-no-side-effect-code

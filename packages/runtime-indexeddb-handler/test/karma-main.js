@@ -44,6 +44,7 @@
       jquery: "top-npm:jquery",
       bootstrap: "top-npm:bootstrap",
       fetchiest: "top-npm:fetchiest",
+      "expect-rejection": "top-npm:expect-rejection",
     },
     packages: {
       "": {},

@@ -4,8 +4,9 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 import { expect, use } from "chai";
+import { expectRejection } from "expect-rejection";
 import mergeOptions from "merge-options";
-import * as sinon from "sinon";
+import sinon from "sinon";
 import sinonChai from "sinon-chai";
 use(sinonChai);
 
@@ -15,7 +16,6 @@ import { Editor } from "wed/editor";
 import { ModeTree } from "wed/mode-tree";
 
 import * as globalConfig from "../base-config";
-import { expectError } from "../util";
 import { dataPath, EditorSetup } from "../wed-test-util";
 
 const options: Options = {
@@ -88,7 +88,7 @@ describe("ModeTree", () => {
       newOptions.path = path;
 
       const tree = new ModeTree(editor, newOptions);
-      await expectError(() => tree.init(), Error, /^failed init$/);
+      await expectRejection(tree.init(), Error, /^failed init$/);
     });
   });
 

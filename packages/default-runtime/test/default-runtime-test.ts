@@ -1,4 +1,5 @@
 import { expect, use } from "chai";
+import { expectRejection } from "expect-rejection";
 import { Container, injectable } from "inversify";
 import "mocha";
 // tslint:disable-next-line:match-default-export-name
@@ -8,7 +9,6 @@ import sinonChai from "sinon-chai";
 use(sinonChai);
 
 import { Options } from "@wedxml/client-api";
-import { expectError } from "@wedxml/common/test/util";
 import { EDITOR_OPTIONS, RUNTIME } from "@wedxml/common/tokens";
 
 // tslint:disable-next-line:no-implicit-dependencies
@@ -136,7 +136,7 @@ describe("DefaultRuntime", () => {
     });
 
     it("rejects if a file is not available", async () => {
-      await expectError(runtime.resolve("nonexistent"), Error, /.*/);
+      await expectRejection(runtime.resolve("nonexistent"), Error, /.*/);
     });
 
     it("uses handlers", async () => {
@@ -153,7 +153,8 @@ describe("DefaultRuntime", () => {
     });
 
     it("rejects if a file is not available", async () => {
-      await expectError(runtime.resolveToString("nonexistent"), Error, /.*/);
+      await expectRejection(runtime.resolveToString("nonexistent"), Error,
+                            /.*/);
     });
 
     it("converts files to strings", async () => {
@@ -175,7 +176,7 @@ describe("DefaultRuntime", () => {
     });
 
     it("rejects if the module is not available", async () => {
-      await expectError(runtime.resolveModules("nonexistent"), Error, /.*/);
+      await expectRejection(runtime.resolveModules("nonexistent"), Error, /.*/);
     });
   });
 });

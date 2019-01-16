@@ -49,6 +49,7 @@
   config.map["blueimp-md5"] = "top-npm:blueimp-md5/js/md5";
   config.map["tests/tree_updater_test_data/source_converted.xml"] =
     "text!tests/tree_updater_test_data/source_converted.xml";
+  config.map["expect-rejection"] = "top-npm:expect-rejection";
 
   if (karmaTestType === "webpack") {
     // When we are testing the webpack bundle, we need to remap the entry module

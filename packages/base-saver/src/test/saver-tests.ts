@@ -1,4 +1,5 @@
 import { expect, use } from "chai";
+import { expectRejection } from "expect-rejection";
 import "mocha";
 import { first } from "rxjs/operators";
 import sinon from "sinon";
@@ -7,7 +8,6 @@ import sinonChai from "sinon-chai";
 use(sinonChai);
 
 import { SaveKind } from "@wedxml/client-api";
-import { expectError } from "@wedxml/common/test/util";
 
 import { BaseSaver, SaverOptions } from "../base-saver";
 
@@ -102,15 +102,15 @@ export function makeSaverTests(testName: string,
       it("fails if _init fails", async () => {
         const error = new Error("foo");
         stub.returns(Promise.reject(error));
-        await expectError(saver.init("1.0.0", document.body), Error,
-                          /^foo$/);
+        await expectRejection(saver.init("1.0.0", document.body), Error,
+                              /^foo$/);
         expect(stub).to.have.been.calledOnce;
       });
 
       it("fails when called twice", async () => {
         await saver.init("1.0.0", document.body);
-        await expectError(saver.init("1.0.0", document.body),
-                          Error, /^init called more than once$/);
+        await expectRejection(saver.init("1.0.0", document.body),
+                              Error, /^init called more than once$/);
       });
     });
 
@@ -194,7 +194,7 @@ export function makeSaverTests(testName: string,
       it("fails if _save fails", async () => {
         const error = new Error("foo");
         stub.returns(Promise.reject(error));
-        await expectError(saver.save(), error);
+        await expectRejection(saver.save(), error);
         expect(stub).to.have.been.calledOnce;
       });
     });

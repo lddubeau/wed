@@ -4,7 +4,7 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import { AssertionError, expect } from "chai";
+import { AssertionError } from "chai";
 
 export function delay(timeout: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, timeout));
@@ -95,35 +95,6 @@ export class DataProvider {
 
 // tslint:disable-next-line:no-any
 export type ErrorClass = { new (...args: any[]): Error };
-
-export function expectError(fn: Function,
-                            pattern: RegExp | string): Promise<void>;
-export function expectError(fn: Function, errorClass: ErrorClass,
-                            pattern: RegExp | string): Promise<void>;
-export function expectError(fn: Function,
-                            errorLike: RegExp | string | ErrorClass,
-                            pattern?: RegExp | string): Promise<void> {
-  return fn().then(
-    () => {
-      throw new Error("should have thrown an error");
-    },
-    // tslint:disable-next-line:no-any
-    (ex: any) => {
-      if (!(errorLike instanceof RegExp || typeof errorLike === "string")) {
-        expect(ex).to.be.instanceof(errorLike);
-      }
-      else {
-        pattern = errorLike;
-      }
-
-      if (pattern instanceof RegExp) {
-        expect(ex).to.have.property("message").match(pattern);
-      }
-      else {
-        expect(ex).to.have.property("message").equal(pattern);
-      }
-    });
-}
 
 // tslint:disable-next-line:no-any
 export function makeFakePasteEvent(clipboardData: any): any {

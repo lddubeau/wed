@@ -1,5 +1,6 @@
 // tslint:disable-next-line:missing-jsdoc
 import { expect, use } from "chai";
+import { expectRejection } from "expect-rejection";
 import * as fetchiest from "fetchiest";
 import "mocha";
 import { first } from "rxjs/operators";
@@ -11,7 +12,6 @@ use(sinonChai);
 import { SaverOptions } from "@wedxml/base-saver";
 import { makeSaverTests } from "@wedxml/base-saver/test/saver-tests";
 import { Options, Runtime } from "@wedxml/client-api";
-import { expectError } from "@wedxml/common/test/util";
 
 import { AjaxSaver } from "ajax-saver";
 
@@ -174,8 +174,8 @@ describe("AjaxSaver", () => {
     it("rejects if the underlying ajax fails", async () => {
       const saver = new AjaxSaver(rt, { url: "/moo" });
       responses.push([404, { "Content-Type": "text/plain" }, ""]);
-      await expectError(saver.init("0.30.0", document),
-                        Error, /^\/moo is not responding to a check;/);
+      await expectRejection(saver.init("0.30.0", document),
+                            Error, /^\/moo is not responding to a check;/);
     });
 
     it("does not set If-Match if there is no etag in the options", async () => {
@@ -253,17 +253,17 @@ not return any information regarding whether the save was successful or not.`;
       });
 
       it("rejects", async () => {
-        await expectError(saver.save(), Error, message);
+        await expectRejection(saver.save(), Error, message);
       });
 
       it("marks saver as failed", async () => {
-        await expectError(saver.save(), Error, message);
+        await expectRejection(saver.save(), Error, message);
         expect(saver).to.have.property("failed").true;
       });
 
       it("does not emit a fail event", async () => {
         const spy = sinon.spy((saver as any)._events, "next");
-        await expectError(saver.save(), Error, message);
+        await expectRejection(saver.save(), Error, message);
         expect(spy).to.have.not.been.called;
       });
     });
@@ -277,17 +277,17 @@ a fatal error. Please contact technical support before trying to edit again.`;
       });
 
       it("rejects", async () => {
-        await expectError(saver.save(), Error, message);
+        await expectRejection(saver.save(), Error, message);
       });
 
       it("marks saver as failed", async () => {
-        await expectError(saver.save(), Error, message);
+        await expectRejection(saver.save(), Error, message);
         expect(saver).to.have.property("failed").true;
       });
 
       it("does not emit a fail event", async () => {
         const spy = sinon.spy((saver as any)._events, "next");
-        await expectError(saver.save(), Error, message);
+        await expectRejection(saver.save(), Error, message);
         expect(spy).to.have.not.been.called;
       });
     });
@@ -347,17 +347,17 @@ saving. Please contact technical support before trying to edit again.`;
       });
 
       it("rejects", async () => {
-        await expectError(saver.save(), Error, message);
+        await expectRejection(saver.save(), Error, message);
       });
 
       it("marks saver as failed", async () => {
-        await expectError(saver.save(), Error, message);
+        await expectRejection(saver.save(), Error, message);
         expect(saver).to.have.property("failed").true;
       });
 
       it("does not emit a fail event", async () => {
         const spy = sinon.spy((saver as any)._events, "next");
-        await expectError(saver.save(), Error, message);
+        await expectRejection(saver.save(), Error, message);
         expect(spy).to.have.not.been.called;
       });
     });

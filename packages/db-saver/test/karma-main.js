@@ -45,6 +45,7 @@
       "merge-options": "top-npm:merge-options/index.js",
       "is-plain-obj": "top-npm:is-plain-obj/index.js",
       fetchiest: "top-npm:fetchiest",
+      "expect-rejection": "top-npm:expect-rejection",
     },
     packages: {
       "": {},

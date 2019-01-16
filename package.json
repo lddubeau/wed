@@ -54,6 +54,7 @@
     "diff": "^3.5.0",
     "eslint": "^5.10.0",
     "eslint-config-lddubeau-base": "^3.0.1",
+    "expect-rejection": "^1.0.3",
     "express": "^4.16.4",
     "fancy-log": "^1.3.3",
     "fetchiest": "^1.0.1",

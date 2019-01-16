@@ -1,8 +1,8 @@
 import { expect, use } from "chai";
+import { expectRejection } from "expect-rejection";
 import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
 
-import { expectError } from "tests/util";
 import { Editor } from "wed/editor";
 import { ModeLoader } from "wed/mode-loader";
 
@@ -42,8 +42,8 @@ describe("ModeLoader", () => {
   describe("#initMode", () => {
     it("fails if we cannot load", async () => {
       runtime.resolveModules.throws(new Error("cannot load"));
-      await expectError(async () => loader.initMode("moo", options),
-                        Error, "cannot load");
+      await expectRejection(loader.initMode("moo", options),
+                            Error, "cannot load");
     });
 
     it("by default, tries multiple module names", async () => {
@@ -104,8 +104,8 @@ describe("ModeLoader", () => {
           return ret;
         },
       }]);
-      await expectError(async () =>  loader.initMode("moo/foo", options),
-                        Error, "failed");
+      await expectRejection(loader.initMode("moo/foo", options),
+                            Error, "failed");
     });
   });
 });

@@ -42,6 +42,7 @@
       "@wedxml/": "npm:@wedxml/",
       sinon: "top-npm:sinon/pkg/sinon",
       "sinon-chai": "top-npm:sinon-chai/lib/sinon-chai",
+      "expect-rejection": "top-npm:expect-rejection",
     },
     packages: {
       "": {},
