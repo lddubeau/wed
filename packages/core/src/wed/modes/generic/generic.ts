@@ -44,8 +44,8 @@ export interface GenericModeOptions extends CommonModeOptions {
  *   could contain ``a`` or ``b``, then the mode won't add any children. This
  *   option is ``true`` by default.
  */
-class GenericMode<Options extends GenericModeOptions>
-  extends BaseMode<Options> {
+class GenericMode<Options extends GenericModeOptions> extends
+BaseMode<Options> {
   protected resolver!: DefaultNameResolver;
   protected metadata!: Metadata;
   protected tagTr!: Record<string, Transformation<NamedTransformationData>>;
@@ -59,7 +59,6 @@ class GenericMode<Options extends GenericModeOptions>
     autoinsert: false,
   };
 
-  // tslint:disable-next-line:no-any
   constructor(editor: EditorAPI, options: Options) {
     super(editor, options);
 
@@ -81,27 +80,21 @@ class GenericMode<Options extends GenericModeOptions>
     this.wedOptions.attributes = "edit";
   }
 
-  init(): Promise<void> {
+  async init(): Promise<void> {
     this.checkOptions(this.options);
 
     if (this.options.autoinsert === undefined) {
       this.options.autoinsert = true;
     }
 
-    return Promise.resolve()
-      .then(() => {
-        this.tagTr = makeTagTr(this.editor);
-        return this.makeMetadata().then((metadata) => {
-          this.metadata = metadata;
-        });
-      })
-      .then(() => {
-        this.resolver = new DefaultNameResolver();
-        const mappings = this.metadata.getNamespaceMappings();
-        for (const key of Object.keys(mappings)) {
-          this.resolver.definePrefix(key, mappings[key]);
-        }
-      });
+    this.tagTr = makeTagTr(this.editor);
+    this.metadata = await this.makeMetadata();
+
+    this.resolver = new DefaultNameResolver();
+    const mappings = this.metadata.getNamespaceMappings();
+    for (const key of Object.keys(mappings)) {
+      this.resolver.definePrefix(key, mappings[key]);
+    }
   }
 
   /**
@@ -120,12 +113,10 @@ class GenericMode<Options extends GenericModeOptions>
    * uses that to load a metadata file. Derived classes can override
    * this as needed.
    */
-  makeMetadata(): Promise<Metadata> {
-    return this.editor.runtime.resolveToString(this.options.metadata)
-      .then((data: string) => {
-        const obj = JSON.parse(data);
-        return new MetadataMultiversionReader().read(obj);
-      });
+  async makeMetadata(): Promise<Metadata> {
+    return new MetadataMultiversionReader()
+      .read(JSON.parse(await this.editor.runtime
+                       .resolveToString(this.options.metadata)));
   }
 
   getAbsoluteNamespaceMappings(): Record<string, string> {
