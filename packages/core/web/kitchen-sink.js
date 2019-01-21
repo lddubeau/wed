@@ -74,28 +74,14 @@ define(function f(require) {
       options.mode.options = { hide_attributes: true };
     }
 
-    var r = new wed.DefaultRuntime(options);
-
-    var deps = [];
-    if (file) {
-      deps.push(file);
-    }
-
-    var text;
-    Promise.all(deps.map(r.resolve.bind(r)))
-      .then(function resolved(resolvedDeps) {
-        if (deps.length === 0) {
-          return;
-        }
-
-        var resolvedFile = resolvedDeps[0];
-        if (!resolvedFile) {
-          throw new Error("did not resolve file! " + deps[0]);
-        }
-
-        text = resolvedFile;
+    Promise.resolve()
+      .then(function loadFile() {
+        return file ? fetch(file) : undefined;
       })
-      .then(function start() {
+      .then(function getText(resp) {
+        return resp ? resp.text() : undefined;
+      })
+      .then(function start(text) {
         $(function ready() {
           var widget = document.getElementById("widget");
           var finalOptions = mergeOptions({}, globalConfig.config, options);
