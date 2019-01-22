@@ -113,8 +113,8 @@
     "zone.js": "^0.8.10"
   },
   "scripts": {
-    "build": "monist run --serial --local-deps=link build",
-    "build-and-test": "monist run --serial --local-deps=link build-and-test",
+    "build": "monist run --serial --local-deps=install build",
+    "build-and-test": "monist run --serial --local-deps=install build-and-test",
     "clean": "monist run clean",
     "postinstall": "link-parent-bin",
     "lint": "npmPkgJsonLint package.json",
