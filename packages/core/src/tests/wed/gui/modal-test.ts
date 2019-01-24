@@ -34,10 +34,10 @@ describe("Modal", () => {
 
   describe("setTitle", () => {
     it("sets the title", () => {
-      let $title = modal.getTopLevel().find(".modal-header>h3");
+      let $title = modal.getTopLevel().find(".modal-header>h5");
       assert.equal($title.text(), "Untitled", "initial title");
       modal.setTitle($("<b>foo</b>"));
-      $title = modal.getTopLevel().find(".modal-header>h3");
+      $title = modal.getTopLevel().find(".modal-header>h5");
       assert.equal($title[0].innerHTML, "<b>foo</b>", "new title");
     });
   });

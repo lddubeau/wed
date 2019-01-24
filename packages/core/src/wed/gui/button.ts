@@ -52,7 +52,7 @@ export class Button {
       extraClass = ` ${extraClass}`;
     }
 
-    return `btn btn-default${extraClass}`;
+    return `btn btn-outline-dark${extraClass}`;
   }
 
   /**
@@ -78,7 +78,7 @@ export class Button {
       position = this.el.nextSibling;
       parent = this.el.parentNode as Element;
       const $el = $(this.el);
-      $el.tooltip("destroy");
+      $el.tooltip("dispose");
       $el.remove();
     }
 
@@ -215,6 +215,6 @@ export class ToggleButton extends Button {
       extraClass = ` ${extraClass}`;
     }
 
-    return `btn btn-default${extraClass}${this._pressed ? " active" : ""}`;
+    return `btn btn-outline-dark${extraClass}${this._pressed ? " active" : ""}`;
   }
 }

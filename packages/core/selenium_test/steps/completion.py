@@ -22,7 +22,7 @@ def step_impl(context, what):
       "focused")
 def step_impl(context, what):
     context.util.find_element((By.CSS_SELECTOR,
-                               ".wed-{}-menu li a:focus".format(what)))
+                               ".wed-{}-menu a:focus".format(what)))
 
 
 @then("the completion text is inserted")
@@ -55,7 +55,7 @@ def step_impl(context):
     driver = context.driver
 
     result = driver.execute_script("""
-    var options = document.querySelectorAll(".wed-completion-menu li a")
+    var options = document.querySelectorAll(".wed-completion-menu a")
     if (options.length !== 1)
       return [false, "has " + options.length + " option(s)"];
     if (options[0].textContent !== "initial")

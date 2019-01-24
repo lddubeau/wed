@@ -77,12 +77,12 @@ export class CompletionMenu extends ContextMenu {
   private globalKeydownHandler(_wedEv: JQueryEventObject,
                                ev: JQueryKeyEventObject): boolean {
     if (keyConstants.ENTER.matchesEvent(ev)) {
-      this.$menu.find("li:not(.divider):visible a").first().click();
+      this.$menu.find("a").first().click();
       return false;
     }
     else if (keyConstants.DOWN_ARROW.matchesEvent(ev)) {
       this._focused = true;
-      this.$menu.find("li:not(.divider):visible a").first().focus();
+      this.$menu.find("a").first().focus();
       this.$menu.trigger(ev as JQueryEventObject);
       return false;
     }
@@ -97,30 +97,27 @@ export class CompletionMenu extends ContextMenu {
     const editor = this.editor;
     const items = [];
     const prefix = this.completionPrefix;
-    const doc = editor.doc;
+    const doc = this.doc;
     function typeData(ev: JQueryEventObject): void {
       editor.type(ev.data);
     }
 
     for (const item of this.completionItems) {
       if (prefix === "") {
-        const li = doc.createElement("li");
-        // tslint:disable-next-line:no-inner-html
-        li.innerHTML = "<a href='#'></a>";
-        li.lastChild!.textContent = item;
-        items.push(li);
-        $(li).click(item, typeData);
+        const menuItem = this.makeMenuItem();
+        menuItem.textContent = item;
+        items.push(menuItem);
+        $(menuItem).click(item, typeData);
       }
       else if (item.lastIndexOf(prefix, 0) === 0) {
-        const li = doc.createElement("li");
+        const menuItem = this.makeMenuItem();
         // tslint:disable-next-line:no-inner-html
-        li.innerHTML = "<a href='#'><b></b></a>";
-        const a = li.lastChild!;
-        a.firstChild!.textContent = item.slice(0, prefix.length);
+        menuItem.innerHTML = "<b></b>";
+        menuItem.firstChild!.textContent = item.slice(0, prefix.length);
         const tail = item.slice(prefix.length);
-        a.appendChild(doc.createTextNode(tail));
-        items.push(li);
-        $(li).click(tail, typeData);
+        menuItem.appendChild(doc.createTextNode(tail));
+        items.push(menuItem);
+        $(menuItem).click(tail, typeData);
       }
     }
 

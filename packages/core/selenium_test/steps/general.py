@@ -407,7 +407,7 @@ def step_impl(context):
 @then("a help dialog is visible")
 def step_impl(context):
     head = context.util.find_element(
-        (By.CSS_SELECTOR, ".modal.in .modal-header h3"))
+        (By.CSS_SELECTOR, ".modal.show .modal-header h5"))
     assert_equal(head.text, "Help")
 
 
@@ -415,7 +415,7 @@ def step_impl(context):
 def step_impl(context):
     context.handles_before_help_link_click = context.driver.window_handles
     link = context.util.find_element(
-        (By.CSS_SELECTOR, ".modal.in .modal-body a"))
+        (By.CSS_SELECTOR, ".modal.show .modal-body a"))
     link.click()
 
 

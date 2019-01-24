@@ -41,18 +41,14 @@ window.systemJSConfig = {
     interactjs: "top-npm:interactjs",
     "@wedxml/": "npm:@wedxml/",
     rangy: "wed/glue/rangy-glue.js",
-    bootstrap: "wed/patches/bootstrap.js",
+    bootstrap: "top-npm:bootstrap/dist/js/bootstrap.js",
+    "popper.js": "top-npm:popper.js",
   },
   meta: {
     "top-npm:bootbox/*": {
       // We must add bootstrap here because bootbox does not list
       // it as a dependency.
       deps: ["bootstrap"],
-    },
-    "top-npm:bootstrap/dist/js/bootstrap.js": {
-      format: "global",
-      deps: ["jquery"],
-      exports: "$",
     },
     "wed/modes/generic/metadata-schema.json": {
       loader: "json",
@@ -71,11 +67,6 @@ window.systemJSConfig = {
     "wed/glue/rangy-glue.js": {
       map: {
         rangy: "rangy-core",
-      },
-    },
-    "wed/patches/bootstrap.js": {
-      map: {
-        bootstrap: "top-npm:bootstrap/dist/js/bootstrap.js",
       },
     },
   },

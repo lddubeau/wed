@@ -540,8 +540,8 @@ def step_impl(context, what):
     # selecting text by mouse when labels are invisible is a bit dodgy
     # **at any rate**, and we're not going to work around this
     # dodginess. For now, at least.
-    start["left"] += 5
-    end["left"] -= 5
+    start["left"] += 3
+    end["left"] -= 3
 
     select_text(context, start, end)
     assert_equal(util.get_selection_text(), what,

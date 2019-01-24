@@ -6,7 +6,6 @@
  */
 import $ from "jquery";
 
-import { Editor } from "../editor";
 import { ContextMenu } from "./context-menu";
 
 export type DismissCallback = (selected: string | undefined) => void;
@@ -16,7 +15,6 @@ export type DismissCallback = (selected: string | undefined) => void;
  */
 export class ReplacementMenu extends ContextMenu {
   private readonly replacementItems: string[];
-  private readonly editor: Editor;
   private selected: string | undefined;
 
   /**
@@ -33,14 +31,12 @@ export class ReplacementMenu extends ContextMenu {
    *
    * @param dismissCallback Function to call when the menu is dismissed.
    */
-  constructor(editor: Editor, document: Document, x: number, y: number,
-              items: string[], dismissCallback: DismissCallback) {
+  constructor(document: Document, x: number, y: number, items: string[],
+              dismissCallback: DismissCallback) {
     super(document, x, y, [], () => {
       dismissCallback(this.selected);
     }, false);
     this.replacementItems = items;
-    this.editor = editor;
-
     this.dropdown.classList.add("wed-replacement-menu");
 
     this.display([]);
@@ -48,14 +44,12 @@ export class ReplacementMenu extends ContextMenu {
 
   render(): void {
     const items = [];
-    const doc = this.editor.doc;
     for (const item of this.replacementItems) {
-      const li = doc.createElement("li");
+      const menuItem = this.makeMenuItem();
       // tslint:disable-next-line:no-inner-html
-      li.innerHTML = "<a href='#'></a>";
-      li.lastChild!.textContent = item;
-      items.push(li);
-      $(li).click(item, () => {
+      menuItem.textContent = item;
+      items.push(menuItem);
+      $(menuItem).click(item, () => {
         this.selected = item;
         this.dismiss();
       });

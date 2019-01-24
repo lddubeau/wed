@@ -1,0 +1,8 @@
+/* turn off transitions */
+.fade {
+  transition: none !important;
+}
+
+.fade * {
+  transition: none !important;
+}

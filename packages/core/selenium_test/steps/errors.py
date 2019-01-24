@@ -51,7 +51,7 @@ def step_impl(context, which):
         var which = arguments[0];
         var $ = jQuery;
         var $collapse = $("#sb-errors-collapse");
-        if (!$collapse.is(".in"))
+        if (!$collapse.is(".show"))
             $collapse.collapse('show');
         var $children = $("#sb-errorlist").children();
         var el;
@@ -74,7 +74,7 @@ def step_impl(context, which):
         # the screen at a location through which the element is
         # transiting.
         if not driver.execute_script("""
-        return jQuery("#sb-errors-collapse").is(".in");
+        return jQuery("#sb-errors-collapse").is(".show");
         """):
             return False
 

@@ -6,8 +6,6 @@
  */
 import interact from "interactjs";
 
-import * as browsers from "@wedxml/common/browsers";
-
 /**
  * This records changes in such a way that if any of the changes cannot take
  * effect, then all the changes are "rolled back". It is called pseudo-atomic
@@ -26,17 +24,7 @@ class PseudoAtomicRectChange {
       return;
     }
 
-    let rect = el.getBoundingClientRect();
-
-    // This works around a fractional pixel issue in IE. We set the element to
-    // the dimensions returned by getBoundingClientRect and then reacquire the
-    // dimensions to account for any funny adjustments IE may decide to do.
-    if (browsers.MSIE) {
-      el.style.width = `${rect.width}px`;
-      el.style.height = `${rect.height}px`;
-
-      rect = el.getBoundingClientRect();
-    }
+    const rect = el.getBoundingClientRect();
 
     const width = rect.width + dx;
     const height = rect.height + dy;
@@ -65,18 +53,26 @@ class PseudoAtomicRectChange {
 }
 
 /**
- * Make a bootstrap dialog resizable by clicking on its edge.
+ * Make a bootstrap dialog resizable by clicking on its edge. You must pass
+ * sensible value as ``minWidth`` and ``minHeight`` to prevent resizing to
+ * absurdly small sizes.
  *
  * @param $top The top level element of the dialog.
+ *
+ * @param minWidth The minimum width to set on the modal content.
+ *
+ * @param minHeight The minimum height to set on the modal content.
  */
-export function makeResizable($top: JQuery): void {
+export function makeResizable($top: JQuery, minWidth: number,
+                              minHeight: number): void {
   // We listen to resizestart and resizeend to deal with the following scenario:
   // the user starts resizing the modal, it goes beyond the limits of how big it
   // can be resized, the mouse pointer moves outside the modal window and the
   // user releases the button when the pointer is outside. Without the use of
   // ignoreBackdropClick, this causes the modal to close.
-  const content = $top.find(".modal-content")[0];
-  const body = $top.find(".modal-body")[0] as HTMLElement;
+  const content = $top.find(".modal-content")[0] as HTMLElement;
+  content.style.minWidth = `${minWidth}px`;
+  content.style.minHeight = `${minHeight}px`;
   interact(content)
     .resizable({})
     .on("resizestart", () => {
@@ -102,7 +98,6 @@ export function makeResizable($top: JQuery): void {
 
       const change = new PseudoAtomicRectChange();
       change.updateElementRect(target, event.dx, event.dy);
-      change.updateElementRect(body, event.dx, event.dy);
     });
 }
 

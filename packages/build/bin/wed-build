@@ -115,7 +115,7 @@ const config = {
     // loaded.
     new NormalModuleReplacementPlugin(/^rangy$/, (resource) => {
       if (resource.contextInfo.issuer !==
-          path.join(wedBuildDir, "wed/glue/rangy-glue.js")) {
+          path.resolve(path.join(wedBuildDir, "wed/glue/rangy-glue.js"))) {
         resource.request = "wed/glue/rangy-glue";
       }
     }),
@@ -123,7 +123,7 @@ const config = {
       "wed/{glue,patches,polyfills,modes}/**/*",
       "../kitchen-sink.html", "kitchen-sink.js", "../doc/**/*",
       "global-config.js", "wed/**/*.css",
-      "wed/less-inc/**/*"].map(name => ({
+      "wed/sass-inc/**/*"].map(name => ({
         // Using an object with a "glob" field forces CopyWebpackPlugin to treat
         // all patterns as globs and simplifies the logic a bit. Otherwise, we'd
         // have to have a "to" field to switch where we put the results of some

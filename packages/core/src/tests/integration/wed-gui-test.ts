@@ -44,7 +44,7 @@ describe("wed gui:", () => {
       assert.equal($navigationPanel.css("display"), "none",
                    "the list is not displayed");
       editor.setNavigationList([]);
-      assert.equal($navigationPanel.css("display"), "block",
+      assert.equal($navigationPanel.css("display"), "flex",
                    "the list is displayed");
     });
   });

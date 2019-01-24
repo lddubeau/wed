@@ -8,14 +8,13 @@ import { Action } from "../action";
 import { CaretManager } from "../caret-manager";
 import { DLoc } from "../dloc";
 import { isElement } from "../domtypeguards";
-import { closestByClass, htmlToElements, indexOf,
-         isNotDisplayed } from "../domutil";
+import { closestByClass, indexOf, isNotDisplayed } from "../domutil";
 import { Editor } from "../editor";
 import { ModeTree } from "../mode-tree";
 import { NamedTransformationData, Transformation } from "../transformation";
 import { ActionContextMenu, Item } from "./action-context-menu";
 import { CompletionMenu } from "./completion-menu";
-import { ContextMenu } from "./context-menu";
+import { ContextMenu, makeMenuItem } from "./context-menu";
 import { makeHTML } from "./icon";
 import { ReplacementMenu } from "./replacement-menu";
 import { TypeaheadPopup } from "./typeahead-popup";
@@ -339,24 +338,23 @@ export class EditingMenuManager {
   makeMenuItemForAction<D>(action: Action<D>, data: D,
                            start?: boolean): HTMLElement {
     const icon = action.getIcon();
-    const li = htmlToElements(
-      `<li><a tabindex='0' href='#'>${icon !== undefined ? `${icon} ` : ""}\
-</a></li>`,
-      this.doc)[0] as HTMLElement;
+    // Should we set tabindex="0" here?
+    const item = makeMenuItem(this.doc);
+    // tslint:disable-next-line:no-inner-html
+    item.innerHTML = icon !== undefined ? icon : "";
 
     if (action instanceof Transformation && action.kind !== undefined) {
-      li.setAttribute("data-kind", action.kind);
+      item.setAttribute("data-kind", action.kind);
     }
 
-    const a = li.firstElementChild!;
     // We do it this way so that to avoid an HTML interpretation of
     // action.getDescriptionFor()`s return value.
     const text = this.doc.createTextNode(action.getDescriptionFor(data) +
                                          atStartToTxt[String(start)]);
-    a.appendChild(text);
-    a.normalize();
-    $(a).click(data, action.boundTerminalHandler);
-    return li;
+    item.appendChild(text);
+    item.normalize();
+    $(item).click(data, action.boundTerminalHandler);
+    return item;
   }
 
   /**
@@ -368,14 +366,16 @@ export class EditingMenuManager {
    */
   makeDocumentationMenuItem(docURL: string): HTMLElement {
     const iconHtml = makeHTML("documentation");
-    const li = htmlToElements(
-      `<li><a tabindex='0' href='#'>${iconHtml} \
-Element's documentation.</a></li>`, this.doc)[0] as HTMLElement;
-    const a = li.firstElementChild!;
-    $(a).click(() => {
+
+    // Should we set tabindex="0" here?
+    const item = makeMenuItem(this.doc);
+    // tslint:disable-next-line:no-inner-html
+    item.innerHTML = iconHtml;
+    item.appendChild(this.doc.createTextNode(" Element's documentation."));
+    $(item).click(() => {
       this.editor.openDocumentationLink(docURL);
     });
-    return li;
+    return item;
   }
 
   private getPossibleAttributeValues(): string[] {
@@ -495,7 +495,7 @@ Element's documentation.</a></li>`, this.doc)[0] as HTMLElement;
     const pos = this.computeMenuPosition(undefined, true);
     this.caretManager.pushSelection();
     this.currentDropdown = new ReplacementMenu(
-      this.editor, this.doc, pos.left, pos.top, possible,
+      this.doc, pos.left, pos.top, possible,
       (selected) => {
         this.currentDropdown = undefined;
         this.caretManager.popSelection();

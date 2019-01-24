@@ -70,23 +70,25 @@ export class Modal {
     // tabindex needed to make keyboard stuff work... grumble...
     // https://github.com/twitter/bootstrap/issues/4663
     // tslint:disable-next-line:no-jquery-raw-elements
-    const $dom = this._$dom = $("\
-<div class=\"modal\" style=\"position: absolute\" tabindex=\"1\">\
-  <div class=\"modal-dialog\">\
-    <div class=\"modal-content\">\
-      <div class=\"modal-header\">\
-        <button type=\"button\" class=\"close\" data-dismiss=\"modal\" \
-         aria-hidden=\"true\">&times;</button>\
-        <h3 class=\"modal-title\">Untitled</h3>\
-      </div>\
-      <div class=\"modal-body\">\
-        <p>No body.</p>\
-      </div>\
-      <div class=\"modal-footer\">\
-      </div>\
-    </div>\
-  </div>\
-</div>");
+    const $dom = this._$dom = $(`
+<div class="modal" style="position: absolute" tabindex="1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Untitled</h5>
+        <button type="button" class="close" data-dismiss="modal"
+                aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>No body.</p>
+      </div>
+      <div class="modal-footer">
+      </div>
+    </div>
+  </div>
+</div>`);
     this._$header = $dom.find(".modal-header");
     this._$body = $dom.find(".modal-body");
     this._$footer = $dom.find(".modal-footer");
@@ -99,7 +101,8 @@ export class Modal {
 
     if (options.resizable as boolean) {
       (this._$body[0] as HTMLElement).style.overflow = "auto";
-      makeResizable($dom);
+      // The 100, 100 minimal size is arbitrary.
+      makeResizable($dom, 100, 100);
     }
 
     if (options.draggable as boolean) {
@@ -119,9 +122,9 @@ export class Modal {
    * Set the title of this modal.
    */
   setTitle(title: string | JQuery | Element | Text): void {
-    const $h3 = this._$header.find("h3");
-    $h3.empty();
-    $h3.append(title);
+    const h = this._$header.find("h5");
+    h.empty();
+    h.append(title);
   }
 
   /**
@@ -155,7 +158,7 @@ export class Modal {
     button.className = "btn";
     button.setAttribute("data-dismiss", "modal");
     button.textContent = name;
-    button.classList.add(isPrimary ? "btn-primary" : "btn-default");
+    button.classList.add(isPrimary ? "btn-primary" : "btn-light");
     this._$footer.append(button);
     return $(button);
   }

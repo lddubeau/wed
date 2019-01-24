@@ -54,8 +54,9 @@ module.exports = function configure(config, dist, specificMain) {
       "src/tests/karma-main.js",
       "../../node_modules/font-awesome/css/font-awesome.min.css",
       "../../node_modules/bootstrap/dist/css/bootstrap.min.css",
-      "../../node_modules/typeahead.js-bootstrap-css/typeaheadjs.css",
+      "../../node_modules/typeahead.js-bootstrap4-css/typeaheadjs.css",
       `${dist}lib/wed/wed.css`,
+      "src/tests/karma-main.css",
       { pattern: "build/schemas/**/*.@(js|json)", included: false },
     ],
     serveStatic: [{

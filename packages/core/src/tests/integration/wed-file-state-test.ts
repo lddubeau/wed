@@ -43,11 +43,11 @@ describe("wed file state:", () => {
   });
 
   it("modification status shows an unmodified document when starting", () => {
-    assert.isTrue($modificationStatus.hasClass("label-success"));
+    assert.isTrue($modificationStatus.hasClass("badge-success"));
   });
 
   it("save status shows an unsaved document when starting", () => {
-    assert.isTrue($saveStatus.hasClass("label-default"));
+    assert.isTrue($saveStatus.hasClass("badge-dark"));
     assert.equal($saveStatus.children("span").text(), "");
   });
 
@@ -63,7 +63,7 @@ describe("wed file state:", () => {
     caretManager.setCaret(initial, 0);
     editor.type(" ");
 
-    assert.isTrue($modificationStatus.hasClass("label-warning"));
+    assert.isTrue($modificationStatus.hasClass("badge-warning"));
   });
 
   it("onbeforeunload returns truthy on modified doc", () => {
@@ -83,20 +83,20 @@ describe("wed file state:", () => {
     caretManager.setCaret(initial, 0);
     editor.type(" ");
 
-    assert.isTrue($modificationStatus.hasClass("label-warning"));
+    assert.isTrue($modificationStatus.hasClass("badge-warning"));
     editor.type(keyConstants.SAVE);
     return waitForSuccess(() => {
-      assert.isTrue($modificationStatus.hasClass("label-success"));
+      assert.isTrue($modificationStatus.hasClass("badge-success"));
     });
   });
 
   it("save status shows a saved document after a save", () => {
-    assert.isTrue($saveStatus.hasClass("label-default"));
+    assert.isTrue($saveStatus.hasClass("badge-dark"));
     assert.equal($saveStatus.children("span").text(), "");
 
     editor.type(keyConstants.SAVE);
     return waitForSuccess(() => {
-      assert.isTrue($saveStatus.hasClass("label-success"));
+      assert.isTrue($saveStatus.hasClass("badge-success"));
       assert.equal($saveStatus.children("span").text(), "moments ago");
       // We also check the tooltip text.
       assert.equal($saveStatus.data("bs.tooltip").getTitle(),
@@ -105,7 +105,7 @@ describe("wed file state:", () => {
   });
 
   it("save status shows a saved document after an autosave", () => {
-    assert.isTrue($saveStatus.hasClass("label-default"));
+    assert.isTrue($saveStatus.hasClass("badge-dark"));
     assert.equal($saveStatus.children("span").text(), "");
 
     // Text node inside title.
@@ -114,7 +114,7 @@ describe("wed file state:", () => {
     editor.type(" ");
     editor.saver.setAutosaveInterval(50);
     return waitForSuccess(() => {
-      assert.isTrue($saveStatus.hasClass("label-info"));
+      assert.isTrue($saveStatus.hasClass("badge-info"));
       assert.equal($saveStatus.children("span").text(), "moments ago");
       // We also check the tooltip text.
       assert.equal($saveStatus.data("bs.tooltip").getTitle(),

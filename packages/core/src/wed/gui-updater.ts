@@ -207,7 +207,7 @@ export class GUIUpdater extends TreeUpdater {
 
       const tt = $.data(hasTooltip, "bs.tooltip");
       if (tt != null) {
-        tt.destroy();
+        tt.dispose();
       }
 
       // We don't remove the wed-has-tooltip class. Generally, the elements

@@ -50,7 +50,7 @@ export function contextMenuHasOption(editor: Editor, pattern: RegExp,
   const menu =
     editor.window.document.getElementsByClassName("wed-context-menu")[0];
   expect(menu, "the menu should exist").to.not.be.undefined;
-  const items = menu.querySelectorAll("li>a");
+  const items = menu.querySelectorAll("a");
   let found = 0;
   for (let i = 0; i < items.length; ++i) {
     const item = items[i];

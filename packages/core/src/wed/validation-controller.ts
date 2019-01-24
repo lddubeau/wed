@@ -239,9 +239,8 @@ export class ValidationController {
     const percent = partDone * 100;
     const progress = this.progressBar;
     progress.style.width = `${percent}%`;
-    progress.classList.remove("progress-bar-info", "progress-bar-success",
-                              "progress-bar-danger");
-    progress.classList.add(`progress-bar-${stateToProgressType[state]}`);
+    progress.classList.remove("bg-info", "bg-success", "bg-danger");
+    progress.classList.add(`bg-${stateToProgressType[state]}`);
     this.validationMessage.textContent = stateToStr[state];
   }
 
@@ -397,6 +396,7 @@ export class ValidationController {
       const convertedNames = convertNames(error, this.resolver);
       const doc = insertAt.node.ownerDocument!;
       item = doc.createElement("li");
+      item.className = "nav-item";
       const linkId = item.id = newGenericID();
       if (isAttr(dataNode) &&
           isNotDisplayed(closestElement,
@@ -411,9 +411,9 @@ export class ValidationController {
         const $marker = $(marker);
 
         $marker.mousedown(() => {
-          this.$errorList.parents(".panel-collapse").collapse("show");
+          this.editor.expandErrorPanel();
           const $link = $(this.errorList.querySelector(`#${linkId}`));
-          const $scrollable = this.$errorList.parent(".panel-body");
+          const $scrollable = this.$errorList.parent(".card-body");
           $scrollable.animate({
             scrollTop: $link.offset()!.top - $scrollable.offset()!.top +
               $scrollable[0].scrollTop,
@@ -432,6 +432,7 @@ export class ValidationController {
 
         const markerId = marker.id = newGenericID();
         const link = doc.createElement("a");
+        link.className = "nav-link";
         link.href = `#${markerId}`;
         link.textContent = error.toStringWithNames(convertedNames);
         item.appendChild(link);

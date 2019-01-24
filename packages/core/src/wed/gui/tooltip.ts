@@ -11,7 +11,7 @@ import $ from "jquery";
 function _showHandler(ev: Event): void {
   const for_ = ev.target as Element;
   const tt = $.data(for_, "bs.tooltip");
-  $.data(tt.tip()[0], "wed-tooltip-for", for_);
+  $.data(tt.getTipElement(), "wed-tooltip-for", for_);
 }
 
 /**
@@ -30,7 +30,7 @@ function _showHandler(ev: Event): void {
  *
  * @param options The options to pass to Bootstrap to create the tooltip.
  */
-export function tooltip($for: JQuery, options: TooltipOptions): void {
+export function tooltip($for: JQuery, options: Bootstrap.TooltipOption): void {
     $for.tooltip(options);
     $for[0].classList.add("wed-has-tooltip");
 

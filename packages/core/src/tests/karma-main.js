@@ -79,14 +79,16 @@
       var lr = deps[0];
       var wed = deps[1];
       var $ = deps[2];
-      // Bootstrap sets $.support.transition after the document is ready, so we
-      // also have to wait until the document is ready to do our work. Since
-      // bootstrap is loaded before us, this will happen after bootstrap does
-      // its deed.
-      $(function turnOfAnimations() {
-        // Turn off all animations.
-        $.support.transition = false;
-      });
+      var bootstrap = deps[3];
+
+      bootstrap.Util.getTransitionDurationFromElement =
+        function getTransitionDurationFromElement() {
+          return 0;
+        };
+
+      $.fn.emulateTransitionEnd = function transitionEndEmulator() {
+        bootstrap.Util.triggerTransitionEnd(this);
+      };
 
       before(function before() {
         // We need to do this in a before hook because the listener is not added

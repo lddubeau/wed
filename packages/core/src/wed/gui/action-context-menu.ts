@@ -24,8 +24,6 @@ const KIND_ORDER = ([undefined] as (string | undefined)[]).concat(KINDS);
 const TYPES = ["element", "attribute"];
 const TYPE_FILTERS = (TYPES as (string | undefined)[]).concat(undefined);
 
-const ITEM_SELECTOR = "li:not(.divider):visible a";
-
 const plus = keyMod.makeKey("+");
 const minus = keyMod.makeKey("-");
 const period = keyMod.makeKey(".");
@@ -179,16 +177,16 @@ export class ActionContextMenu extends Base {
 
     // <li><div><button>... allows us to have this button group inserted in the
     // menu and yet be ignored by Bootstrap's Dropdown class.
-    const li = document.createElement("li");
-    li.className = "wed-menu-filter";
-    li.style.whiteSpace = "nowrap";
+    const topDiv = document.createElement("div");
+    topDiv.className = "wed-menu-filter";
+    topDiv.style.whiteSpace = "nowrap";
     const groupGroup = document.createElement("div");
     const kindGroup = this.makeKindGroup(document);
     const typeGroup = this.makeTypeGroup(document);
 
     // Prevent clicks in the group from closing the context menu.
-    $(li).on("click", false);
-    li.appendChild(groupGroup);
+    $(topDiv).on("click", false);
+    topDiv.appendChild(groupGroup);
     groupGroup.appendChild(kindGroup);
     groupGroup.appendChild(document.createTextNode("\u00a0"));
     groupGroup.appendChild(typeGroup);
@@ -198,12 +196,12 @@ export class ActionContextMenu extends Base {
     textInput.setAttribute("placeholder", "Filter choices by text.");
     const textDiv = document.createElement("div");
     textDiv.appendChild(textInput);
-    li.appendChild(textDiv);
+    topDiv.appendChild(textDiv);
 
     const $textInput = $(textInput);
     $textInput.on("input", this.inputChangeHandler.bind(this));
     $textInput.on("keydown", this.inputKeydownHandler.bind(this));
-    this.actionFilterItem = li;
+    this.actionFilterItem = topDiv;
     this.actionFilterInput = textInput;
 
     const $menu = this.$menu;
@@ -211,8 +209,8 @@ export class ActionContextMenu extends Base {
                       () => {
                         // Manually destroy the tooltips so that they are not
                         // left behind.
-                        $(textInput).tooltip("destroy");
-                        $(kindGroup).children().tooltip("destroy");
+                        $(textInput).tooltip("dispose");
+                        $(kindGroup).children().tooltip("dispose");
                       });
     $menu.on("keydown", this.actionKeydownHandler.bind(this));
     $menu.on("keypress", this.actionKeypressHandler.bind(this));
@@ -222,10 +220,10 @@ export class ActionContextMenu extends Base {
 
   private makeKindGroup(document: Document): Element {
     const kindGroup = document.createElement("div");
-    kindGroup.className = "btn-group btn-group-xs";
+    kindGroup.className = "btn-group btn-group-sm";
     for (const kind of KIND_FILTERS) {
       const child = document.createElement("button");
-      child.className = "btn btn-default";
+      child.className = "btn btn-outline-dark";
       let title;
       if (kind !== undefined) {
         // tslint:disable-next-line:no-inner-html
@@ -243,9 +241,9 @@ export class ActionContextMenu extends Base {
         // clipped by the dropdown. However, we then run into the problem that
         // when the dropdown menu is removed, the tooltip may remain displayed.
         container: "body",
-        // Cast is necessary due to bug in Bootstrap definitions.
-        placement: "auto top" as "auto",
+        placement: "auto",
         trigger: "hover",
+        boundary: "window",
       });
       $(child).on("click", this.makeKindHandler(kind));
       kindGroup.appendChild(child);
@@ -256,10 +254,10 @@ export class ActionContextMenu extends Base {
 
   private makeTypeGroup(document: Document): Element {
     const typeGroup = document.createElement("div");
-    typeGroup.className = "btn-group btn-group-xs";
+    typeGroup.className = "btn-group btn-group-sm";
     for (const actionType of TYPE_FILTERS) {
       const child = document.createElement("button");
-      child.className = "btn btn-default";
+      child.className = "btn btn-outline-dark";
       let title;
       if (actionType !== undefined) {
         // tslint:disable-next-line:no-inner-html
@@ -277,9 +275,9 @@ export class ActionContextMenu extends Base {
         // clipped by the dropdown. However, we then run into the problem that
         // when the dropdown menu is removed, the tooltip may remain displayed.
         container: "body",
-        // Cast is necessary due to bug in Bootstrap definitions.
-        placement: "auto top" as "auto",
+        placement: "auto",
         trigger: "hover",
+        boundary: "window",
       });
       $(child).on("click", this.makeTypeHandler(actionType));
       typeGroup.appendChild(child);
@@ -374,7 +372,7 @@ export class ActionContextMenu extends Base {
 
   private inputKeydownHandler(ev: JQueryKeyEventObject): boolean {
     if (keyConstants.ENTER.matchesEvent(ev)) {
-      this.$menu.find(ITEM_SELECTOR).first().focus().click();
+      this.$menu.find("a").first().focus().click();
       ev.stopPropagation();
       ev.preventDefault();
       return false;

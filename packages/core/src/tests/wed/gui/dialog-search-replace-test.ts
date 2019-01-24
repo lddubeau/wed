@@ -86,7 +86,7 @@ describe("dialog-search-replace", () => {
 
   afterEach(() => {
     // Make sure there is no dialog after each test.
-    expect(document.querySelector(".modal.in")).to.be.null;
+    expect(document.querySelector(".modal.show")).to.be.null;
     setup.reset();
   });
 
@@ -130,77 +130,67 @@ describe("dialog-search-replace", () => {
   }
 
   function closeDialog(): void {
-    const close = document.querySelector(".modal.in .close") as HTMLElement;
+    const close = document.querySelector(".modal.show .close") as HTMLElement;
     close.click();
   }
 
   function typeInSearch(text: string): void {
     const search = document
-      .querySelector(".modal.in input[name=search]") as HTMLInputElement;
+      .querySelector(".modal.show input[name=search]") as HTMLInputElement;
     search.value = text;
     $(search).trigger("input");
   }
 
   function typeInReplace(text: string): void {
     const field = document
-      .querySelector(".modal.in input[name=replace]") as HTMLInputElement;
+      .querySelector(".modal.show input[name=replace]") as HTMLInputElement;
     field.value = text;
     $(field).trigger("input");
   }
 
   function clearReplace(): void {
     const field = document
-      .querySelector(".modal.in input[name=replace]") as HTMLInputElement;
+      .querySelector(".modal.show input[name=replace]") as HTMLInputElement;
     field.value = "";
     $(field).trigger("input");
   }
 
+  function clickButton(selector: string): void {
+    (document.querySelector(`.modal.show ${selector}`) as HTMLButtonElement)
+      .click();
+  }
+
   function clickFind(): void {
-    const find = document
-      .querySelector(".modal.in [data-bb-handler=find]") as HTMLButtonElement;
-    find.click();
+    clickButton(".btn.find");
   }
 
   function clickReplace(): void {
-    const button =
-      (document.querySelector(".modal.in [data-bb-handler=replaceFind]") as
-       HTMLButtonElement);
-    button.click();
+    clickButton(".btn.replace-and-find");
   }
 
   function clickReplaceAll(): void {
-    const button =
-      (document.querySelector(".modal.in [data-bb-handler=replaceAll]") as
-       HTMLButtonElement);
-    button.click();
+    clickButton(".btn.replace-all");
   }
 
   function clickBackwards(): void {
-    const button =
-      (document.querySelector(".modal.in [name=direction][value=backwards]") as
-       HTMLButtonElement);
-    button.click();
+    clickButton("[name=direction][value=backwards]");
+  }
+
+  function clickAttributes(): void {
+    clickButton("[name=context][value=attributes]");
   }
 
   function checkReplaceButton(enabled: boolean): void {
     const button =
-      (document.querySelector(".modal.in [data-bb-handler=replaceFind]") as
+      (document.querySelector(".modal.show .btn.replace-and-find") as
        HTMLButtonElement);
     expect(button).to.have.property("disabled").equal(!enabled);
   }
 
   function checkReplaceAllButton(enabled: boolean): void {
-    const button =
-      (document.querySelector(".modal.in [data-bb-handler=replaceAll]") as
-       HTMLButtonElement);
+    const button = (document.querySelector(".modal.show .btn.replace-all") as
+                    HTMLButtonElement);
     expect(button).to.have.property("disabled").equal(!enabled);
-  }
-
-  function clickAttributes(): void {
-    const button =
-      (document.querySelector(".modal.in [name=context][value=attributes]") as
-       HTMLButtonElement);
-    button.click();
   }
 
   describe("DialogSearchReplace", () => {

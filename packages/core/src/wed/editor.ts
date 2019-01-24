@@ -149,72 +149,76 @@ enum ClipboardEventHandling {
 }
 
 const FRAMEWORK_TEMPLATE = "\
-<div class='row'>\
+<div>\
  <div class='toolbar'></div>\
- <div class='wed-frame col-sm-push-2 col-lg-10 col-md-10 col-sm-10'>\
-  <div class='row'>\
-   <div class='progress'>\
-    <span></span>\
-    <div class='wed-validation-progress progress-bar' style='width: 0%'></div>\
-   </div>\
-  </div>\
-  <div class='row'>\
-   <div class='wed-document-constrainer'>\
-    <input class='wed-comp-field' type='text'></input>\
-    <div class='wed-scroller'>\
-     <div class='wed-caret-layer'></div>\
-     <div class='wed-error-layer'></div>\
-     <div class='wed-document'><span class='root-here'></span></div>\
-    </div>\
-   </div>\
-   <div class='wed-minibuffer'></div>\
-   <div class='wed-location-bar'>@&nbsp;<span>&nbsp;</span></div>\
-  </div>\
- </div>\
- <div class='wed-sidebar col-sm-pull-10 col-lg-2 col-md-2 col-sm-2'>\
-  <div class='wed-save-and-modification-status'>\
-   <span class='wed-modification-status label label-success' \
-         title='Modification status'>\
-    <i class='fa fa-asterisk'></i>\
-   </span>\
-   <span class='wed-save-status label label-default'>\
-    <i class='fa fa-cloud-upload'></i> <span></span>\
-   </span>\
-  </div>\
-  <div id='sidebar-panel' class='panel-group wed-sidebar-panel'>\
-   <div class='panel panel-info wed-navigation-panel'>\
-    <div class='panel-heading'>\
-     <div class='panel-title'>\
-      <a class='accordion-toggle' data-toggle='collapse' \
-         data-parent='#sidebar-panel' href='#sb-nav-collapse'>Navigation</a>\
+ <div class='row'>\
+   <div class='wed-frame col-sm-10'>\
+    <div>\
+     <div class='progress'>\
+      <span></span>\
+      <div class='wed-validation-progress progress-bar' style='width: 0%'>\
+      </div>\
      </div>\
     </div>\
-   <div id='sb-nav-collapse' data-parent='#sidebar-panel' \
-        class='panel-collapse collapse in'>\
-     <div id='sb-nav' class='panel-body'>\
-      <ul id='navlist' class='nav nav-list'>\
-       <li class='inactive'>A list of navigation links will appear here</li>\
-      </ul>\
+    <div>\
+     <div class='wed-document-constrainer'>\
+      <input class='wed-comp-field' type='text'></input>\
+      <div class='wed-scroller'>\
+       <div class='wed-caret-layer'></div>\
+       <div class='wed-error-layer'></div>\
+       <div class='wed-document'><span class='root-here'></span></div>\
+      </div>\
+     </div>\
+     <div class='wed-minibuffer'></div>\
+     <div class='wed-location-bar'>@&nbsp;<span>&nbsp;</span></div>\
+    </div>\
+   </div>\
+   <div class='wed-sidebar col-sm-2 order-first'>\
+    <div class='wed-save-and-modification-status'>\
+     <span class='wed-modification-status badge badge-success' \
+           title='Modification status'>\
+      <i class='fa fa-asterisk'></i>\
+     </span>\
+     <span class='wed-save-status badge badge-dark'>\
+      <i class='fa fa-cloud-upload'></i> <span></span>\
+     </span>\
+    </div>\
+    <div id='sidebar-panel' class='wed-sidebar-panel'>\
+     <div class='card wed-navigation-panel'>\
+      <div class='card-header bg-info'>\
+       <div>\
+        <button class='btn btn-link' data-toggle='collapse' \
+                data-target='#sb-nav-collapse'>Navigation</button>\
+       </div>\
+      </div>\
+     <div id='sb-nav-collapse' data-parent='#sidebar-panel' \
+          class='collapse show'>\
+       <div id='sb-nav' class='card-body'>\
+        <ul id='navlist' class='nav flex-column'>\
+         <li class='nav-item disabled'>A list of navigation links will appear \
+here</li>\
+        </ul>\
+       </div>\
+      </div>\
+     </div>\
+     <div class='card'>\
+      <div class='card-header bg-danger'>\
+       <div>\
+        <button class='btn btn-link collapsed' data-toggle='collapse'\
+                data-target='#sb-errors-collapse'>Errors</button>\
+       </div>\
+      </div>\
+      <div id='sb-errors-collapse' data-parent='#sidebar-panel' \
+           class='collapse'>\
+       <div id='sb-errors' class='card-body'>\
+        <ul id='sb-errorlist' class='nav flex-column wed-errorlist'>\
+         <li class='nav-item disabled'></li>\
+        </ul>\
+       </div>\
+      </div>\
      </div>\
     </div>\
    </div>\
-   <div class='panel panel-danger'>\
-    <div class='panel-heading'>\
-     <div class='panel-title'>\
-      <a class='accordion-toggle' data-toggle='collapse'\
-         data-parent='#sidebar-panel' href='#sb-errors-collapse'>Errors</a>\
-     </div>\
-    </div>\
-    <div id='sb-errors-collapse' data-parent='#sidebar-panel'\
-         class='panel-collapse collapse'>\
-     <div id='sb-errors' class='panel-body'>\
-      <ul id='sb-errorlist' class='nav nav-list wed-errorlist'>\
-       <li class='inactive'></li>\
-      </ul>\
-     </div>\
-    </div>\
-   </div>\
-  </div>\
  </div>\
 </div>";
 
@@ -237,7 +241,7 @@ export class Editor implements EditorAPI {
   private readonly normalizeEnteredSpaces: boolean = true;
   private readonly strippedSpaces: RegExp = /\u200B/g;
   private readonly replacedSpaces: RegExp = /\s+/g;
-  private destroyed: boolean = false;
+  private _destroyed: boolean = false;
   private initialLabelLevel: number = 0;
   private currentLabelLevel: number = 0;
   /** A temporary initialization value. */
@@ -1171,8 +1175,12 @@ export class Editor implements EditorAPI {
     this.modeData[key] = value;
   }
 
+  get destroyed(): boolean {
+    return this._destroyed;
+  }
+
   destroy(): void {
-    if (this.destroyed) {
+    if (this._destroyed) {
       return;
     }
 
@@ -1251,8 +1259,12 @@ export class Editor implements EditorAPI {
       log.removeAppender(this.appender);
     }
 
-    // ... but keep these two. Calling destroy over and over is okay.
-    this.destroyed = true;
+    // ... but keep these. Calling destroy over and over is okay.
+    this._destroyed = true;
+
+    // We don't need to set the getter again because the delete loop above did
+    // not delete it.
+
     // tslint:disable-next-line:no-empty
     this.destroy = function fakeDestroy(): void {};
   }
@@ -1324,7 +1336,7 @@ export class Editor implements EditorAPI {
     // We purposely do not raise an error here so that calls to destroy can be
     // done as early as possible. It aborts the initialization sequence without
     // causing an error.
-    if (this.destroyed) {
+    if (this._destroyed) {
       return this;
     }
 
@@ -1388,7 +1400,7 @@ export class Editor implements EditorAPI {
 
   // tslint:disable-next-line:max-func-body-length
   private async postInitialize(): Promise<Editor> {
-    if (this.destroyed) {
+    if (this._destroyed) {
       return this;
     }
 
@@ -1419,7 +1431,7 @@ export class Editor implements EditorAPI {
           // Doing the restart immediately messes up the editing. So schedule it
           // for ASAP.
           setTimeout(() => {
-            if (this.destroyed) {
+            if (this._destroyed) {
               return;
             }
             this.validator.resetTo(el);
@@ -1732,7 +1744,7 @@ wed's generic help. The link by default will open in a new tab.</p>`);
       setInterval(this.refreshSaveStatus.bind(this), 30 * 1000);
     onbeforeunload.install(
       this.window,
-      () => !this.destroyed && this.saver.getModifiedWhen() !== false,
+      () => !this._destroyed && this.saver.getModifiedWhen() !== false,
       true);
 
     this.initializedResolve(this);
@@ -1919,8 +1931,7 @@ in a way not supported by this version of wed.";
     sp.style.maxHeight = `${pheight}px`;
     sp.style.minHeight = `${pheight}px`;
 
-    const panels = sp.getElementsByClassName("panel");
-    const headings = sp.getElementsByClassName("panel-heading");
+    const headings = sp.getElementsByClassName("card-header");
     let hheight = 0;
     for (let i = 0; i < headings.length; ++i) {
       const heading = headings[i];
@@ -1928,14 +1939,16 @@ in a way not supported by this version of wed.";
       hheight += $parent.outerHeight(true) - $parent.innerHeight();
       hheight += $(heading).outerHeight(true);
     }
-    const maxPanelHeight = pheight - hheight;
-    let panel;
-    for (let i = 0; i < panels.length; ++i) {
-      panel = panels[i] as HTMLElement;
-      panel.style.maxHeight = `${maxPanelHeight +
-        $(domutil.childByClass(panel, "panel-heading")).outerHeight(true)}px`;
-      const body = panel.getElementsByClassName("panel-body")[0] as HTMLElement;
-      body.style.height = `${maxPanelHeight}px`;
+
+    const maxCardHeight = pheight - hheight;
+    const cards = sp.getElementsByClassName("card");
+    let card;
+    for (let i = 0; i < cards.length; ++i) {
+      card = cards[i] as HTMLElement;
+      card.style.maxHeight = `${maxCardHeight +
+        $(domutil.childByClass(card, "card-header")).outerHeight(true)}px`;
+      const body = card.getElementsByClassName("card-body")[0] as HTMLElement;
+      body.style.height = `${maxCardHeight}px`;
     }
 
     if (this.validationController !== undefined) {
@@ -3239,14 +3252,15 @@ cannot be cut.`, { type: "danger" });
           return mode.shortDescriptionFor(origName) as any;
         },
         container: "body",
-        delay: { show: 1000 },
         // We cheat because of a bug in the Bootstrap definitions.
-        placement: "auto top" as "auto",
+        // tslint:disable-next-line:no-any
+        delay: { show: 1000 } as any,
+        placement: "auto" as "auto",
         trigger: "hover" as "hover",
       };
       this.makeGUITreeTooltip($(label), options);
       const tt = $.data(label, "bs.tooltip");
-      tt.enter(tt);
+      tt.toggle();
     }
   }
 
@@ -3254,7 +3268,7 @@ cannot be cut.`, { type: "danger" });
     const root = this.guiRoot;
     const label = closestByClass(ev.target, "_label", root);
     if (label !== null) {
-      $(label).tooltip("destroy");
+      $(label).tooltip("dispose");
       // See _mouseoutHandler. We return false here for symmetry.
       return false;
     }
@@ -3268,8 +3282,8 @@ cannot be cut.`, { type: "danger" });
     $saveStatus.children("span").first()
       .text(saveStatus !== undefined ? saveStatus : "");
     if (saveStatus === undefined) {
-      $saveStatus.removeClass("label-success label-info")
-        .addClass("label-default");
+      $saveStatus.removeClass("badge-success badge-info")
+        .addClass("badge-dark");
     }
     else {
       const kind = saver.getLastSaveKind();
@@ -3277,37 +3291,36 @@ cannot be cut.`, { type: "danger" });
       let tip;
       switch (kind) {
         case SaveKind.AUTO:
-          toAdd = "label-info";
+          toAdd = "badge-info";
           tip = "The last save was an autosave.";
           break;
         case SaveKind.MANUAL:
-          toAdd = "label-success";
+          toAdd = "badge-success";
           tip = "The last save was a manual save.";
           break;
         default:
           throw new Error(`unexpected kind of save: ${kind}`);
       }
-      $saveStatus.removeClass("label-default label-info label-success")
+      $saveStatus.removeClass("badge-dark badge-info badge-success")
         .addClass(toAdd);
-      $saveStatus.tooltip("destroy");
+      $saveStatus.tooltip("dispose");
       $saveStatus.tooltip({
         title: tip,
         container: "body",
-        // We cheat due to a bug in the Bootstrap definitions.
-        placement: "auto top" as "auto",
+        placement: "auto" as "auto",
         trigger: "hover",
       });
     }
 
     const modified = saver.getModifiedWhen();
     if (modified !== false) {
-      this.$modificationStatus.removeClass("label-success");
-      this.$modificationStatus.addClass("label-warning");
+      this.$modificationStatus.removeClass("badge-success");
+      this.$modificationStatus.addClass("badge-warning");
       this.$modificationStatus.children("i").css("visibility", "");
     }
     else {
-      this.$modificationStatus.removeClass("label-warning");
-      this.$modificationStatus.addClass("label-success");
+      this.$modificationStatus.removeClass("badge-warning");
+      this.$modificationStatus.addClass("badge-success");
       this.$modificationStatus.children("i").css("visibility", "hidden");
     }
   }
@@ -3355,7 +3368,16 @@ cannot be cut.`, { type: "danger" });
    */
   expandErrorPanelWhenNoNavigation(): void {
     if ((this.$navigationPanel[0] as HTMLElement).style.display === "none") {
-      this.$errorList.parents(".panel-collapse").collapse("show");
+      this.expandErrorPanel();
+    }
+  }
+
+  /**
+   * Expand the error panel.
+   */
+  expandErrorPanel(): void {
+    if ((this.$navigationPanel[0] as HTMLElement).style.display === "none") {
+      this.$errorList.parents(".collapse").collapse("show");
     }
   }
 
@@ -3398,7 +3420,7 @@ cannot be cut.`, { type: "danger" });
     return ret;
   }
 
-  makeGUITreeTooltip($for: JQuery, options: TooltipOptions): void {
+  makeGUITreeTooltip($for: JQuery, options: Bootstrap.TooltipOption): void {
     const title = options.title;
     if (title !== undefined) {
       options = {...options};
@@ -3406,10 +3428,10 @@ cannot be cut.`, { type: "danger" });
       // "this" for the title callback.
       // tslint:disable-next-line:no-this-assignment
       const me = this;
-      options.title = function titleFn(this: Element): string {
+      options.title = function titleFn(this: Element): string | Element {
         // The check is here so that we can turn tooltips on and off
         // dynamically.
-        if (me.destroyed || !(me.preferences.get("tooltips") as boolean)) {
+        if (me._destroyed || !(me.preferences.get("tooltips") as boolean)) {
           // We need the cast to deal with a bug in Bootstrap's definitions.
           // tslint:disable-next-line:no-any
           return undefined as any;
@@ -3500,7 +3522,7 @@ cannot be cut.`, { type: "danger" });
       const forEl = $.data(tts[i], "wed-tooltip-for");
       const data = $(forEl).data("bs.tooltip");
       if (data != null) {
-        data.leave(data);
+        data.hide();
         closed = true;
       }
     }

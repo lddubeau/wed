@@ -110,7 +110,7 @@ export class TestDecorator extends GenericDecorator {
           .insertBefore(
             el,
             $("<div class='_gui _phantom _gui_test btn " +
-              "btn-default'>Foo</div>")[0],
+              "btn-outline-dark'>Foo</div>")[0],
             el.lastChild);
 
         let found: Element | undefined;
@@ -126,13 +126,13 @@ export class TestDecorator extends GenericDecorator {
             .insertBefore(
               el,
               $("<div class='_gui _phantom _gui_test btn " +
-                "btn-default'>Foo2</div>")[0],
+                "btn-outline-dark'>Foo2</div>")[0],
               el.lastChild);
           this.guiUpdater
             .insertBefore(
               el,
               $("<div class='_gui _phantom _gui_test btn " +
-                "btn-default'>Foo3</div>")[0],
+                "btn-outline-dark'>Foo3</div>")[0],
               el.lastChild);
         }
         break;
@@ -147,7 +147,7 @@ export class TestDecorator extends GenericDecorator {
         }
 
         const wrapper = $("<div class='_gui _phantom_wrap _gui_test btn " +
-                          "btn-default'></div>")[0];
+                          "btn-outline-dark'></div>")[0];
         this.guiUpdater.insertBefore(el.parentNode! as Element, wrapper, el);
         this.guiUpdater.insertBefore(wrapper, el, null);
         break;

@@ -1,22 +1,13 @@
 CONTINUE
 ========
 
-There is a bug in salve which prevents it from processing "doc-unannotated.rng".
-
-Do Ligeia's requests from emails titled MMWP tweaks.
+- wed:
+  - Support xml-model PI??
+  - Modify wed-build to install the packages needed in an isolated spot, and
+    build from there?
 
 Create proper documentation for the MMWP mode. Among the missing things there is
 currently no explanation of how to split compounds.
-
-You had split off the savers from the main code. You still need to clean up
-core's code and dependencies to make sure every unnededed bit is removed. Also
-go over the build code to check for things that can be removed.
-
-IMPORTANT
-=========
-
-There's also a bug whereby `npm publish` needs to be in the same directory as
-the bundle to be published. :-/
 
 Other issues brought up by scholarly team Oct 2018
 ==================================================
@@ -26,47 +17,6 @@ Other issues brought up by scholarly team Oct 2018
   that remove whole elements or attributes from the document. They normally do
   not operate on selections." means only that delete oprations won't show up in
   menus when a selection is in effect.
-
-- Doing Ctrl-Delete, or Cmd-Delete, or any combination Delete or Backspace skips
-  wed and is handled by the browser, with disastrous results.
-
-- Remove the check that is done when pasting to check that the pasted data is
-  valid XML. Just paste it and let the errors come up. This allows users to edit
-  files that are not yet valid: if the user want to copy-paste a region with
-  errors they currently cannot do it due to the check.
-
-Fix documentation
-=================
-
-* The Reflection Metadata API must be fully available use `reflection-metadata`.
-
-* Must create a container and define necessary bits.
-
-* We no longer use RequireJS in development but SystemJS. Wed still needs an AMD
-  loader and must have ``define`` and ``require`` accessible. (Can be set from
-  SystemJS.)
-
-* ``wed/onerror`` and ``wed/log`` are no longer meant to be loaded individually.
-
-  The ``onerror`` module is available as the ``onerror`` field exposed by the
-  ``wed`` module.
-
-  The old approach had the advantage that one could load ``wed/onerror`` to trap
-  errors early, like errors that occur while wed loads. The problem though is
-  that the capability to load ``wed/onerror`` as and individual module
-  complicates the build, and makes it a bit awkward. Going forward,
-  ``wed/onerror`` will be only meant to be used to trap errors happening when
-  wed is already loaded. Wed clients desirous to trap early errors will have to
-  use another method to do so.
-
-* The recommended way to make a custom build of wed is to create an entry module
-  which refers to the required packages and do a webpack build of that.
-
-* Be careful not to load any module twice.
-
-* The localForage saver has been removed.
-
-* IndexedDBSaver is now DBSaver.
 
 Search and Replace
 ==================

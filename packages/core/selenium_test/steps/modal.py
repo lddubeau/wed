@@ -10,7 +10,8 @@ step_matcher('re')
 
 @step(ur'a modal is(?P<visible> not|) visible')
 def step_impl(context, visible):
-    visible_modals = context.driver.find_elements_by_css_selector(".modal.in")
+    visible_modals = \
+        context.driver.find_elements_by_css_selector(".modal.show")
 
     if visible == " not":
         message = "no modals should be visible"
@@ -46,8 +47,8 @@ def step_impl(context, height):
 
     driver.execute_script("""
     var height = arguments[0];
-    var modal = document.querySelector(".modal.in .modal-dialog");
-    var content = document.querySelector(".modal.in .modal-content");
+    var modal = document.querySelector(".modal.show .modal-dialog");
+    var content = document.querySelector(".modal.show .modal-content");
     modal.style.maxHeight = height + "px";
     content.style.maxHeight = height + "px";
     """, int(height))
@@ -59,11 +60,11 @@ def step_impl(context):
     driver = context.driver
 
     draggable = util.find_element(
-        (By.CSS_SELECTOR, '.modal.in .modal-content'))
+        (By.CSS_SELECTOR, '.modal.show .modal-content'))
 
     orig_pos = util.element_screen_position(draggable)
 
-    header = util.find_element((By.CSS_SELECTOR, '.modal.in .modal-header'))
+    header = util.find_element((By.CSS_SELECTOR, '.modal.show .modal-header'))
 
     ActionChains(driver) \
         .drag_and_drop_by_offset(header, 10, 10) \
@@ -98,7 +99,7 @@ def resize(context, width, height):
     driver = context.driver
 
     resizable = util.find_element(
-        (By.CSS_SELECTOR, '.modal.in .modal-content'))
+        (By.CSS_SELECTOR, '.modal.show .modal-content'))
 
     # This first move is to ensure we are well inside the region in
     # which we are allowed to resize before we start the

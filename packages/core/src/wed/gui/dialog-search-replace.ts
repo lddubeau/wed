@@ -91,17 +91,17 @@ export class DialogSearchReplace {
       buttons: {
         find: {
           label: "Find",
-          className: "btn-primary",
+          className: "btn-primary find",
           callback: this.onFind.bind(this),
         },
         replaceFind: {
           label: "Replace and Find",
-          className: "btn-default replace-and-find",
+          className: "btn-outline-dark replace-and-find",
           callback: this.onReplaceAndFind.bind(this),
         },
         replaceAll: {
           label: "Replace All",
-          className: "btn-default replace-all",
+          className: "btn-outline-dark replace-all",
           callback: this.onReplaceAll.bind(this),
         },
         close: {
@@ -109,7 +109,8 @@ export class DialogSearchReplace {
         },
       },
     });
-    makeResizable(dialog);
+    // The 100, 200 minimum size is arbitrary.
+    makeResizable(dialog, 100, 200);
     makeDraggable(dialog);
     const directionItems = body.elements
       .namedItem("direction") as RadioNodeList;
@@ -137,6 +138,10 @@ export class DialogSearchReplace {
 
     dialog.on("hidden.bs.modal", () => {
       this.search.clearHighlight();
+      if (editor.destroyed) {
+        return;
+      }
+
       // Return the focus to the editor.
       editor.caretManager.focusInputField();
     });

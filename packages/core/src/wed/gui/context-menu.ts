@@ -12,6 +12,18 @@ import * as domutil from "../domutil";
 export type DismissCallback = () => void;
 
 /**
+ * Make a menu item to show in a menu.
+ *
+ * @param doc The document which will hold the menu.
+ */
+export function makeMenuItem(doc: Document): HTMLElement {
+  const a = doc.createElement("a");
+  a.className = "dropdown-item";
+  a.href = "#";
+  return a;
+}
+
+/**
  * A context menu GUI element.
  */
 export class ContextMenu {
@@ -44,8 +56,7 @@ export class ContextMenu {
   private y: number;
 
   /**
-   * @param document The DOM document for which to make this
-   * context menu.
+   * @param doc The DOM document for which to make this context menu.
    *
    * @param x Position of the menu. The context menu may ignore this position if
    * the menu would appear off-screen.
@@ -59,19 +70,19 @@ export class ContextMenu {
    *
    * @param immediateDisplay If true, will call ``render`` from the constructor.
    */
-  constructor(document: Document, x: number, y: number,
+  constructor(protected readonly doc: Document, x: number, y: number,
               items: Element[], dismissCallback?: DismissCallback,
               immediateDisplay: boolean = true) {
     this.dismissCallback = dismissCallback;
     this.dismissed = false;
 
-    const dropdown = this.dropdown = document.createElement("div");
+    const dropdown = this.dropdown = doc.createElement("div");
     dropdown.className = "dropdown wed-context-menu";
     // tslint:disable-next-line:no-inner-html
     dropdown.innerHTML =
       // This fake toggle is required for bootstrap to do its work.
       "<a href='#' data-toggle='dropdown'></a>" +
-      "<ul class='dropdown-menu' role='menu'></ul>";
+      "<div class='dropdown-menu' role='menu'></div>";
     // We move the top and left so that we appear under the mouse cursor.
     // Hackish, but it works. If we don't do this, then the mousedown that
     // brought the menu up also registers as a click on the body element and the
@@ -89,7 +100,7 @@ export class ContextMenu {
     const toggle = this.toggle = dropdown.firstElementChild as HTMLElement;
     const $toggle = this.$toggle = $(toggle);
 
-    const backdrop = this.backdrop = document.createElement("div");
+    const backdrop = this.backdrop = doc.createElement("div");
     backdrop.className = "wed-context-menu-backdrop";
 
     $(backdrop).click(this.backdropClickHandler.bind(this));
@@ -104,7 +115,7 @@ export class ContextMenu {
 
     $(dropdown).on("contextmenu mouseup", false);
 
-    const body = document.body;
+    const body = doc.body;
     body.insertBefore(dropdown, body.firstChild);
     body.insertBefore(backdrop, body.firstChild);
 
@@ -121,7 +132,7 @@ export class ContextMenu {
 
     const $menu = this.$menu;
     const menu = this.menu;
-    const win = dropdown.ownerDocument!.defaultView!;
+    const win = this.doc.defaultView!;
     const x = this.x;
     let y = this.y;
 
@@ -210,6 +221,13 @@ export class ContextMenu {
    */
   protected render(items: Element[]): void {
     this.$menu.append(items);
+  }
+
+  /**
+   * Make a menu item to display in this menu.
+   */
+  makeMenuItem(): HTMLElement {
+    return makeMenuItem(this.doc);
   }
 
   /**

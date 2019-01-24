@@ -9,7 +9,8 @@ not need to have the Ajax based saver.
 Conversely, the new setup now **requires** that you build wed to serve your own
 purposes. See the README for ``@wedxml/build`` to learn how to do this.
 
-Miscelaneous changes:
+Miscelaneous changes
+====================
 
 * The ``localForage`` saver has been removed and there is no direct replacement
   for it. You could use ``@wedxml/db-saver`` with a store based on
@@ -44,3 +45,49 @@ Miscelaneous changes:
   diagnosis and retry capabilities. Consequently the ``bluejaxOptions`` that
   used to be passed to wed are now ``fetchiestOptions``. See the documentation
   of ``fetchiest`` for what is available.
+
+* Wed now uses Bootstrap 4.x (4.2.1) instead of Bootstrap 3.x for its GUI.
+
+* The patch for Bootstrap is gone since it was only required for Bootstrap 3.x.
+
+Notable Bootstrap Changes
+=========================
+
+These changes may affect you if you customized wed's look or wrote modes that
+use or modify GUI elements. We list here the notable changes we had to deal with
+when converting wed.
+
+* Use SCSS instead of LESS.
+
+* You must load the CSS of ``typeahead.js-bootstrap4-css`` instead of the old
+  ``typeahead.js-boostrap-css``.
+
+* Usually, usage of ``...-danger``, ``...-info``, ``...-success`` etc. must be
+  converted to use ``.bg-danger``, ``.bg-info``, ``.bg-success``, etc. However,
+  there are exceptions. ``.badge`` uses ``.badge-danger``, etc.
+
+* ``.label`` and ``.label-`` are now ``.badge`` and ``.badge-``. We use
+  ``.badge-dark`` for ``.label-default``.
+
+* ``.panel`` and ``.panel-`` are now ``.card`` and ``.card-``. It is not just a
+  matter of doing search replace. For instance ``.panel-heading`` is
+  ``.card-header``.
+
+* ``.tooltip("destroy")`` is now ``.tooltip("dispose")``.
+
+* Tooltips now longer allow multiple values for ``placement``. So ``"auto top"``
+  is no longer valid.
+
+* Buttons no longer have an ``-xs`` size.
+
+* ``.btn-default`` is not a thing. We use ``.btn-outline-dark``.
+
+* If you create dropdown menu items yourself, they are no longer ``<li><a>`` but
+  ``<a class="dropdown-item"``. Also the change in structure may require that
+  you update where you put your event handler.
+
+* If you create navigation items, the ``<li>`` and ``<a>`` elements now need
+  ``.nav-item`` and ``.nav-link``.
+
+* If you create modals yourself, the order of the close button and modal title
+  is flipped in Bootstrap v5.

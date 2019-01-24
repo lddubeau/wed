@@ -470,7 +470,7 @@ def step_impl(context, choice, new=None, name=None):
     if choice == "the first context menu option":
         choice = "first"
         link = util.wait(EC.element_to_be_clickable(
-            (By.CSS_SELECTOR, ".wed-context-menu li>a")))
+            (By.CSS_SELECTOR, ".wed-context-menu .dropdown-menu a")))
     elif choice == "a choice for wrapping text in new elements":
         choice = "wrap"
         link = util.wait(EC.element_to_be_clickable((By.PARTIAL_LINK_TEXT,
@@ -528,7 +528,8 @@ def step_impl(context, text):
     driver = context.driver
 
     actual = driver.execute_script("""
-    return document.querySelector(".wed-context-menu li>a").textContent.trim();
+    return document.querySelector(".wed-context-menu .dropdown-menu a")
+      .textContent.trim();
     """)
     assert_equal(actual, text)
 
@@ -588,7 +589,8 @@ def step_impl(context, what=None, items=None, other=None):
 
     def cond(driver):
         links = driver.execute_script("""
-        var els = document.querySelectorAll(".wed-context-menu li>a");
+        var els =
+          document.querySelectorAll(".wed-context-menu .dropdown-menu a");
         var ret = [];
         for(var i = 0, el; (el = els[i]) !== undefined; ++i)
             ret.push(el.textContent.trim());
@@ -662,7 +664,7 @@ def step_impl(context, item, what):
         index = len(FILTER_TO_INDEX) - 1
 
     buttons = driver.find_elements_by_css_selector(
-        ".wed-context-menu li:first-child button")
+        ".wed-context-menu div:first-child button")
 
     buttons[index].click()
 
@@ -672,7 +674,8 @@ def step_impl(context, option):
 
     def cond(driver):
         links = driver.execute_script("""
-        var els = document.querySelectorAll(".wed-context-menu li>a");
+        var els =
+          document.querySelectorAll(".wed-context-menu .dropdown-menu a");
         var ret = [];
         for(var i = 0, el; (el = els[i]) !== undefined; ++i)
             ret.push(el.textContent.trim());
@@ -691,12 +694,12 @@ def step_impl(context, choice):
     if choice == "more than one option":
         def cond(driver):
             els = driver.find_elements_by_css_selector(
-                ".wed-context-menu li>a")
+                ".wed-context-menu .dropdown-menu a")
             return len(els) > 1
     else:
         def cond(driver):
             els = driver.find_elements_by_css_selector(
-                ".wed-context-menu li>a")
+                ".wed-context-menu .dropdown-menu a")
             return len(els) == 3
 
     context.util.wait(cond)
