@@ -46,11 +46,21 @@ export class CompletionMenu extends ContextMenu {
     this.editor = editor;
 
     this.dropdown.classList.add("wed-completion-menu");
-    // Remove the data toggle. This will prevent Bootstrap from closing this
-    // menu when the body gets the click event.
-    if (this.dropdown.firstElementChild!.getAttribute("data-toggle") !== null) {
-      this.dropdown.removeChild(this.dropdown.firstChild!);
-    }
+
+    //
+    // We hide this menu by disposing it rather than by clicking on a DOM
+    // element which serves as a toggle. So we prevent hide events from doing
+    // their default, which is to hide the menu.
+    //
+    // Without this, it would not be possible to bring up the menu on a click
+    // inside a placeholder because the menu would be created and then the data
+    // API of Bootstrap would get the click on the ``body`` element and close
+    // the menu.
+    //
+    $(this.dropdown).on("hide.bs.dropdown", (ev: JQueryEventObject) => {
+      ev.preventDefault();
+    });
+
     // Remove the backdrop. We do not need a backdrop for this kind of GUI item
     // because completion menus are evanescent.
     this.backdrop.parentNode!.removeChild(this.backdrop);
@@ -63,10 +73,10 @@ export class CompletionMenu extends ContextMenu {
       this.globalKeydownHandler.bind(this);
     editor.pushGlobalKeydownHandler(this.boundCompletionKeydownHandler);
 
+    this.display([]);
+
     // We want the user to still be able to type into the document.
     editor.caretManager.focusInputField();
-
-    this.display([]);
   }
 
   /** Whether the completion menu has been focused. */

@@ -7,15 +7,15 @@ step_matcher("re")
 
 @then("a (?P<what>completion|replacement) menu is visible")
 def step_impl(context, what):
-    context.util.find_element((By.CLASS_NAME,
-                               "wed-{}-menu".format(what)))
+    context.util.find_element((By.CSS_SELECTOR,
+                               ".wed-{}-menu.show".format(what)))
 
 
 @then("a (?P<what>completion|replacement) menu is not visible")
 def step_impl(context, what):
     context.util.wait_until_not(
-        lambda driver: driver.find_element_by_class_name(
-            "wed-{}-menu".format(what)))
+        lambda driver: driver.find_element_by_css_selector(
+            ".wed-{}-menu.show".format(what)))
 
 
 @then("the first item of the (?P<what>completion|replacement) menu is "
@@ -55,7 +55,8 @@ def step_impl(context):
     driver = context.driver
 
     result = driver.execute_script("""
-    var options = document.querySelectorAll(".wed-completion-menu a")
+    var options =
+      document.querySelectorAll(".wed-completion-menu a.dropdown-item");
     if (options.length !== 1)
       return [false, "has " + options.length + " option(s)"];
     if (options[0].textContent !== "initial")
