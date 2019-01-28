@@ -33,7 +33,7 @@ def dump_config(builder):
 
 
 def cleanup(context, failed):
-    driver = context.driver
+    driver = context.top.driver
     builder = context.builder
 
     selenium_quit = context.selenium_quit
