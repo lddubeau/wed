@@ -119,10 +119,19 @@ const config = {
         resource.request = "wed/glue/rangy-glue";
       }
     }),
-    new CopyWebpackPlugin([
-      "wed/{glue,patches,polyfills,modes}/**/*",
-      "../kitchen-sink.html", "kitchen-sink.js", "../doc/**/*",
-      "global-config.js", "wed/**/*.css",
+    new CopyWebpackPlugin([{
+      from: {
+        glob: "../kitchen-sink.html",
+      },
+      context: wedBuildDir,
+      transform: content => content.toString()
+      // Remove the script that sets environment to development.
+        .replace(
+          /<script data-script-type="set-environment"[^]*?>[^]*?<\/script>/,
+          ""),
+    }, ...[
+      "wed/{glue,patches,polyfills,modes}/**/*", "kitchen-sink.js",
+      "../doc/**/*", "global-config.js", "wed/**/*.css",
       "wed/sass-inc/**/*"].map(name => ({
         // Using an object with a "glob" field forces CopyWebpackPlugin to treat
         // all patterns as globs and simplifies the logic a bit. Otherwise, we'd
@@ -132,7 +141,7 @@ const config = {
           glob: name,
         },
         context: wedBuildDir,
-      }))),
+      }))]),
   ],
 };
 

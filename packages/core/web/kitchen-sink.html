@@ -10,6 +10,15 @@
           type="text/css" media="screen" rel="stylesheet"/>
     <link href="lib/wed/wed.css" type="text/css" media="screen"
           rel="stylesheet" />
+    <script>
+      (function () {
+        var process = window.process = (window.process || {});
+        var env = process.env = (process.env || {});
+      }());
+    </script>
+    <script data-script-type="set-environment">
+      process.env.NODE_ENV = "development";
+    </script>
     <script type="text/javascript" src="/top-npm/core-js/client/core.min.js"></script>
     <script type="text/javascript" src="/top-npm/classlist-polyfill/src/index.js"></script>
     <script type="text/javascript" src="lib/wed/polyfills/contains.js"></script>
@@ -21,7 +30,17 @@
     <script type="text/javascript" src="/top-npm/systemjs/dist/system.src.js"></script>
     <script type="text/javascript" src="/config/system.config.js"></script>
     <script>
-      systemJSConfig.baseURL = "/build/dist/packed/lib/";
+      if (process.env.NODE_ENV === "development") {
+        systemJSConfig.baseURL = "/build/dist/dev/lib/";
+        systemJSConfig.packages["kitchen-sink.js"] = {
+          map: {
+            wed: "tests/entry",
+          },
+        };
+      }
+      else {
+        systemJSConfig.baseURL = "/build/dist/packed/lib/";
+      }
       systemJSConfig.paths["npm:"] = "/node_modules/";
       systemJSConfig.paths["top-npm:"] = "/top-npm/";
       SystemJS.config(systemJSConfig);
