@@ -45,6 +45,15 @@ export interface CutUnitTransformationData extends TransformationData {
   add: boolean;
 }
 
+/**
+ * The data passed to actions that show documentation must at a minimum have
+ * this data.
+ */
+export interface DocumentationActionData {
+  /** The URL of the documentation to display. */
+  docURL: string;
+}
+
 export interface DecoratorAPI {
   /**
    * This function adds a separator between each child element of the element
@@ -198,6 +207,11 @@ export interface EditorAPI extends EditorInstance {
    * pattern.
    */
   readonly complexPatternAction: Action;
+
+  /**
+   * An action that opens a URL to documentation.
+   */
+  readonly documentationAction: Action<DocumentationActionData>;
 
   /** Paste transformation. */
   readonly pasteTr: Transformation<PasteTransformationData>;
@@ -441,4 +455,11 @@ export interface EditorAPI extends EditorInstance {
    * Toggle attribute hiding off and on.
    */
   toggleAttributeHiding(): void;
+
+  /**
+   * Opens a documentation link.
+   *
+   * @param url The URL to open.
+   */
+  openDocumentationLink(url: string): void;
 }

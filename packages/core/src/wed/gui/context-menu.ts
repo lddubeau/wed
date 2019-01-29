@@ -12,21 +12,9 @@ import * as domutil from "../domutil";
 export type DismissCallback = () => void;
 
 /**
- * Make a menu item to show in a menu.
- *
- * @param doc The document which will hold the menu.
- */
-export function makeMenuItem(doc: Document): HTMLElement {
-  const a = doc.createElement("a");
-  a.className = "dropdown-item";
-  a.href = "#";
-  return a;
-}
-
-/**
  * A context menu GUI element.
  */
-export class ContextMenu {
+export abstract class ContextMenu<T> {
   private readonly dismissCallback: DismissCallback | undefined;
   /**
    * The ``Element`` that contains the list of menu items. This ``Element`` is
@@ -63,16 +51,15 @@ export class ContextMenu {
    *
    * @param y Position of the menu.
    *
-   * @param items The items to show in the menu. These should be list items
-   * containing links appropriately formatted for a menu.
+   * @param specs The contents of the items to show in the menu.
    *
    * @param dismissCallback Function to call when the menu is dismissed.
    *
    * @param immediateDisplay If true, will call ``render`` from the constructor.
    */
   constructor(protected readonly doc: Document, x: number, y: number,
-              items: Element[], dismissCallback?: DismissCallback,
-              immediateDisplay: boolean = true) {
+              protected readonly specs: T[],
+              dismissCallback?: DismissCallback) {
     this.dismissCallback = dismissCallback;
     this.dismissed = false;
 
@@ -118,17 +105,16 @@ export class ContextMenu {
     const body = doc.body;
     body.insertBefore(dropdown, body.firstChild);
     body.insertBefore(backdrop, body.firstChild);
-
-    if (immediateDisplay) {
-      this.display(items);
-    }
   }
 
-  protected display(items: Element[]): void {
+  /**
+   * Perform the initial rendering of the menu.
+   */
+  protected display(): void {
     const dropdown = this.dropdown;
     const $toggle = $(dropdown.firstElementChild!);
 
-    this.render(items);
+    this.refreshItemList();
 
     const $menu = this.$menu;
     const menu = this.menu;
@@ -159,6 +145,15 @@ export class ContextMenu {
     menu.style.maxHeight = `${maxHeight}px`;
 
     $toggle.focus(this.handleToggleFocus.bind(this));
+    $toggle.dropdown({
+      // In theory we could pass parameters to Bootstrap to let popper.js
+      // position the menu. The problem is that popper currently does not
+      // support what we need. For instance, if the menu is definitely not going
+      // to fit in the window, popper does not take care of the overflow. Rather
+      // than mess around with popper, we continue using the logic that has
+      // worked so far.
+      display: "static",
+    });
     $toggle.dropdown("toggle");
 
     //
@@ -212,22 +207,64 @@ export class ContextMenu {
   }
 
   /**
+   * Refresh the list of menu items.
+   */
+  refreshItemList(): void {
+    // tslint:disable-next-line:no-inner-html
+    this.menu.innerHTML = "";
+    this.render(this.makeMenuItems(this.specs));
+  }
+
+  /**
    * Subclasses can override this to customize what is shown to the user. For
    * instance, subclasses could accept a list of items which is more complex
    * than DOM ``Element`` objects. Or could include in the list shown to the
    * user some additional GUI elements.
    *
-   * @param items The list of items that should make up the menu.
+   * @param items The items to show.
    */
   protected render(items: Element[]): void {
     this.$menu.append(items);
   }
 
   /**
-   * Make a menu item to display in this menu.
+   * Create the DOM element for a menu item to display in this menu.
+   *
+   * @returns The element for the item.
    */
-  makeMenuItem(): HTMLElement {
-    return makeMenuItem(this.doc);
+  protected makeMenuItemElement(): HTMLElement {
+    const a = this.doc.createElement("a");
+    a.className = "dropdown-item";
+    a.href = "#";
+    return a;
+  }
+
+  /**
+   * Make a menu item from item spec.
+   *
+   * @param spec The spec to convert.
+   *
+   * @returns A menu item, or null if this spec does not generate a menu item.
+   */
+  protected abstract makeMenuItem(spec: T): HTMLElement | null;
+
+  /**
+   * Make menu items from item specs.
+   *
+   * @param specs The specs of the items.
+   *
+   * @returns The menu items.
+   */
+  protected makeMenuItems(specs: T[]): HTMLElement[] {
+    const items = [];
+    for (const spec of specs) {
+      const item = this.makeMenuItem(spec);
+      if (item !== null) {
+        items.push(item);
+      }
+    }
+
+    return items;
   }
 
   /**

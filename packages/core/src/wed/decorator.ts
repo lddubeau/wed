@@ -17,8 +17,7 @@ import { GUIUpdater } from "./gui-updater";
 import { ActionContextMenu, Item } from "./gui/action-context-menu";
 import { Mode } from "./mode";
 import { DecoratorAPI, EditorAPI } from "./mode-api";
-import { NamedTransformationData, Transformation,
-         TransformationData } from "./transformation";
+import { NamedTransformationData, TransformationData } from "./transformation";
 import * as  util from "./util";
 
 const indexOf = domutil.indexOf;
@@ -353,14 +352,9 @@ ${domutil.textToHTML(attributes[name])}</span>"</span>`;
     const menuItems: Item[] = [];
     const mode = editor.modeTree.getMode(node);
 
-    function pushItem<D>(data: D, tr: Action<D>, start?: boolean): void {
-      const li = editingMenuManager.makeMenuItemForAction(tr, data, start);
-      menuItems.push({ action: tr, item: li, data: data });
-    }
-
     function pushItems<D>(data: D, trs: Action<D>[], start?: boolean): void {
       for (const tr of trs) {
-        pushItem(data, tr, start);
+        menuItems.push({ action: tr, data, atStart: start });
       }
     }
 
@@ -398,7 +392,7 @@ ${domutil.textToHTML(attributes[name])}</span>"</span>`;
         }
       }
       else {
-        pushItem<void>(undefined, editor.complexPatternAction);
+        menuItems.push({ data: null, action: editor.complexPatternAction});
       }
     }
 
@@ -480,17 +474,11 @@ ${domutil.textToHTML(attributes[name])}</span>"</span>`;
       }
 
       if (!topNode) {
-        for (const tr of editor.getElementTransformationsAt(treeCaret,
-                                                            "insert")) {
-          if (tr.name !== undefined) {
-            // Regular case: we have a real transformation.
-            pushItem({ name: tr.name, moveCaretTo: treeCaret },
-                     tr.tr as Transformation, atStart);
-          }
-          else {
-            // It is an action rather than a transformation.
-            pushItem(undefined, tr.tr);
-          }
+        for (const { tr, name } of
+             editor.getElementTransformationsAt(treeCaret, "insert")) {
+          menuItems.push({ data: name !== undefined ?
+                           { name, moveCaretTo: treeCaret } : null,
+                           action: tr, atStart });
         }
 
         if (atStart) {
@@ -498,15 +486,11 @@ ${domutil.textToHTML(attributes[name])}</span>"</span>`;
           // possibilities.
           const caretInside =
             treeCaret.make(treeCaret.node.childNodes[treeCaret.offset], 0);
-          for (const tr of editor.getElementTransformationsAt(caretInside,
-                                                              "wrap-content")) {
-            // As of TS 3.2.2, TS is not happy with an inline conditional here.
-            if (tr.name !== undefined) {
-              pushItem({ name: tr.name, node: node }, tr.tr as Transformation);
-            }
-            else {
-              pushItem(undefined, tr.tr);
-            }
+          for (const { tr, name } of
+               editor.getElementTransformationsAt(caretInside,
+                                                  "wrap-content")) {
+            menuItems.push({ data: name !== undefined ?
+                             { name, node: node } : null, action: tr });
           }
         }
       }

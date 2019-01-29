@@ -12,8 +12,8 @@ import { UnspecifiedAction } from "../action";
 import * as keyMod from "../key";
 import * as keyConstants from "../key-constants";
 import { NamedTransformationData, Transformation } from "../transformation";
-import { ContextMenu as Base, DismissCallback } from "./context-menu";
-import * as icon from "./icon";
+import { ContextMenu, DismissCallback } from "./context-menu";
+import { makeHTML } from "./icon";
 
 const KINDS = ["transform", "add", "delete", "wrap", "unwrap"];
 // ``undefined`` is "other kinds".
@@ -49,17 +49,25 @@ const KEY_TO_FILTER: {
   { key: exclamation, filter: undefined, which: "type" },
 ];
 
+const atStartToTxt: Record<string, string> = {
+  undefined: "",
+  true: " before this element",
+  false: " after this element",
+};
+
 export interface Item {
-  action: UnspecifiedAction | null;
-  item: Element;
+  action: UnspecifiedAction;
   data: {} | null;
+  atStart?: boolean;
 }
 
-function compareItems(a: Item, b: Item): number {
-  const aKind = (a.action !== null && (a.action instanceof Transformation)) ?
-    a.action.kind : undefined;
-  const bKind = (b.action !== null && (b.action instanceof Transformation)) ?
-    b.action.kind : undefined;
+interface MadeItem extends Item {
+  item: HTMLElement;
+}
+
+function compareItems(a: MadeItem, b: MadeItem): number {
+  const aKind = a.action instanceof Transformation ? a.action.kind : undefined;
+  const bKind = b.action instanceof Transformation ? b.action.kind : undefined;
 
   if (aKind !== bKind) {
     const aOrder = KIND_ORDER.indexOf(aKind);
@@ -137,8 +145,8 @@ interface Filters {
  * When no option is focused, typing ENTER will select the first option of the
  * menu.
  */
-export class ActionContextMenu extends Base {
-  private readonly actionItems: Item[];
+export class ActionContextMenu extends ContextMenu<Item> {
+  private readonly actionItems: MadeItem[];
   private readonly actionFilterItem: Element;
   private readonly actionFilterInput: HTMLInputElement;
 
@@ -166,12 +174,37 @@ export class ActionContextMenu extends Base {
    */
   constructor(document: Document, x: number, y: number, items: Item[],
               dismissCallback?: DismissCallback) {
-    super(document, x, y, [], dismissCallback, false);
+    super(document, x, y, [], dismissCallback);
+
+    this.actionItems = items.map((item) => {
+      const { action, data, atStart } = item;
+      const el = this.makeMenuItemElement();
+      const icon = action.getIcon();
+      // tslint:disable-next-line:no-inner-html
+      el.innerHTML = icon !== undefined ? icon : "";
+
+      if (action instanceof Transformation && action.kind !== undefined) {
+        el.setAttribute("data-kind", action.kind);
+      }
+
+      // We do it this way so that to avoid an HTML interpretation of
+      // action.getDescriptionFor()`s return value.
+      const text = this.doc.createTextNode(action.getDescriptionFor(data) +
+                                           atStartToTxt[String(atStart)]);
+      el.appendChild(text);
+      el.normalize();
+      $(el).click(data, action.boundTerminalHandler);
+
+      return {
+        action,
+        item: el,
+        data,
+        atStart,
+      };
+    });
 
     // Sort the items once and for all.
-    items.sort(compareItems);
-
-    this.actionItems = items;
+    this.actionItems.sort(compareItems);
 
     // Create the filtering GUI...
 
@@ -214,8 +247,12 @@ export class ActionContextMenu extends Base {
                       });
     $menu.on("keydown", this.actionKeydownHandler.bind(this));
     $menu.on("keypress", this.actionKeypressHandler.bind(this));
-    this.display([]);
+    this.display();
     textInput.focus();
+  }
+
+  protected makeMenuItem(spec: MadeItem): HTMLElement {
+    return spec.item;
   }
 
   private makeKindGroup(document: Document): Element {
@@ -227,12 +264,12 @@ export class ActionContextMenu extends Base {
       let title;
       if (kind !== undefined) {
         // tslint:disable-next-line:no-inner-html
-        child.innerHTML = icon.makeHTML(kind);
+        child.innerHTML = makeHTML(kind);
         title = `Show only ${kind} operations.`;
       }
       else {
         // tslint:disable-next-line:no-inner-html
-        child.innerHTML = icon.makeHTML("other");
+        child.innerHTML = makeHTML("other");
         title = "Show operations not covered by other filter buttons.";
       }
       $(child).tooltip({
@@ -261,12 +298,12 @@ export class ActionContextMenu extends Base {
       let title;
       if (actionType !== undefined) {
         // tslint:disable-next-line:no-inner-html
-        child.innerHTML = icon.makeHTML(actionType);
+        child.innerHTML = makeHTML(actionType);
         title = `Show only ${actionType} operations.`;
       }
       else {
         // tslint:disable-next-line:no-inner-html
-        child.innerHTML = icon.makeHTML("other");
+        child.innerHTML = makeHTML("other");
         title = "Show operations not covered by other filter buttons.";
       }
       $(child).tooltip({
@@ -289,14 +326,14 @@ export class ActionContextMenu extends Base {
   private makeKindHandler(kind: string | undefined): () => void {
     return () => {
       this.filters.kind = kind;
-      this.render();
+      this.refreshItemList();
     };
   }
 
   private makeTypeHandler(actionType: string | undefined): () => void {
     return () => {
       this.filters.type = actionType;
-      this.render();
+      this.refreshItemList();
     };
   }
 
@@ -316,12 +353,12 @@ export class ActionContextMenu extends Base {
       // preventing the default is not enough.
       if (!browsers.FIREFOX_24) {
         this.actionFilterInput.value = "";
-        this.render();
+        this.refreshItemList();
       }
       else {
         setTimeout(() => {
           this.actionFilterInput.value = "";
-          this.render();
+          this.refreshItemList();
         },
                    0);
       }
@@ -348,7 +385,7 @@ export class ActionContextMenu extends Base {
           continue;
         }
         this.filters[whichFilter] = spec.filter;
-        this.render();
+        this.refreshItemList();
         ev.stopPropagation();
         ev.preventDefault();
         return false;
@@ -366,7 +403,7 @@ export class ActionContextMenu extends Base {
     // we protect against unnecessary renders a bit of logic here.
     if (previous !== newval) {
       this.actionTextFilter = newval;
-      this.render();
+      this.refreshItemList();
     }
   }
 
@@ -412,15 +449,15 @@ export class ActionContextMenu extends Base {
     return true;
   }
 
-  render(): void {
+  refreshItemList(): void {
     const menu = this.menu;
     const actionFilterItem = this.actionFilterItem;
     const actionKindFilter = this.filters.kind;
     const actionTypeFilter = this.filters.type;
     // On IE 10, we don't want to remove and then add back this.actionFilterItem
-    // on each render because that makes this.actionFilterInput lose the
-    // focus. Yes, even with the call at the end of _render, IE 10 inexplicably
-    // makes the field lose focus **later**.
+    // on each refresh because that makes this.actionFilterInput lose the
+    // focus. Yes, even with a focus call in render , IE 10 inexplicably makes
+    // the field lose focus **later**.
     while (menu.lastChild !== null && menu.lastChild !== actionFilterItem) {
       menu.removeChild(menu.lastChild);
     }
@@ -446,12 +483,12 @@ export class ActionContextMenu extends Base {
     if (actionFilterItem.parentNode === null) {
       menu.appendChild(actionFilterItem);
     }
+
     const items = this.computeActionItemsToDisplay(this.actionItems);
-    super.render(items);
+    this.render(items);
   }
 
-  // The type NamedDataItem
-  private computeActionItemsToDisplay(items: Item[]): Element[] {
+  private computeActionItemsToDisplay(items: MadeItem[]): Element[] {
     const kindFilter = this.filters.kind;
     const typeFilter = this.filters.type;
     const textFilter = this.actionTextFilter;
@@ -462,11 +499,13 @@ export class ActionContextMenu extends Base {
         kindMatch = () => true;
         break;
       case undefined:
-        kindMatch = (item: Item) => !(item.action instanceof Transformation) ||
+        kindMatch =
+          (item: MadeItem) => !(item.action instanceof Transformation) ||
           KINDS.indexOf(item.action.kind) === -1;
         break;
       default:
-        kindMatch = (item: Item) => (item.action instanceof Transformation) &&
+        kindMatch =
+          (item: MadeItem) => (item.action instanceof Transformation) &&
           item.action.kind === kindFilter;
     }
 
@@ -476,11 +515,13 @@ export class ActionContextMenu extends Base {
         typeMatch = () => true;
         break;
       case undefined:
-        typeMatch = (item: Item) => !(item.action instanceof Transformation) ||
+        typeMatch =
+          (item: MadeItem) => !(item.action instanceof Transformation) ||
           TYPES.indexOf(item.action.nodeType) === -1;
         break;
       default:
-        typeMatch = (item: Item) => (item.action instanceof Transformation) &&
+        typeMatch =
+          (item: MadeItem) => (item.action instanceof Transformation) &&
           item.action.nodeType === typeFilter;
     }
 
@@ -488,16 +529,18 @@ export class ActionContextMenu extends Base {
     if (textFilter !== "") {
       if (textFilter[0] === "^") {
         const textFilterRe = RegExp(textFilter);
-        textMatch = (item: Item) => {
-          const { data } = item as Item & { data: NamedTransformationData };
+        textMatch = (item: MadeItem) => {
+          const { data } =
+            item as MadeItem & { data: NamedTransformationData };
           const text = (data !== null && data.name !== undefined) ? data.name :
             item.item.textContent!;
           return textFilterRe.test(text);
         };
       }
       else {
-          textMatch = (item: Item) => {
-            const { data } = item as Item & { data: NamedTransformationData };
+          textMatch = (item: MadeItem) => {
+            const { data } =
+              item as MadeItem & { data: NamedTransformationData };
             const text = (data !== null && data.name !== undefined) ?
               data.name : item.item.textContent!;
             return text.indexOf(textFilter) !== -1;

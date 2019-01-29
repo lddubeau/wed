@@ -14,16 +14,9 @@ import { ModeTree } from "../mode-tree";
 import { NamedTransformationData, Transformation } from "../transformation";
 import { ActionContextMenu, Item } from "./action-context-menu";
 import { CompletionMenu } from "./completion-menu";
-import { ContextMenu, makeMenuItem } from "./context-menu";
-import { makeHTML } from "./icon";
+import { ContextMenu } from "./context-menu";
 import { ReplacementMenu } from "./replacement-menu";
 import { TypeaheadPopup } from "./typeahead-popup";
-
-const atStartToTxt: Record<string, string> = {
-  undefined: "",
-  true: " before this element",
-  false: " after this element",
-};
 
 /**
  * Manages the editing menus for a specific editing view. An "editing menu" is a
@@ -36,7 +29,7 @@ export class EditingMenuManager {
   private readonly caretManager: CaretManager;
   private readonly guiRoot: HTMLDocument | HTMLElement;
   private readonly dataRoot: Document | Element;
-  private currentDropdown: ContextMenu | undefined;
+  private currentDropdown: ContextMenu<unknown> | undefined;
   private readonly modeTree: ModeTree;
   private readonly doc: HTMLDocument;
   private currentTypeahead: TypeaheadPopup | undefined;
@@ -224,11 +217,6 @@ export class EditingMenuManager {
 
     // tslint:disable-next-line:no-any
     const menuItems: Item[] = [];
-    const pushItem = <D>(data: D, tr: Action<D>): void =>  {
-      const li = this.makeMenuItemForAction(tr, data);
-      menuItems.push({ action: tr, item: li, data: data });
-    };
-
     if (// Should not be part of a gui element.
       !(actualNode.parentNode as Element).classList.contains("_gui")) {
       // We want the data node, not the gui node.
@@ -248,25 +236,18 @@ export class EditingMenuManager {
 
       const trs = this.editor.getElementTransformationsAt(
         treeCaret, wrap ? "wrap" : "insert");
-      for (const tr of trs) {
-        // If tr.name is not undefined we have a real transformation.
+      for (const { name, tr } of trs) {
+        // If name is not undefined we have a real transformation.
         // Otherwise, it is an action.
-        // TS 3.2.2 does not like the inline and messes up inference.
-        if (tr.name !== undefined) {
-          pushItem({ name: tr.name },
-                   tr.tr as Transformation<NamedTransformationData>);
-        }
-        else {
-          pushItem(null, tr.tr);
-        }
+        menuItems.push({ data: name !== undefined ? { name } : null,
+                         action: tr });
       }
 
       if (dataNode !== this.dataRoot.firstChild && dataNode !== this.dataRoot) {
         const actions = mode.getContextualActions(
           ["unwrap", "delete-parent", "split"], tagName, dataNode, 0);
         for (const action of actions) {
-          pushItem({ node: dataNode, name: tagName },
-                   action as Transformation);
+          menuItems.push({ data: { node: dataNode, name: tagName }, action });
         }
       }
     }
@@ -288,8 +269,10 @@ export class EditingMenuManager {
         ["merge-with-next", "merge-with-previous", "append", "prepend"], sepFor,
         $.data(transformationNode, "wed_mirror_node"), 0);
       for (const action of actions) {
-        pushItem({ node: transformationNode, name: sepFor },
-                 action as Transformation);
+        menuItems.push({
+          data: { node: transformationNode, name: sepFor },
+          action,
+        });
       }
     }
 
@@ -311,71 +294,16 @@ export class EditingMenuManager {
       const docURL = mode.documentationLinkFor(tagName);
 
       if (docURL != null) {
-        const li = this.makeDocumentationMenuItem(docURL);
-        menuItems.push({ action: null, item: li, data: null });
+        menuItems.push({
+          action: this.editor.documentationAction,
+          data: {
+            docURL,
+          },
+        });
       }
     }
 
     return menuItems;
-  }
-
-  /**
-   * Make a standardized menu item for a specific action. This method formats
-   * the menu item and sets an even handler appropriate to invoke the action's
-   * event handler.
-   *
-   * @param action The action for which we make a menu item.
-   *
-   * @param data The data that accompanies the action.
-   *
-   * @param start This parameter determines whether we are creating an item for
-   *              a start label (``true``) an end label (``false``) or
-   *              something which is neither a start or end label
-   *              (``undefined``).
-   *
-   * @returns A HTML element which is fit to serve as a menu item.
-   */
-  makeMenuItemForAction<D>(action: Action<D>, data: D,
-                           start?: boolean): HTMLElement {
-    const icon = action.getIcon();
-    // Should we set tabindex="0" here?
-    const item = makeMenuItem(this.doc);
-    // tslint:disable-next-line:no-inner-html
-    item.innerHTML = icon !== undefined ? icon : "";
-
-    if (action instanceof Transformation && action.kind !== undefined) {
-      item.setAttribute("data-kind", action.kind);
-    }
-
-    // We do it this way so that to avoid an HTML interpretation of
-    // action.getDescriptionFor()`s return value.
-    const text = this.doc.createTextNode(action.getDescriptionFor(data) +
-                                         atStartToTxt[String(start)]);
-    item.appendChild(text);
-    item.normalize();
-    $(item).click(data, action.boundTerminalHandler);
-    return item;
-  }
-
-  /**
-   * Makes an HTML link to open the documentation of an element.
-   *
-   * @param docUrl The URL to the documentation to open.
-   *
-   * @returns A ``&lt;a>`` element that links to the documentation.
-   */
-  makeDocumentationMenuItem(docURL: string): HTMLElement {
-    const iconHtml = makeHTML("documentation");
-
-    // Should we set tabindex="0" here?
-    const item = makeMenuItem(this.doc);
-    // tslint:disable-next-line:no-inner-html
-    item.innerHTML = iconHtml;
-    item.appendChild(this.doc.createTextNode(" Element's documentation."));
-    $(item).click(() => {
-      this.editor.openDocumentationLink(docURL);
-    });
-    return item;
   }
 
   private getPossibleAttributeValues(): string[] {

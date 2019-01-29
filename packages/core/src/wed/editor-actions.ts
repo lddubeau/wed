@@ -9,7 +9,7 @@ import { Observable, Subject } from "rxjs";
 import { Action } from "./action";
 import { Button, ToggleButton } from "./gui/button";
 import { makeHTML } from "./gui/icon";
-import { EditorAPI } from "./mode-api";
+import { DocumentationActionData, EditorAPI } from "./mode-api";
 import { SelectionMode } from "./selection-mode";
 
 export type ActionCtor = { new (editor: EditorAPI): Action };
@@ -177,5 +177,22 @@ export class SetSelectionMode extends Action<{}> {
     });
 
     return button;
+  }
+}
+
+/**
+ * An action that opens a documentation link. This is really meant to be used to
+ * provide menu items to open links to element documentation. We do not take an
+ * ``Element`` in the data because the discovery of whether an element has
+ * documentation or not must be made **before** using this class.
+ */
+export class DocumentationAction extends Action<DocumentationActionData> {
+  constructor(editor: EditorAPI) {
+    super(editor, "Element's documentation.", undefined,
+          makeHTML("documentation"), false);
+  }
+
+  execute(data: DocumentationActionData): void {
+    this.editor.openDocumentationLink(data.docURL);
   }
 }

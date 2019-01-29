@@ -13,7 +13,7 @@ import { ContextMenu, DismissCallback } from "./context-menu";
 /**
  * A menu for displaying completions.
  */
-export class CompletionMenu extends ContextMenu {
+export class CompletionMenu extends ContextMenu<string> {
   private readonly completionPrefix: string;
   private readonly completionItems: string[];
   private readonly editor: Editor;
@@ -40,7 +40,7 @@ export class CompletionMenu extends ContextMenu {
   constructor(editor: Editor, document: Document, x: number, y: number,
               prefix: string, items: string[],
               dismissCallback?: DismissCallback) {
-    super(document, x, y, [], dismissCallback, false);
+    super(document, x, y, items, dismissCallback);
     this.completionPrefix = prefix;
     this.completionItems = items;
     this.editor = editor;
@@ -73,7 +73,7 @@ export class CompletionMenu extends ContextMenu {
       this.globalKeydownHandler.bind(this);
     editor.pushGlobalKeydownHandler(this.boundCompletionKeydownHandler);
 
-    this.display([]);
+    this.display();
 
     // We want the user to still be able to type into the document.
     editor.caretManager.focusInputField();
@@ -103,33 +103,36 @@ export class CompletionMenu extends ContextMenu {
     return true;
   }
 
-  render(): void {
-    const editor = this.editor;
-    const items = [];
-    const prefix = this.completionPrefix;
-    const doc = this.doc;
-    function typeData(ev: JQueryEventObject): void {
-      editor.type(ev.data);
+  protected makeMenuItem(spec: string): HTMLElement | null{
+    const { completionPrefix, editor } = this;
+    let menuItem: HTMLElement | null;
+    if (completionPrefix === "") {
+      menuItem = this.makeMenuItemElement();
+      menuItem.textContent = spec;
+      $(menuItem).click(() => {
+        editor.type(spec);
+      });
+    }
+    else if (spec.lastIndexOf(completionPrefix, 0) === 0) {
+      menuItem = this.makeMenuItemElement();
+      // tslint:disable-next-line:no-inner-html
+      menuItem.innerHTML = "<b></b>";
+      menuItem.firstChild!.textContent = spec.slice(0, completionPrefix.length);
+      const tail = spec.slice(completionPrefix.length);
+      menuItem.appendChild(this.doc.createTextNode(tail));
+      $(menuItem).click(() => {
+        editor.type(spec);
+      });
+    }
+    else {
+      menuItem = null;
     }
 
-    for (const item of this.completionItems) {
-      if (prefix === "") {
-        const menuItem = this.makeMenuItem();
-        menuItem.textContent = item;
-        items.push(menuItem);
-        $(menuItem).click(item, typeData);
-      }
-      else if (item.lastIndexOf(prefix, 0) === 0) {
-        const menuItem = this.makeMenuItem();
-        // tslint:disable-next-line:no-inner-html
-        menuItem.innerHTML = "<b></b>";
-        menuItem.firstChild!.textContent = item.slice(0, prefix.length);
-        const tail = item.slice(prefix.length);
-        menuItem.appendChild(doc.createTextNode(tail));
-        items.push(menuItem);
-        $(menuItem).click(tail, typeData);
-      }
-    }
+    return menuItem;
+  }
+
+  render(items: HTMLElement[]): void {
+    const prefix = this.completionPrefix;
 
     if (items.length === 0) {
       this.dismiss();

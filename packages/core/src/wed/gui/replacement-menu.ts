@@ -13,8 +13,7 @@ export type DismissCallback = (selected: string | undefined) => void;
 /**
  * A menu for displaying replacement values.
  */
-export class ReplacementMenu extends ContextMenu {
-  private readonly replacementItems: string[];
+export class ReplacementMenu extends ContextMenu<string> {
   private selected: string | undefined;
 
   /**
@@ -33,29 +32,21 @@ export class ReplacementMenu extends ContextMenu {
    */
   constructor(document: Document, x: number, y: number, items: string[],
               dismissCallback: DismissCallback) {
-    super(document, x, y, [], () => {
+    super(document, x, y, items, () => {
       dismissCallback(this.selected);
-    }, false);
-    this.replacementItems = items;
+    });
     this.dropdown.classList.add("wed-replacement-menu");
-
-    this.display([]);
+    this.display();
   }
 
-  render(): void {
-    const items = [];
-    for (const item of this.replacementItems) {
-      const menuItem = this.makeMenuItem();
-      // tslint:disable-next-line:no-inner-html
-      menuItem.textContent = item;
-      items.push(menuItem);
-      $(menuItem).click(item, () => {
-        this.selected = item;
-        this.dismiss();
-      });
-    }
-
-    super.render(items);
+  protected makeMenuItem(spec: string): HTMLElement {
+    const item = this.makeMenuItemElement();
+    item.textContent = spec;
+    $(item).click(() => {
+      this.selected = spec;
+      this.dismiss();
+    });
+    return item;
   }
 
   dismiss(): void {

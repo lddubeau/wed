@@ -50,6 +50,28 @@ Miscelaneous changes
 
 * The patch for Bootstrap is gone since it was only required for Bootstrap 3.x.
 
+* The family of classes for creating contextual menus has changed quite a
+  bit:
+
+  + ``ContextMenu`` used to take a series of ``Element`` for menu items. It now
+    takes an list of objects of abritrary type and calls ``makeMenuItems`` to
+    convert them to elements.
+
+  + ``ContextMenu`` now calls ``refreshItemList`` to refresh the list of items
+    shown. Where previously you might have called ``render`` directly, you
+    should now call ``refreshItemList``.
+
+  + ``ActionContextMenu``, ``CompletionMenu`` and ``ReplacementMenu`` have all
+    been updated to use the refactored base class.
+
+* ``EditorAPI`` how exposes a ``documentationAction`` which must be used for
+  menu items providing links to documentation.
+
+* ``EditingMenuManager`` no longer has ``makeMenuItemForAction`` and
+  ``makeDocumentationMenuItem``. Their functions have been folded into
+  ``ActionContextMenu`` and ``documentationAction``. (Your code does not need to
+  use the removed methods anymore.)
+
 Notable Bootstrap Changes
 =========================
 

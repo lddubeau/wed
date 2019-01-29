@@ -11,7 +11,7 @@ import { ErrorData } from "salve-dom";
 
 import { Action, Decorator, domutil, EditorAPI, gui, GUISelector,
          inputTriggerFactory, key, keyConstants, ModeValidator, objectCheck,
-         transformation } from "wed";
+         transformation, UnspecifiedAction } from "wed";
 import { GenericModeOptions,
          Mode as GenericMode } from "wed/modes/generic/generic";
 import { GenericDecorator } from "wed/modes/generic/generic-decorator";
@@ -19,6 +19,7 @@ import { GenericDecorator } from "wed/modes/generic/generic-decorator";
 import Template = objectCheck.Template;
 import Button = gui.button.Button;
 import ContextMenu = gui.contextMenu.ContextMenu;
+import DismissCallback = gui.contextMenu.DismissCallback;
 import Modal = gui.modal.Modal;
 
 const { childrenByClass, closestByClass, indexOf } = domutil;
@@ -33,6 +34,33 @@ class Validator implements ModeValidator {
       node: this.dataRoot,
       index: 0,
     }];
+  }
+}
+
+interface ActionSpec {
+  action: UnspecifiedAction;
+
+  data: unknown;
+}
+
+// tslint:disable-next-line:completed-docs
+class CustomMenu extends ContextMenu<ActionSpec> {
+
+  constructor(protected readonly doc: Document, x: number, y: number,
+              protected readonly specs: ActionSpec[],
+              dismissCallback?: DismissCallback) {
+    super(doc, x, y, specs, dismissCallback);
+    this.display();
+  }
+
+  protected makeMenuItem(spec: ActionSpec): HTMLElement | null {
+    const { action, data } = spec;
+    const menuItem = this.makeMenuItemElement();
+    // tslint:disable-next-line:no-inner-html
+    menuItem.innerHTML = `${action.getLabelFor(data)} before this one`;
+    $(menuItem).click(data, action.boundTerminalHandler);
+
+    return menuItem;
   }
 }
 
@@ -185,16 +213,13 @@ export class TestDecorator extends GenericDecorator {
       moveCaretTo: this.editor.caretManager.makeCaret(container, offset),
     };
 
-    const items = [];
-    for (const act of actions) {
-      const text = `${act.getLabelFor(data)} before this one`;
-      const $a = $(`<a tabindex='0' href='#'>${text}</a>`);
-      $a.click(data, act.boundTerminalHandler);
-      items.push($("<li></li>").append($a)[0]);
-    }
+    const items = actions.map((action) => ({
+      data,
+      action,
+    }));
 
     // tslint:disable-next-line:no-unused-expression
-    new ContextMenu(this.editor.doc, ev.clientX, ev.clientY, items);
+    new CustomMenu(this.editor.doc, ev.clientX, ev.clientY, items);
 
     return false;
   }

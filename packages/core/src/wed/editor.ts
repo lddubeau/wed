@@ -52,7 +52,8 @@ import { Key, makeKey } from "./key";
 import * as keyConstants from "./key-constants";
 import * as log from "./log";
 import { Mode } from "./mode";
-import { CutUnitTransformationData, EditorAPI , PasteTransformationData,
+import { CutUnitTransformationData, DocumentationActionData, EditorAPI ,
+         PasteTransformationData,
          ReplaceRangeTransformationData } from "./mode-api";
 import { ModeTree } from "./mode-tree";
 import * as onbeforeunload from "./onbeforeunload";
@@ -299,6 +300,7 @@ export class Editor implements EditorAPI {
   readonly $guiRoot: JQuery;
   readonly $errorList: JQuery;
   readonly complexPatternAction: Action;
+  readonly documentationAction: Action<DocumentationActionData>;
   readonly pasteTr: Transformation<PasteTransformationData>;
   readonly pasteUnitTr: Transformation<PasteTransformationData>;
   readonly cutTr: Transformation;
@@ -506,6 +508,7 @@ export class Editor implements EditorAPI {
     this.complexPatternAction = new ComplexPatternAction(
       this, "Complex name pattern", undefined, icon.makeHTML("exclamation"),
       true);
+    this.documentationAction = new editorActions.DocumentationAction(this);
 
     this.pasteTr = new Transformation(this, "add", "Paste",
                                       this.paste.bind(this));
@@ -1959,11 +1962,6 @@ in a way not supported by this version of wed.";
     this.caretManager.mark.refresh();
   }
 
-  /**
-   * Opens a documentation link.
-   *
-   * @param url The URL to open.
-   */
   openDocumentationLink(url: string): void {
     window.open(url);
   }
