@@ -41,8 +41,6 @@
       dexie: "top-npm:dexie",
       "merge-options": "top-npm:merge-options/index.js",
       "is-plain-obj": "top-npm:is-plain-obj/index.js",
-      jquery: "top-npm:jquery",
-      bootstrap: "top-npm:bootstrap",
       fetchiest: "top-npm:fetchiest",
       "expect-rejection": "top-npm:expect-rejection",
     },

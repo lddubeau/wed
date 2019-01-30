@@ -11,7 +11,7 @@ import mergeOptions from "merge-options";
 import { Options, Runtime } from "@wedxml/client-api";
 import { EDITOR_OPTIONS } from "@wedxml/common/tokens";
 
-import { FetchCall, make, MakeOptions } from "./ajax";
+import { fetch, FetchiestOptions, FetchiestRequestInit } from "fetchiest";
 import { RuntimeURISchemeHandler } from "./runtime-uri-scheme-handler";
 import { RUNTIME_URI_SCHEME_HANDLER } from "./tokens";
 
@@ -29,6 +29,17 @@ async function readFile(file: Blob): Promise<string> {
     reader.onerror = reject;
     reader.readAsText(file);
   });
+}
+
+// tslint:disable-next-line:no-any
+export function suppressUnhandledRejections<P extends Promise<any>>(p: P): P {
+  // tslint:disable-next-line:no-any
+  const pAsAny = p as any;
+  if (pAsAny.suppressUnhandledRejections) {
+    pAsAny.suppressUnhandledRejections();
+  }
+
+  return p;
 }
 
 type RequireJSCall = (deps: string[],
@@ -53,9 +64,9 @@ const req = (window as any)["require"] as RequireJSCall;
 export class DefaultRuntime implements Runtime {
   readonly options: Options;
 
-  readonly fetch: FetchCall;
-
   private readonly handlers: RuntimeURISchemeHandler[];
+
+  private readonly fetchiestOptions: FetchiestOptions;
 
   constructor(@inject(EDITOR_OPTIONS) options: Options,
               @multiInject(RUNTIME_URI_SCHEME_HANDLER) @optional()
@@ -71,23 +82,41 @@ export class DefaultRuntime implements Runtime {
     // tslint:disable-next-line:no-parameter-reassignment
     options = mergeOptions({}, options);
     this.options = options;
-    const fetchiestOptions = options.fetchiestOptions != null ?
+    this.fetchiestOptions = options.fetchiestOptions != null ?
       options.fetchiestOptions : {
-      tries: 3,
-      delay: 100,
-      diagnose: {
-        // It would be desirable to support this...
-        // serverURL: "/ping",
-        knownServers: [
-          // tslint:disable:no-http-string
-          "http://www.google.com/",
-          "http://www.cloudfront.com/",
-          // tslint:enable:no-http-string
-        ],
-      },
-    };
+        tries: 3,
+        delay: 100,
+        diagnose: {
+          // It would be desirable to support this...
+          // serverURL: "/ping",
+          knownServers: [
+            // tslint:disable:no-http-string
+            "http://www.google.com/",
+            "http://www.cloudfront.com/",
+            // tslint:enable:no-http-string
+          ],
+        },
+      };
+  }
 
-    this.fetch = make(fetchiestOptions as MakeOptions);
+  async fetch(input: RequestInfo,
+              init?: FetchiestRequestInit): Promise<Response> {
+    const fetchiestOptions =
+      init !== undefined && init.fetchiestOptions !== undefined ? {
+        ...this.fetchiestOptions,
+        ...init.fetchiestOptions,
+      } : this.fetchiestOptions;
+
+    const response = await fetch(input, { ...init, fetchiestOptions });
+
+    if (!response.ok) {
+      const err = new Error(`cannot retreive: ${response.url}`);
+      // tslint:disable-next-line:no-any
+      (err as any).response = response;
+      throw err;
+    }
+
+    return response;
   }
 
   /**
