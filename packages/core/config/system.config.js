@@ -25,7 +25,7 @@ window.systemJSConfig = {
     "merge-options": "top-npm:merge-options/index.js",
     "is-plain-obj": "top-npm:is-plain-obj/index.js",
     "last-resort": "top-npm:last-resort",
-    "rangy-core": "top-npm:rangy/lib/rangy-core",
+    rangy: "top-npm:rangy/lib/rangy-core",
     "rangy-textrange": "top-npm:rangy/lib/rangy-textrange",
     salve: "top-npm:salve/salve.min.js",
     "salve-dom": "top-npm:salve-dom",
@@ -40,7 +40,6 @@ window.systemJSConfig = {
     inversify: "top-npm:inversify",
     interactjs: "top-npm:interactjs",
     "@wedxml/": "npm:@wedxml/",
-    rangy: "wed/glue/rangy-glue.js",
     bootstrap: "top-npm:bootstrap/dist/js/bootstrap.js",
     "popper.js": "top-npm:popper.js",
   },
@@ -64,11 +63,6 @@ window.systemJSConfig = {
     // We use this to specify a default extension of ".js". Yep, this is enough
     // because if `defaultExtension` is not explicitly set it default to ".js"!
     "": {},
-    "wed/glue/rangy-glue.js": {
-      map: {
-        rangy: "rangy-core",
-      },
-    },
   },
   packageConfigPaths: [
     "top-npm:*/package.json",

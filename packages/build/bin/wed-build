@@ -10,8 +10,6 @@ const { ArgumentParser } = require("argparse");
 const webpack = require("webpack");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 
-const { NormalModuleReplacementPlugin } = webpack;
-
 const parser = new ArgumentParser({
   addHelp: true,
   description: "Build a custom wed pack.",
@@ -110,15 +108,6 @@ const config = {
     },
   },
   plugins: [
-    // This causes webpack to load wed/glue/rangy-glue whenever rangy is
-    // required. Except that in rangy-glue.js when rangy is required, rangy is
-    // loaded.
-    new NormalModuleReplacementPlugin(/^rangy$/, (resource) => {
-      if (resource.contextInfo.issuer !==
-          path.resolve(path.join(wedBuildDir, "wed/glue/rangy-glue.js"))) {
-        resource.request = "wed/glue/rangy-glue";
-      }
-    }),
     new CopyWebpackPlugin([{
       from: {
         glob: "../kitchen-sink.html",

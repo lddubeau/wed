@@ -4,7 +4,8 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import rangy from "rangy";
+// tslint:disable-next-line:import-name
+import rangy from "./glue/rangy-glue";
 
 import { CaretManager } from "./caret-manager";
 import { DLoc, DLocRange, DLocRoot, getRoot } from "./dloc";
