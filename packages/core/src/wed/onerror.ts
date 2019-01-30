@@ -5,9 +5,8 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import $ from "jquery";
-
 import { Editor } from "./editor";
+import { Modal } from "./gui/modal";
 import * as log from "./log";
 
 /* tslint:disable:no-any */
@@ -15,25 +14,10 @@ import * as log from "./log";
 // tslint:disable-next-line:no-typeof-undefined
 const test = (typeof __WED_TESTING !== "undefined") && __WED_TESTING.testing;
 
-const $modal = $(`\
-<div class="modal wed-fatal-modal" style="position: absolute" tabindex="1">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal"
-aria-hidden="true">&times;</button>
-        <h3>Fatal Error</h3>
-      </div>
-      <div class="modal-body">
-        <div class="save-messages"></div>
-        <div class="error-message"></div>
-      </div>
-      <div class="modal-footer">
-        <a href="#" class="btn btn-primary" data-dismiss="modal">Reload</a>
-      </div>
-    </div>
-  </div>
-</div>`);
+const modal = new Modal();
+const $modal = modal.getTopLevel();
+modal.setTitle("Fatal Error");
+modal.addButton("Reload", true);
 
 let terminating = false;
 let terminationTimeout: number | undefined;
@@ -47,6 +31,7 @@ function reset(): void {
     terminationWindow.clearTimeout(terminationTimeout);
     terminationTimeout = undefined;
   }
+
   $modal.off();
   $modal.modal("hide");
   $modal.remove();
@@ -66,8 +51,8 @@ export function isTerminating(): boolean {
  */
 // tslint:disable-next-line:variable-name
 export const __test = test ? {
-    $modal,
-    reset,
+  $modal,
+  reset,
 } : undefined;
 
 /**
@@ -80,15 +65,15 @@ const TERMINATION_TIMEOUT = 5000;
   // So that we can issue clearTimeout elsewhere.
 
 function showModal(saveMessages: string, errorMessage: string): void {
-  $(document.body).append($modal);
+  document.body.appendChild($modal[0]);
+  modal.setBody(`<div class="save-messages"></div>\
+<div class="error-message"></div>`);
   // tslint:disable-next-line:no-inner-html
   $modal.find(".save-messages")[0].innerHTML = saveMessages;
   $modal.find(".error-message")[0].textContent = errorMessage;
-  $modal.on("hide.bs.modal.modal", () => {
-    $modal.remove();
+  modal.modal(() => {
     window.location.reload();
   });
-  $modal.modal();
 }
 
 function eventToMessage(ev: any): string {
