@@ -22,8 +22,12 @@ export * from "wed";
 // function which takes parameters that are liable to change from case to case.
 export function makeEditor(wedroot: Element, options: Options,
                            saverOptions: {}): EditorInstance {
-  // You must create an InversifyJS container.
-  const container = new Container();
+  // You must create an InversifyJS container. IT IS IMPORTANT TO SET THE
+  // defaultScope TO SINGLETON!!!! This way if multiple parts of wed require the
+  // runtime, they all use the same runtime. If they require the grammar loader,
+  // they all get the same, etc. If you do not do this, then they'll get
+  // different instances.
+  const container = new Container({ defaultScope: "Singleton" });
 
   // The EDITOR_WIDGET is the DOM element that the editor will take over. This
   // binding is mandatory.
