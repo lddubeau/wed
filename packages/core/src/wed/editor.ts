@@ -605,9 +605,6 @@ export class Editor implements EditorAPI {
 
   fireTransformation<T extends TransformationData>(tr: Transformation<T>,
                                                    data: T): void {
-    // This is necessary because our context menu saves/restores the selection
-    // using rangy. If we move on without this call, then the transformation
-    // could destroy the markers that rangy put in and rangy will complain.
     this.editingMenuManager.dismiss();
     let currentGroup = this._undo.getGroup();
     let textUndo: wundo.UndoGroup | undefined;
