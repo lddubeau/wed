@@ -1,6 +1,7 @@
 Version 5.0.0 is a major restructuration of wed from a single package that
 contains all possible savers, all means of loading grammars, etc., to a series
-of packages that can be used as needed.
+of packages that can be used as needed. The packages are under the ``@wedxml``
+scope.
 
 The new setup allows to tailor wed to specific use-case scenarios. If you need
 to use wed in a context the data is saved into an IndexedDB backend, then you do
