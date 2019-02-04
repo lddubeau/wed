@@ -1,6 +1,6 @@
 {
   "name": "@wedxml/ajax-saver",
-  "version": "5.0.0-alpha.14",
+  "version": "5.0.0-alpha.15",
   "private": true,
   "description": "A saver for wed that uses an AJAX-based protocol to save.",
   "versionedSources": "src/ajax-saver.ts",
@@ -24,9 +24,9 @@
   "license": "MPL-2.0",
   "main": "build/dist/ajax-saver.js",
   "dependencies": {
-    "@wedxml/base-saver": "5.0.0-alpha.14",
-    "@wedxml/client-api": "5.0.0-alpha.14",
-    "@wedxml/common": "5.0.0-alpha.14"
+    "@wedxml/base-saver": "5.0.0-alpha.15",
+    "@wedxml/client-api": "5.0.0-alpha.15",
+    "@wedxml/common": "5.0.0-alpha.15"
   },
   "scripts": {
     "tsc": "tsc -p tsconfig.json",

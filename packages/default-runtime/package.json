@@ -1,6 +1,6 @@
 {
   "name": "@wedxml/default-runtime",
-  "version": "5.0.0-alpha.14",
+  "version": "5.0.0-alpha.15",
   "private": true,
   "description": "The default runtime implementation for wed editors.",
   "keywords": [
@@ -23,8 +23,8 @@
   "main": "build/dist/default-runtime.js",
   "versionedSources": "src/default-runtime.ts",
   "dependencies": {
-    "@wedxml/client-api": "5.0.0-alpha.14",
-    "@wedxml/common": "5.0.0-alpha.14"
+    "@wedxml/client-api": "5.0.0-alpha.15",
+    "@wedxml/common": "5.0.0-alpha.15"
   },
   "scripts": {
     "tsc": "tsc -p tsconfig.json",
