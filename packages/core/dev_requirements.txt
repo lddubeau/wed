@@ -1,7 +1,7 @@
 # This is a list of the Python requirements needed for developing wed.
 sphinx>=1.4.8,<2
 glerbl>=0.1.0,<1
-selenic>=0.12.1,<1
+selenic>=0.12.2,<1
 wedutil>=0.22.0,<1
 behave==1.2.6
 selenium==3.8.0
