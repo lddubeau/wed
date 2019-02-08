@@ -64,7 +64,6 @@ const externals = {};
  "inversify",
  "log4javascript",
  "font-awesome",
- "bootbox",
  "typeahead",
  "bloodhound",
  "interactjs",

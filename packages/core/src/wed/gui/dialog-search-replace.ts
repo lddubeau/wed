@@ -4,7 +4,7 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import * as bootbox from "bootbox";
+import * as bootprompt from "bootprompt";
 import $ from "jquery";
 
 import { Editor } from "../editor";
@@ -82,7 +82,7 @@ export class DialogSearchReplace {
   constructor(editor: Editor, scroller: Scroller, direction: Direction) {
     this.search = new SearchReplace(editor, scroller);
     const body = $(dialogTemplate)[0] as HTMLFormElement;
-    const dialog = bootbox.dialog({
+    const dialog = bootprompt.dialog({
       title: "Search/Replace",
       message: body,
       onEscape: true,

@@ -18,7 +18,7 @@ window.systemJSConfig = {
     jquery: "top-npm:jquery",
     log4javascript: "top-npm:log4javascript",
     "font-awesome": "top-npm:font-awesome",
-    bootbox: "top-npm:bootbox",
+    bootprompt: "top-npm:bootprompt",
     typeahead: "top-npm:corejs-typeahead/dist/typeahead.jquery.js",
     bloodhound: "top-npm:corejs-typeahead/dist/bloodhound.js",
     interact: "top-npm:interact",
@@ -44,11 +44,6 @@ window.systemJSConfig = {
     "popper.js": "top-npm:popper.js",
   },
   meta: {
-    "top-npm:bootbox/*": {
-      // We must add bootstrap here because bootbox does not list
-      // it as a dependency.
-      deps: ["bootstrap"],
-    },
     "wed/modes/generic/metadata-schema.json": {
       loader: "json",
     },
