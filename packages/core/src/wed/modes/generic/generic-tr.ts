@@ -6,7 +6,6 @@
  */
 "use strict";
 
-import * as salve from "salve";
 import { ErrorData } from "salve-dom";
 
 import { DLoc, domtypeguards, domutil, EditorAPI, transformation } from "wed";
@@ -50,8 +49,8 @@ function _autoinsert(el: Element, editor: EditorAPI): void {
     }
     const name = names[0];
 
-    const locations = editor.validator.possibleWhere(
-      el, new salve.Event("enterStartTag", name.ns, name.name));
+    const locations = editor.validator.possibleWhere(el, "enterStartTag",
+                                                     name.ns, name.name);
 
     if (locations.length !== 1) {
       break;

@@ -3,7 +3,7 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import { Event, EventSet, Grammar, Name, readTreeFromJSON,
+import { Event, EnterStartTagEvent, EventSet, Grammar, Name, readTreeFromJSON,
          ValidationError } from "salve";
 import { ErrorData } from "salve-dom";
 
@@ -49,7 +49,7 @@ describe("validator", () => {
     it("with DLoc", () => {
       const p = new validator.Validator(grammar, emptyTree, []);
       const evs = p.possibleAt(DLoc.mustMakeDLoc(emptyDataRoot, emptyTree, 0));
-      sameEvents(evs, [new Event("enterStartTag", new Name("", "", "html"))]);
+      sameEvents(evs, [new EnterStartTagEvent(new Name("", "", "html"))]);
     });
   });
 
