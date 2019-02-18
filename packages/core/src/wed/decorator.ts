@@ -358,23 +358,12 @@ ${domutil.textToHTML(attributes[name])}</span>"</span>`;
       }
     }
 
-    function processAttributeNameEvent(event: salve.Event,
+    function processAttributeNameEvent(event: salve.AttributeNameEvent,
                                        element: Element): void {
-      const namePattern = event.params[1] as salve.Name;
-      // The next if line causes tslint to inexplicably raise a failure. I am
-      // able to reproduce it with something as small as:
-      //
-      // import { Name } from "salve";
-      //
-      // export function func(p: Name): void {
-      //   if (p.simple()) {
-      //     document.body.textContent = "1";
-      //   }
-      // }
-      //
-      // tslint:disable-next-line:strict-boolean-expressions
+      const namePattern = event.param;
       if (namePattern.simple()) {
-        for (const name of namePattern.toArray()) {
+        // If the namePattern is simple, then toArray is necessarily not null.
+        for (const name of namePattern.toArray()!) {
           const unresolved =
             mode.getAbsoluteResolver().unresolveName(name.ns, name.name);
           if (unresolved === undefined) {
@@ -406,7 +395,7 @@ ${domutil.textToHTML(attributes[name])}</span>"</span>`;
         DLoc.mustMakeDLoc(editor.dataRoot, dataNode.ownerElement);
       const toAddTo = treeCaret.node.childNodes[treeCaret.offset];
       editor.validator.possibleAt(treeCaret, true).forEach((event) => {
-        if (event.params[0] !== "attributeName") {
+        if (event.name !== "attributeName") {
           return;
         }
         processAttributeNameEvent(event, toAddTo as Element);
@@ -465,7 +454,7 @@ ${domutil.textToHTML(attributes[name])}</span>"</span>`;
         const attributeHandling = editor.modeTree.getAttributeHandling(toAddTo);
         if (attributeHandling === "edit") {
           editor.validator.possibleAt(treeCaret, true).forEach((event) => {
-            if (event.params[0] !== "attributeName") {
+            if (event.name !== "attributeName") {
               return;
             }
             processAttributeNameEvent(event, toAddTo as Element);

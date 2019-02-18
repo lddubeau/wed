@@ -1811,8 +1811,9 @@ started with incorrect options.`;
       }
 
       const evs = Array.from(this.validator.possibleAt(this.dataRoot, 0));
-      if (evs.length === 1 && evs[0].params[0] === "enterStartTag") {
-        const name = evs[0].params[1] as salve.BaseName;
+      const first = evs[0];
+      if (evs.length === 1 && first.name === "enterStartTag") {
+        const name = first.param;
         // If the name pattern is not simple or it allows for a number of
         // choices, then we skip this creation.
         const asArray = name.toArray();
@@ -1983,12 +1984,12 @@ in a way not supported by this version of wed.";
     const mode = this.modeTree.getMode(treeCaret.node);
     const resolver = mode.getAbsoluteResolver();
     const ret: { tr: UnspecifiedAction; name?: string }[] = [];
-    this.validator.possibleAt(treeCaret).forEach((ev: salve.Event) => {
-      if (ev.params[0] !== "enterStartTag") {
+    this.validator.possibleAt(treeCaret).forEach((ev) => {
+      if (ev.name !== "enterStartTag") {
         return;
       }
 
-      const pattern = ev.params[1] as salve.BaseName;
+      const pattern = ev.param;
       const asArray = pattern.toArray();
       if (asArray !== null) {
         for (const name of asArray) {
@@ -2754,8 +2755,8 @@ cannot be cut.`, { type: "danger" });
         else {
           // Maybe throwing an exception could stop this loop early but that
           // would have to be tested.
-          this.validator.possibleAt(caret!).forEach((ev) => {
-            if (ev.params[0] === "text") {
+          this.validator.possibleAt(caret!).forEach(({ name }) => {
+            if (name === "text") {
               textPossible = true;
             }
           });

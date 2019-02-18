@@ -3,7 +3,7 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import { Event, EnterStartTagEvent, EventSet, Grammar, Name, readTreeFromJSON,
+import { EnterStartTagEvent, Event, EventSet, Grammar, Name, readTreeFromJSON,
          ValidationError } from "salve";
 import { ErrorData } from "salve-dom";
 

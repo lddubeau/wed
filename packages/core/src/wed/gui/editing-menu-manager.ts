@@ -334,19 +334,18 @@ export class EditingMenuManager {
 
     if (possible.length === 0) {
       // Nothing from the mode, use the validator.
-      this.editor.validator.possibleAt(dataCaret.node, 0)
-        .forEach((ev) => {
-          if (ev.params[0] !== "attributeValue") {
-            return;
-          }
+      this.editor.validator.possibleAt(dataCaret.node, 0).forEach((ev) => {
+        if (ev.name !== "attributeValue") {
+          return;
+        }
 
-          const text = ev.params[1];
-          if (text instanceof RegExp) {
-            return;
-          }
+        const text = ev.param;
+        if (text instanceof RegExp) {
+          return;
+        }
 
-          possible.push(text as string);
-        });
+        possible.push(text);
+      });
     }
 
     return possible;
