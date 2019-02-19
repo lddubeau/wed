@@ -7,7 +7,7 @@ odd bug fix may not get mentioned here at all.
 
 * 5.0.0:
 
-  - This is a major restructuring of wed. You should see
+  - This is a major restructuring of wed.
 
   - We no longer depend on Lodash. The minified bundle was immediately reduced
     in size by 10%.
