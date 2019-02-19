@@ -1,9 +1,16 @@
-<?xml version="1.0" encoding="UTF-8"?><html style="toto" XXX="x">
+<?xml version="1.0" encoding="UTF-8"?>
+<html style="toto" XXX="x">
+  <!-- I'm a little teapot.
+
+And then some
+-->
   <head><title>ab&amp;
 cd&amp;
 ef</title></head>
 <body>
+<?pi data
+next line?>
 abc<em>def&amp;
-gh<em/></em>
+gh<em/><![CDATA[<>]]>abc</em>
 </body>
 </html>

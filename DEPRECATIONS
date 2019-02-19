@@ -1,0 +1,20 @@
+This file keeps track of deprecations.
+
+Since 5.0.0:
+
+* When converting XML elements for inclusion into the GUI tree, wed creates
+  elements with the ``tagName`` of the XML element as the first ``className`` of
+  the new element. So the XML ``<foo>`` would become ``<div class="foo
+  _local_foo _xmlns_ _real">``.
+
+  This is problematic because the XML element ``<_phantom>``, for
+  instance, would get the class ``_phantom``, which clashes with a class already
+  used by wed.
+
+  Because it is unsafe, it is hereby deprecated. A future major version will
+  remove support for it. Version 5.0.0 introduces an additional class designed
+  to replace the old one. In 5.0.0, the ``foo`` example above will be converted
+  to ``<div class="foo _name_foo _local_foo _xmlns_ _real _el">`` The
+  ``_name_foo`` class it the replacement. When the deprecated class name is
+  removed, the final production will be ``<div class="_name_foo _local_foo
+  _xmlns_ _real _el">``

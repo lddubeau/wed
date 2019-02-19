@@ -7,7 +7,7 @@
 
 import { filter } from "rxjs/operators";
 
-import * as convert from "wed/convert";
+import { makeElementClass, toHTMLTree } from "wed/convert";
 import { DLoc, DLocRoot } from "wed/dloc";
 import { childByClass, childrenByClass, indexOf } from "wed/domutil";
 import { BeforeDeleteNodeEvent, BeforeInsertNodeAtEvent, DeleteNodeEvent,
@@ -19,6 +19,9 @@ import { DataProvider } from "../util";
 import { dataPath } from "../wed-test-util";
 
 const assert = chai.assert;
+
+// tslint:disable-next-line:no-http-string
+const TEI = "http://www.tei-c.org/ns/1.0";
 
 // tslint:disable:no-any
 
@@ -46,21 +49,37 @@ function filterDeleteNode(ev: TreeUpdaterEvents): ev is DeleteNodeEvent {
   return ev.name === "DeleteNode";
 }
 
+function makeClass(name: string): string {
+  return makeElementClass(name, name, TEI);
+}
+
 describe("TreeUpdater", () => {
   let root: HTMLElement;
   let htmlTree: Node;
+  let titleClass: string;
+  let textClass: string;
+  let bodyClass: string;
+  let pClass: string;
+  let quoteClass: string;
 
-  before(() => new DataProvider(`${dataPath}/tree_updater_test_data/`)
-         .getText("source_converted.xml")
-         .then((sourceXML) => {
-           root = document.createElement("div");
-           document.body.appendChild(root);
-           new DLocRoot(root);
+  before(async () => {
+    const provider = new DataProvider(`${dataPath}/tree_updater_test_data/`);
+    const sourceXML = await provider.getText("source_converted.xml");
 
-           const parser = new DOMParser();
-           const xmlDoc = parser.parseFromString(sourceXML, "text/xml");
-           htmlTree = convert.toHTMLTree(document, xmlDoc.firstElementChild!);
-         }));
+    root = document.createElement("div");
+    document.body.appendChild(root);
+    new DLocRoot(root);
+
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(sourceXML, "text/xml");
+    htmlTree = toHTMLTree(document, xmlDoc.firstElementChild!);
+
+    titleClass = makeClass("title");
+    textClass = makeClass("text");
+    bodyClass = makeClass("body");
+    pClass = makeClass("p");
+    quoteClass = makeClass("quote");
+  });
 
   let tu: TreeUpdater;
 
@@ -135,7 +154,7 @@ describe("TreeUpdater", () => {
 
   describe("insertNodeAt", () => {
     it("works with fragments", () => {
-      const top = root.querySelector(".p")!;
+      const top = root.querySelector("._name_p")!;
       const node = document.createDocumentFragment();
       const firstChild = document.createElement("a");
       const secondChild = document.createElement("b");
@@ -169,14 +188,14 @@ describe("TreeUpdater", () => {
 
   describe("splitAt", () => {
     it("fails on node which is not child of the top", () => {
-      const top = root.querySelector(".p");
-      const node = root.querySelector(".title");
+      const top = root.querySelector("._name_p");
+      const node = root.querySelector("._name_title");
       assert.throws((tu.splitAt.bind as any)(tu, top, node, 0), Error,
                     "split location is not inside top");
     });
 
     it("fails if splitting would denormalize an element", () => {
-      const node = root.querySelector(".title")!;
+      const node = root.querySelector("._name_title")!;
       assert.throws((tu.splitAt.bind as any)(tu, node.firstChild,
                                              node.firstChild, 2),
                     Error,
@@ -186,7 +205,7 @@ describe("TreeUpdater", () => {
 
     it("splitting recursively, one level of depth generates appropriate events",
        () => {
-         const node = root.querySelector(".title")!;
+         const node = root.querySelector("._name_title")!;
          const parent = node.parentNode!;
 
          const listener = new Listener(tu);
@@ -227,18 +246,16 @@ describe("TreeUpdater", () => {
 
          // Check that we're doing what we think we're doing.
          assert.equal((parent.firstChild as HTMLElement).outerHTML,
-                      `<div class="title _local_title \
-_xmlns_http://www.tei-c.org/ns/1.0 _real">ab</div>`, "first half");
+                      `<div class="${titleClass}">ab</div>`, "first half");
          assert.equal((parent.childNodes[1] as HTMLElement).outerHTML,
-                      `<div class="title _local_title \
-_xmlns_http://www.tei-c.org/ns/1.0 _real">cd</div>`, "second half");
+                      `<div class="${titleClass}">cd</div>`, "second half");
          listener.check();
        });
 
     it("spliting recursively, at multiple levels does the right work", () => {
-      const node = root.querySelector(".quote")!.firstChild!;
-      const top = root.querySelector(".text")!;
-      const body = top.querySelector(".body")!;
+      const node = root.querySelector("._name_quote")!.firstChild!;
+      const top = root.querySelector("._name_text")!;
+      const body = top.querySelector("._name_body")!;
       // Drop the nodes from 3 onwards so that future additions don't change
       // this test.
       while (body.childNodes[3] !== undefined) {
@@ -248,56 +265,49 @@ _xmlns_http://www.tei-c.org/ns/1.0 _real">cd</div>`, "second half");
 
       const pair = tu.splitAt(top, node, 3);
 
-      const texts = childrenByClass(parent, "text");
+      const texts = childrenByClass(parent, "_name_text");
       const firstText = texts[0];
       const nextText = texts[1];
       // Check that we're doing what we think we're doing.
       assert.equal(firstText.outerHTML,
                    `\
-<div class="text _local_text _xmlns_http://www.tei-c.org/ns/1.0 _real">\
-<div class="body _local_body _xmlns_http://www.tei-c.org/ns/1.0 _real">\
-<div class="p _local_p _xmlns_http://www.tei-c.org/ns/1.0 _real">blah</div>\
-<div class="p _local_p _xmlns_http://www.tei-c.org/ns/1.0 _real">\
+<div class="${textClass}">\
+<div class="${bodyClass}">\
+<div class="${pClass}">blah</div>\
+<div class="${pClass}">\
 before \
-<div class="quote _local_quote _xmlns_http://www.tei-c.org/ns/1.0 _real">\
-quo</div></div></div></div>`, "before");
+<div class="${quoteClass}">quo</div></div></div></div>`, "before");
       assert.equal(pair[0], firstText);
       assert.equal(pair[1], nextText);
       assert.equal(nextText.outerHTML,
                    `\
-<div class="text _local_text _xmlns_http://www.tei-c.org/ns/1.0 _real">\
-<div class="body _local_body _xmlns_http://www.tei-c.org/ns/1.0 _real">\
-<div class="p _local_p _xmlns_http://www.tei-c.org/ns/1.0 _real">\
-<div class="quote _local_quote _xmlns_http://www.tei-c.org/ns/1.0 _real">\
-ted</div> between \
-<div class="quote _local_quote _xmlns_http://www.tei-c.org/ns/1.0 _real">\
-quoted2</div> after</div>\
-<div class="p _local_p _xmlns_http://www.tei-c.org/ns/1.0 _real">\
-<div class="quote _local_quote _xmlns_http://www.tei-c.org/ns/1.0 _real">\
-quoted</div>\
-<div class="quote _local_quote _xmlns_http://www.tei-c.org/ns/1.0 _real">\
-quoted2</div>\
-<div class="quote _local_quote _xmlns_http://www.tei-c.org/ns/1.0 _real">\
-quoted3</div></div>\
-</div></div>`, "after");
+<div class="${textClass}">\
+<div class="${bodyClass}">\
+<div class="${pClass}">\
+<div class="${quoteClass}">ted</div> between \
+<div class="${quoteClass}">quoted2</div> after</div>\
+<div class="${pClass}">\
+<div class="${quoteClass}">quoted</div>\
+<div class="${quoteClass}">quoted2</div>\
+<div class="${quoteClass}">quoted3</div></div></div></div>`, "after");
        });
 
     it("does the right thing if spliting at end an element", () => {
-      const top = root.querySelector(".body>.p")!;
+      const top = root.querySelector("._name_body>._name_p")!;
       const node = top.firstChild!;
       // Make sure we're looking at the right stuff.
       assert.equal(node.nodeValue!.length, 4);
       const pair = tu.splitAt(top, node, 4);
-      assert.equal((pair[0] as HTMLElement).outerHTML, `\
-<div class="p _local_p _xmlns_http://www.tei-c.org/ns/1.0 _real">blah</div>`);
-      assert.equal((pair[1] as HTMLElement).outerHTML, `\
-<div class="p _local_p _xmlns_http://www.tei-c.org/ns/1.0 _real"></div>`);
+      assert.equal((pair[0] as HTMLElement).outerHTML,
+                   `<div class="${pClass}">blah</div>`);
+      assert.equal((pair[1] as HTMLElement).outerHTML,
+                   `<div class="${pClass}"></div>`);
     });
   });
 
   describe("insertText", () => {
     it("generates appropriate events when it modifies a text node", () => {
-      const node = root.querySelector(".title")!.firstChild!;
+      const node = root.querySelector("._name_title")!.firstChild!;
       const listener = new Listener(tu);
       tu.events.pipe(filter(filterSetTextNodeValue)).subscribe((ev) => {
         assert.equal(ev.node, node);
@@ -324,7 +334,7 @@ quoted3</div></div>\
       describe(seriesTitle, () => {
         it("generates appropriate events when it uses the next text node",
            () => {
-             const node = root.querySelector(".title")!;
+             const node = root.querySelector("._name_title")!;
              const listener = new Listener(tu);
              tu.events.pipe(filter(filterSetTextNodeValue)).subscribe((ev) => {
                assert.equal(ev.node, node.firstChild);
@@ -346,7 +356,7 @@ quoted3</div></div>\
 
         it("generates appropriate events when it uses the previous text node",
            () => {
-             const node = root.querySelector(".title")!;
+             const node = root.querySelector("._name_title")!;
 
              const listener = new Listener(tu);
              tu.events.pipe(filter(filterSetTextNodeValue)).subscribe((ev) => {
@@ -368,7 +378,7 @@ quoted3</div></div>\
            });
 
         it("generates appropriate events when it creates a text node", () => {
-          const node = root.querySelector(".title") as HTMLElement;
+          const node = root.querySelector("._name_title") as HTMLElement;
           // tslint:disable-next-line:no-inner-html
           node.innerHTML = "";
 
@@ -395,7 +405,7 @@ quoted3</div></div>\
         });
 
         it("does nothing if passed an empty string", () => {
-          const node = root.querySelector(".title")!;
+          const node = root.querySelector("._name_title")!;
           const listener = new Listener(tu);
 
           assert.equal(node.firstChild!.nodeValue, "abcd");
@@ -430,13 +440,13 @@ quoted3</div></div>\
 
   describe("deleteText", () => {
     it("fails on non-text node", () => {
-      const node = root.querySelector(".title")!;
+      const node = root.querySelector("._name_title")!;
       assert.throws((tu.deleteText.bind as any)(tu, node, 0, "t"), Error,
                    "deleteText called on non-text");
     });
 
     it("generates appropriate events when it modifies a text node", () => {
-      const node = root.querySelector(".title")!.firstChild as Text;
+      const node = root.querySelector("._name_title")!.firstChild as Text;
       const listener = new Listener(tu);
       tu.events.pipe(filter(filterSetTextNodeValue)).subscribe((ev) => {
         assert.equal(ev.node, node);
@@ -453,7 +463,7 @@ quoted3</div></div>\
 
     it("generates appropriate events when it deletes an empty text node",
        () => {
-         const node = root.querySelector(".title")!.firstChild as Text;
+         const node = root.querySelector("._name_title")!.firstChild as Text;
          const listener = new Listener(tu);
 
          tu.events.pipe(filter(filterBeforeDeleteNode)).subscribe((ev) => {
@@ -477,13 +487,13 @@ quoted3</div></div>\
 
   describe("setAttribute", () => {
     it("fails on non-element node", () => {
-      const node = root.querySelector(".title")!.firstChild;
+      const node = root.querySelector("._name_title")!.firstChild;
       assert.throws(tu.setAttribute.bind(tu, node as Element, "q", "ab"), Error,
                     "setAttribute called on non-element");
     });
 
     it("generates appropriate events when changing an attribute", () => {
-      const node = root.querySelector(".title")!;
+      const node = root.querySelector("._name_title")!;
 
       // Check that the attribute is not set yet.
       assert.equal(node.getAttribute("q"), undefined);
@@ -506,7 +516,7 @@ quoted3</div></div>\
     });
 
     it("generates appropriate events when removing an attribute", () => {
-      const node = root.querySelector(".title")!;
+      const node = root.querySelector("._name_title")!;
 
       // Set the attribute
       node.setAttribute("q", "ab");
@@ -530,20 +540,20 @@ quoted3</div></div>\
 
   describe("insertIntoText", () => {
     it("fails on non-text node", () => {
-      const node = root.querySelector(".title")!;
+      const node = root.querySelector("._name_title")!;
       assert.throws(tu.insertIntoText.bind(tu, node as any, 0, node), Error,
                     "insertIntoText called on non-text");
     });
 
     it("fails on undefined node to insert", () => {
-      const node = root.querySelector(".title")!.firstChild;
+      const node = root.querySelector("._name_title")!.firstChild;
       assert.throws(tu.insertIntoText.bind(tu, node as Text, 0,
                                            undefined as any),
                     Error, "must pass an actual node to insert");
     });
 
     it("generates appropriate events when inserting a new element", () => {
-      const parent = root.querySelector(".title")!;
+      const parent = root.querySelector("._name_title")!;
       const node = parent.firstChild as Text;
       const el = document.createElement("span");
       const listener = new Listener(tu);
@@ -588,14 +598,14 @@ quoted3</div></div>\
       assert.equal(pair[1].node.nodeValue, "cd");
       assert.equal(pair[1].node.previousSibling, el);
       assert.equal(pair[1].offset, 0);
-      assert.equal(root.querySelector(".title")!.childNodes.length, 3);
-      assert.equal(root.querySelector(".title")!.childNodes[1], el);
+      assert.equal(root.querySelector("._name_title")!.childNodes.length, 3);
+      assert.equal(root.querySelector("._name_title")!.childNodes[1], el);
 
       listener.check();
     });
 
     it("works fine with negative offset", () => {
-      const node = root.querySelector(".title")!.firstChild as Text;
+      const node = root.querySelector("._name_title")!.firstChild as Text;
       const parent = node.parentNode;
       const el = document.createElement("span");
 
@@ -638,13 +648,13 @@ quoted3</div></div>\
       assert.equal(pair[0].offset, 0);
       assert.equal(pair[1].node.nodeValue, "abcd");
       assert.equal(pair[1].node.previousSibling, el);
-      assert.equal(root.querySelector(".title")!.childNodes.length, 2);
+      assert.equal(root.querySelector("._name_title")!.childNodes.length, 2);
 
       listener.check();
     });
 
     it("works fine with offset beyond text length", () => {
-      const node = root.querySelector(".title")!.firstChild as Text;
+      const node = root.querySelector("._name_title")!.firstChild as Text;
       const parent = node.parentNode;
       const el = document.createElement("span");
 
@@ -687,20 +697,20 @@ quoted3</div></div>\
       assert.equal(pair[0].node.nextSibling, el);
       assert.equal(pair[1].node, parent);
       assert.equal(pair[1].offset, 2);
-      assert.equal(root.querySelector(".title")!.childNodes.length, 2);
+      assert.equal(root.querySelector("._name_title")!.childNodes.length, 2);
       listener.check();
     });
   });
 
   describe("setTextNodeValue", () => {
     it("fails on non-text node", () => {
-      const node = root.querySelector(".title")!;
+      const node = root.querySelector("._name_title")!;
       assert.throws(tu.setTextNode.bind(tu, node as any, "test"), Error,
                    "setTextNode called on non-text");
     });
 
     it("generates appropriate events when setting text", () => {
-      const node = root.querySelector(".title")!.firstChild as Text;
+      const node = root.querySelector("._name_title")!.firstChild as Text;
       const listener = new Listener(tu);
       tu.events.pipe(filter(filterSetTextNodeValue)).subscribe((ev) => {
         assert.equal(ev.node, node);
@@ -718,7 +728,7 @@ quoted3</div></div>\
 
     it("generates appropriate events when setting text to an empty string",
        () => {
-         const node = root.querySelector(".title")!.firstChild as Text;
+         const node = root.querySelector("._name_title")!.firstChild as Text;
          const listener = new Listener(tu);
 
          tu.events.pipe(filter(filterBeforeDeleteNode)).subscribe((ev) => {
@@ -744,8 +754,8 @@ quoted3</div></div>\
 
   describe("removeNode", () => {
     it("generates appropriate events when removing a node", () => {
-      const node = root.querySelectorAll(".body>.p")[2]
-        .querySelectorAll(".quote")[1];
+      const node = root.querySelectorAll("._name_body>._name_p")[2]
+        .querySelectorAll("._name_quote")[1];
       const parent = node.parentNode as HTMLElement;
       assert.equal(parent.childNodes.length, 3);
       const listener = new Listener(tu);
@@ -765,20 +775,18 @@ quoted3</div></div>\
 
       // Check that we're doing what we think we're doing.
       assert.equal(parent.outerHTML,
-                   ("\
-<div class=\"p _local_p _xmlns_http://www.tei-c.org/ns/1.0 _real\">\
-<div class=\"quote _local_quote _xmlns_http://www.tei-c.org/ns/1.0 _real\">\
-quoted</div>\
-<div class=\"quote _local_quote _xmlns_http://www.tei-c.org/ns/1.0 _real\">\
-quoted3</div></div>"));
+                   (`\
+<div class="${pClass}">\
+<div class="${quoteClass}">quoted</div>\
+<div class="${quoteClass}">quoted3</div></div>`));
 
       assert.equal(parent.childNodes.length, 2);
       listener.check();
     });
 
     it("generates appropriate events when merging text", () => {
-      const node = root.querySelectorAll(".body>.p")[1]
-        .querySelector(".quote")!;
+      const node = root.querySelectorAll("._name_body>._name_p")[1]
+        .querySelector("._name_quote")!;
       const parent = node.parentNode as HTMLElement;
       const prev = node.previousSibling;
       const next = node.nextSibling;
@@ -826,18 +834,17 @@ quoted3</div></div>"));
 
       // Check that we're doing what we think we're doing.
       assert.equal(parent.childNodes.length, 3);
-      assert.equal(parent.outerHTML, "\
-<div class=\"p _local_p _xmlns_http://www.tei-c.org/ns/1.0 _real\">before  \
-between \
-<div class=\"quote _local_quote _xmlns_http://www.tei-c.org/ns/1.0 _real\">\
-quoted2</div> after</div>");
+      assert.equal(parent.outerHTML, `\
+<div class="${pClass}">before  between \
+<div class="${quoteClass}">quoted2</div> after</div>`);
       listener.check();
     });
 
     it("does not bork on missing previous text", () => {
       // An earlier bug would cause an unhandled exception on this test.
       const node =
-        root.querySelectorAll(".body>.p")[2].querySelector(".quote")!;
+        root.querySelectorAll("._name_body>._name_p")[2]
+        .querySelector("._name_quote")!;
       const parent = node.parentNode;
       const ret = tu.removeNode(node);
       assert.equal(ret.node, parent);
@@ -847,8 +854,8 @@ quoted2</div> after</div>");
 
   describe("removeNodeNF", () => {
     it("generates appropriate events when removing a node", () => {
-      const node = root.querySelectorAll(".body>.p")[2]
-        .querySelectorAll(".quote")[1];
+      const node = root.querySelectorAll("._name_body>._name_p")[2]
+        .querySelectorAll("._name_quote")[1];
       const parent = node.parentNode as HTMLElement;
       assert.equal(parent.childNodes.length, 3);
       const listener = new Listener(tu);
@@ -868,20 +875,18 @@ quoted2</div> after</div>");
       tu.removeNodeNF(node);
 
       // Check that we're doing what we think we're doing.
-      assert.equal(parent.outerHTML, "\
-<div class=\"p _local_p _xmlns_http://www.tei-c.org/ns/1.0 _real\">\
-<div class=\"quote _local_quote _xmlns_http://www.tei-c.org/ns/1.0 _real\">\
-quoted</div>\
-<div class=\"quote _local_quote _xmlns_http://www.tei-c.org/ns/1.0 _real\">\
-quoted3</div></div>");
+      assert.equal(parent.outerHTML, `\
+<div class="${pClass}">\
+<div class="${quoteClass}">quoted</div>\
+<div class="${quoteClass}">quoted3</div></div>`);
 
       assert.equal(parent.childNodes.length, 2);
       listener.check();
     });
 
     it("generates appropriate events when merging text", () => {
-      const node = root.querySelectorAll(".body>.p")[1]
-        .querySelector(".quote")!;
+      const node = root.querySelectorAll("._name_body>._name_p")[1]
+        .querySelector("._name_quote")!;
       const parent = node.parentNode as HTMLElement;
       const prev = node.previousSibling;
       const next = node.nextSibling;
@@ -931,19 +936,17 @@ quoted3</div></div>");
 
       // Check that we're doing what we think we're doing.
       assert.equal(parent.childNodes.length, 3);
-      assert.equal(parent.outerHTML, "\
-<div class=\"p _local_p _xmlns_http://www.tei-c.org/ns/1.0 _real\">before  \
-between \
-<div class=\"quote _local_quote _xmlns_http://www.tei-c.org/ns/1.0 _real\">\
-quoted2</div> after</div>");
+      assert.equal(parent.outerHTML, `\
+<div class="${pClass}">before  between \
+<div class="${quoteClass}">quoted2</div> after</div>`);
       listener.check();
     });
 
     it("does not bork on missing previous text", () => {
       // An earlier bug would cause an unhandled exception on this
       // test.
-      const node = root.querySelectorAll(".body>.p")[2]
-        .querySelector(".quote")!;
+      const node = root.querySelectorAll("._name_body>._name_p")[2]
+        .querySelector("._name_quote")!;
       const parent = node.parentNode;
       const ret = tu.removeNodeNF(node)!;
       assert.equal(ret.node, parent);
@@ -977,16 +980,16 @@ quoted2</div> after</div>");
     it("fails on nodes of different parents", () => {
       // An earlier bug would cause an unhandled exception on this
       // test.
-      const node = root.querySelectorAll(".body>.p")[2]
-        .querySelector(".quote")!;
+      const node = root.querySelectorAll("._name_body>._name_p")[2]
+        .querySelector("._name_quote")!;
       assert.throws(tu.removeNodes.bind(tu, [node, node.parentNode!]),
                     Error,
                    "nodes are not immediately contiguous in document order");
     });
 
     it("generates appropriate events when merging text", () => {
-      const p = root.querySelectorAll(".body>.p")[1];
-      const quotes = childrenByClass(p, "quote");
+      const p = root.querySelectorAll("._name_body>._name_p")[1];
+      const quotes = childrenByClass(p, "_name_quote");
       const firstNode = quotes[0];
       const lastNode = quotes[quotes.length - 1];
       const nodes = Array.prototype.slice.call(
@@ -1026,17 +1029,16 @@ quoted2</div> after</div>");
 
       // Check that we're doing what we think we're doing.
       assert.equal(parent.childNodes.length, 1);
-      assert.equal(parent.outerHTML, "\
-<div class=\"p _local_p _xmlns_http://www.tei-c.org/ns/1.0 _real\">\
-before  after</div>");
+      assert.equal(parent.outerHTML,
+                   `<div class="${pClass}">before  after</div>`);
       listener.check();
     });
 
     it("does not bork on missing previous text", () => {
       // An earlier bug would cause an unhandled exception on this
       // test.
-      const node = root.querySelectorAll(".body>.p")[2]
-        .querySelector(".quote")!;
+      const node = root.querySelectorAll("._name_body>._name_p")[2]
+        .querySelector("._name_quote")!;
       const parent = node.parentNode;
       const ret = tu.removeNodes([node])!;
       assert.equal(ret.node, parent);
@@ -1046,9 +1048,9 @@ before  after</div>");
 
   describe("mergeTextNodes", () => {
     it("generates appropriate events when merging text", () => {
-      const p = root.querySelectorAll(".body>.p")[1];
+      const p = root.querySelectorAll("._name_body>._name_p")[1];
       // Remove the first quote so that we have two text nodes adjacent.
-      const quote = childByClass(p, "quote")!;
+      const quote = childByClass(p, "_name_quote")!;
       p.removeChild(quote);
       const node = p.firstChild!;
       const parent = node.parentNode as HTMLElement;
@@ -1078,16 +1080,14 @@ before  after</div>");
 
       // Check that we're doing what we think we're doing.
       assert.equal(parent.childNodes.length, 3);
-      assert.equal(parent.outerHTML, "\
-<div class=\"p _local_p _xmlns_http://www.tei-c.org/ns/1.0 _real\">before  \
-between \
-<div class=\"quote _local_quote _xmlns_http://www.tei-c.org/ns/1.0 _real\">\
-quoted2</div> after</div>");
+      assert.equal(parent.outerHTML, `\
+<div class="${pClass}">before  between \
+<div class="${quoteClass}">quoted2</div> after</div>`);
       listener.check();
     });
 
     it("does nothing if there is nothing to do", () => {
-      const p = root.querySelectorAll(".body>.p")[1];
+      const p = root.querySelectorAll("._name_body>._name_p")[1];
       const node = p.firstChild!;
       const parent = node.parentNode as HTMLElement;
       assert.equal(parent.childNodes.length, 5);
@@ -1097,19 +1097,17 @@ quoted2</div> after</div>");
 
       // Check that we're doing what we think we're doing.
       assert.equal(parent.childNodes.length, 5);
-      assert.equal(parent.outerHTML, "\
-<div class=\"p _local_p _xmlns_http://www.tei-c.org/ns/1.0 _real\">before \
-<div class=\"quote _local_quote _xmlns_http://www.tei-c.org/ns/1.0 _real\">\
-quoted</div> between \
-<div class=\"quote _local_quote _xmlns_http://www.tei-c.org/ns/1.0 _real\">\
-quoted2</div> after</div>");
+      assert.equal(parent.outerHTML, `\
+<div class="${pClass}">before <div class="${quoteClass}">\
+quoted</div> between <div class="${quoteClass}">\
+quoted2</div> after</div>`);
       listener.check();
     });
 
     it("returns a proper caret value when it merges", () => {
-      const p = root.querySelectorAll(".body>.p")[1];
+      const p = root.querySelectorAll("._name_body>._name_p")[1];
       // Remove the first quote so that we have two text nodes adjacent.
-      const quote = childByClass(p, "quote")!;
+      const quote = childByClass(p, "_name_quote")!;
       p.removeChild(quote);
       const node = p.firstChild!;
       const parent = node.parentNode as HTMLElement;
@@ -1119,11 +1117,9 @@ quoted2</div> after</div>");
       // Check that we're doing what we think we're doing.
       assert.equal(parent.childNodes.length, 3);
       assert.equal(
-        parent.outerHTML, "\
-<div class=\"p _local_p _xmlns_http://www.tei-c.org/ns/1.0 _real\">\
-before  between \
-<div class=\"quote _local_quote _xmlns_http://www.tei-c.org/ns/1.0 _real\">\
-quoted2</div> after</div>");
+        parent.outerHTML, `\
+<div class="${pClass}">before  between \
+<div class="${quoteClass}">quoted2</div> after</div>`);
 
       // Check return value.
       assert.equal(ret.node, node);
@@ -1131,7 +1127,7 @@ quoted2</div> after</div>");
     });
 
     it("returns a proper caret value when it does nothing", () => {
-      const p = root.querySelectorAll(".body>.p")[1];
+      const p = root.querySelectorAll("._name_body>._name_p")[1];
       const node = p.firstChild!;
       const parent = node.parentNode as HTMLElement;
       assert.equal(parent.childNodes.length, 5);
@@ -1141,12 +1137,10 @@ quoted2</div> after</div>");
 
       // Check that we're doing what we think we're doing.
       assert.equal(parent.childNodes.length, 5);
-      assert.equal(parent.outerHTML, "\
-<div class=\"p _local_p _xmlns_http://www.tei-c.org/ns/1.0 _real\">before \
-<div class=\"quote _local_quote _xmlns_http://www.tei-c.org/ns/1.0 _real\">\
-quoted</div> between \
-<div class=\"quote _local_quote _xmlns_http://www.tei-c.org/ns/1.0 _real\">\
-quoted2</div> after</div>");
+      assert.equal(parent.outerHTML, `\
+<div class="${pClass}">before \
+<div class="${quoteClass}">quoted</div> between \
+<div class="${quoteClass}">quoted2</div> after</div>`);
       listener.check();
 
       // Check the return value.
@@ -1157,9 +1151,9 @@ quoted2</div> after</div>");
 
   describe("mergeTextNodesNF", () => {
     it("generates appropriate events when merging text", () => {
-      const p = root.querySelectorAll(".body>.p")[1];
+      const p = root.querySelectorAll("._name_body>._name_p")[1];
       // Remove the first quote so that we have two text nodes adjacent.
-      const quote = childByClass(p, "quote")!;
+      const quote = childByClass(p, "_name_quote")!;
       p.removeChild(quote);
       const node = p.firstChild!;
       const parent = node.parentNode as HTMLElement;
@@ -1189,16 +1183,14 @@ quoted2</div> after</div>");
 
       // Check that we're doing what we think we're doing.
       assert.equal(parent.childNodes.length, 3);
-      assert.equal(parent.outerHTML, "\
-<div class=\"p _local_p _xmlns_http://www.tei-c.org/ns/1.0 _real\">before  \
-between \
-<div class=\"quote _local_quote _xmlns_http://www.tei-c.org/ns/1.0 _real\">\
-quoted2</div> after</div>");
+      assert.equal(parent.outerHTML, `\
+<div class="${pClass}">before  between \
+<div class="${quoteClass}">quoted2</div> after</div>`);
       listener.check();
     });
 
     it("does nothing if there is nothing to do", () => {
-      const p = root.querySelectorAll(".body>.p")[1];
+      const p = root.querySelectorAll("._name_body>._name_p")[1];
       const node = p.firstChild!;
       const parent = node.parentNode as HTMLElement;
       assert.equal(parent.childNodes.length, 5);
@@ -1208,19 +1200,17 @@ quoted2</div> after</div>");
 
       // Check that we're doing what we think we're doing.
       assert.equal(parent.childNodes.length, 5);
-      assert.equal(parent.outerHTML, "\
-<div class=\"p _local_p _xmlns_http://www.tei-c.org/ns/1.0 _real\">before \
-<div class=\"quote _local_quote _xmlns_http://www.tei-c.org/ns/1.0 _real\">\
-quoted</div> between \
-<div class=\"quote _local_quote _xmlns_http://www.tei-c.org/ns/1.0 _real\">\
-quoted2</div> after</div>");
+      assert.equal(parent.outerHTML, `\
+<div class="${pClass}">before \
+<div class="${quoteClass}">quoted</div> between \
+<div class="${quoteClass}">quoted2</div> after</div>`);
       listener.check();
     });
 
     it("returns a proper caret value when it merges", () => {
-      const p = root.querySelectorAll(".body>.p")[1];
+      const p = root.querySelectorAll("._name_body>._name_p")[1];
       // Remove the first quote so that we have two text nodes adjacent.
-      const quote = childByClass(p, "quote")!;
+      const quote = childByClass(p, "_name_quote")!;
       p.removeChild(quote);
       const node = p.firstChild!;
       const parent = node.parentNode as HTMLElement;
@@ -1229,11 +1219,9 @@ quoted2</div> after</div>");
 
       // Check that we're doing what we think we're doing.
       assert.equal(parent.childNodes.length, 3);
-      assert.equal(parent.outerHTML, "\
-<div class=\"p _local_p _xmlns_http://www.tei-c.org/ns/1.0 _real\">before  \
-between \
-<div class=\"quote _local_quote _xmlns_http://www.tei-c.org/ns/1.0 _real\">\
-quoted2</div> after</div>");
+      assert.equal(parent.outerHTML, `\
+<div class="${pClass}">before  between \
+<div class="${quoteClass}">quoted2</div> after</div>`);
 
       // Check return value.
       assert.equal(ret.node, node);
@@ -1241,7 +1229,7 @@ quoted2</div> after</div>");
     });
 
     it("returns a proper caret value when it does nothing", () => {
-      const p = root.querySelectorAll(".body>.p")[1];
+      const p = root.querySelectorAll("._name_body>._name_p")[1];
       const node = p.firstChild!;
       const parent = node.parentNode as HTMLElement;
       assert.equal(parent.childNodes.length, 5);
@@ -1251,12 +1239,10 @@ quoted2</div> after</div>");
 
       // Check that we're doing what we think we're doing.
       assert.equal(parent.childNodes.length, 5);
-      assert.equal(parent.outerHTML, "\
-<div class=\"p _local_p _xmlns_http://www.tei-c.org/ns/1.0 _real\">before \
-<div class=\"quote _local_quote _xmlns_http://www.tei-c.org/ns/1.0 _real\">\
-quoted</div> between \
-<div class=\"quote _local_quote _xmlns_http://www.tei-c.org/ns/1.0 _real\">\
-quoted2</div> after</div>");
+      assert.equal(parent.outerHTML, `\
+<div class="${pClass}">before \
+<div class="${quoteClass}">quoted</div> between \
+<div class="${quoteClass}">quoted2</div> after</div>`);
       listener.check();
 
       // Check the return value.
@@ -1310,7 +1296,7 @@ quoted2</div> after</div>");
     }
 
     it("generates appropriate events when merging text", () => {
-      const p = root.querySelectorAll(".body>.p")[1];
+      const p = root.querySelectorAll("._name_body>._name_p")[1];
       const start = DLoc.mustMakeDLoc(root, p.firstChild, 4);
       const end = DLoc.mustMakeDLoc(root, p.childNodes[4], 3);
       assert.equal(p.childNodes.length, 5);
@@ -1358,14 +1344,12 @@ quoted2</div> after</div>");
 
       // Check that we're doing what we think we're doing.
       assert.equal(p.childNodes.length, 1);
-      assert.equal(p.outerHTML, "\
-<div class=\"p _local_p _xmlns_http://www.tei-c.org/ns/1.0 _real\">\
-befoter</div>");
+      assert.equal(p.outerHTML, `<div class="${pClass}">befoter</div>`);
       listener.check();
     });
 
     it("returns proper nodes when merging a single node", () => {
-      const p = root.querySelectorAll(".body>.p")[1];
+      const p = root.querySelectorAll("._name_body>._name_p")[1];
       const start = DLoc.mustMakeDLoc(root, p.firstChild, 4);
       const end = DLoc.mustMakeDLoc(root, p.firstChild, 6);
       assert.equal(p.childNodes.length, 5);
@@ -1384,7 +1368,7 @@ befoter</div>");
     });
 
     it("returns proper nodes when merging text", () => {
-      const p = root.querySelectorAll(".body>.p")[1];
+      const p = root.querySelectorAll("._name_body>._name_p")[1];
       const start = DLoc.mustMakeDLoc(root, p.firstChild, 4);
       const end = DLoc.mustMakeDLoc(root, p.childNodes[4], 3);
       assert.equal(p.childNodes.length, 5);
@@ -1401,9 +1385,7 @@ befoter</div>");
 
       // Check that we're doing what we think we're doing.
       assert.equal(p.childNodes.length, 1);
-      assert.equal(p.outerHTML, "\
-<div class=\"p _local_p _xmlns_http://www.tei-c.org/ns/1.0 _real\">\
-befoter</div>");
+      assert.equal(p.outerHTML, `<div class="${pClass}">befoter</div>`);
 
       assert.isTrue(ret.length > 0);
       checkNodes(ret[1], nodes);
@@ -1412,7 +1394,7 @@ befoter</div>");
     });
 
     it("empties an element without problem", () => {
-      const p = root.querySelectorAll(".body>.p")[1];
+      const p = root.querySelectorAll("._name_body>._name_p")[1];
       const start = DLoc.mustMakeDLoc(root, p, 0);
       const end = DLoc.mustMakeDLoc(root, p, p.childNodes.length);
       assert.equal(p.childNodes.length, 5);
