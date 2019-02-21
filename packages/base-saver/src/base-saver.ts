@@ -13,7 +13,6 @@ import { Runtime, SaveError, SaveEvents, SaveKind,
 import * as browsers from "@wedxml/common/browsers";
 import { RUNTIME } from "@wedxml/common/tokens";
 
-import * as serializer from "./serializer";
 import { SAVER_OPTIONS } from "./tokens";
 
 export const version = "5.0.0-alpha.17";
@@ -222,13 +221,7 @@ export abstract class BaseSaver implements Saver {
    * the data tree.
    */
   protected getData(): string {
-    const child = this.dataTree.firstChild as Element;
-
-    if (browsers.MSIE) {
-      return serializer.serialize(child);
-    }
-
-    const serialization = child.outerHTML;
+    const serialization = (this.dataTree.firstChild as Element).outerHTML;
 
     // Edge has the bad habit of adding a space before the forward slash in
     // self-closing tags. Remove it.
