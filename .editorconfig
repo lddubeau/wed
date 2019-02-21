@@ -1,6 +1,6 @@
 root=true
 
-[**/*]
+[**]
 end_of_line = lf
 indent_style = space
 indent_size = 2
@@ -11,9 +11,6 @@ trim_trailing_whitespace = true
 [.git/**]
 trim_trailing_whitespace = unset
 
-[**/*.py]
+[**.py]
 indent_size = 4
 max_line_length = 79
-
-[web/test/mmwp-data/**/*]
-trim_trailing_whitespace = false
