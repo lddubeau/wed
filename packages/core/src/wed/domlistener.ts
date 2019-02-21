@@ -268,7 +268,7 @@ interface CallSpec<T extends Events> {
  * the tree fragment is removed, and ``excluded-element`` *after*.
  *
  * An ``added-element`` event is fired when an element is directly added to the
- * observed tree. The opposite events are ``excluding-element`` and
+ * observed tree. The opposite events are ``removing-element`` and
  * ``removed-element``.
  *
  * A ``children-changing`` and ``children-changed`` event are fired when an
