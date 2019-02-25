@@ -5,9 +5,10 @@
 const glob = require("glob");
 const path = require("path");
 const log = require("fancy-log");
-const { options } = require("./config");
 
-const { newer, checkOutputFile, copy, existsInFile } = require("./util");
+const { cleanTestFile } = require("./xml-util");
+
+const { newer, copy, existsInFile } = require("./util");
 
 process.on("unhandledRejection", (err) => {
   // eslint-disable-next-line no-console
@@ -17,16 +18,12 @@ process.on("unhandledRejection", (err) => {
 
 Promise.all(glob.sync("sample_documents/*.xml").map(async (sample) => {
   const dest = `build/samples/${path.basename(sample)}`;
-  const isNewer = await newer([sample, "src/tests/xml-to-xml-tei.xsl"], dest);
+  const isNewer = await newer(sample, dest);
   if (!isNewer) {
     log(`Skipping generation of ${dest}`);
     return;
   }
 
   const needsXSL = await existsInFile(sample, "http://www.tei-c.org/ns/1.0");
-  await (needsXSL ?
-         checkOutputFile(options.xsltproc,
-                         ["-o", dest, "src/tests/xml-to-xml-tei.xsl",
-                          sample]) :
-         copy(sample, dest));
+  await (needsXSL ? cleanTestFile(sample, dest) : copy(sample, dest));
 }));
