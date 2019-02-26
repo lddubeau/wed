@@ -468,13 +468,13 @@ export function correspondingNode(treeA: Node, treeB: Node,
     if (parent == null) {
       throw new Error("nodeInA is not treeA or a child of treeA");
     }
-    path.unshift(indexOf(parent.childNodes, current));
+    path.push(indexOf(parent.childNodes, current));
     current = parent;
   }
 
   let ret = treeB;
   while (path.length !== 0) {
-    ret = ret.childNodes[path.shift()!];
+    ret = ret.childNodes[path.pop()!];
   }
 
   return ret;
