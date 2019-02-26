@@ -11,7 +11,9 @@ import * as domutil from "wed/domutil";
 import { DataProvider } from "../util";
 import { dataPath } from "../wed-test-util";
 
+// Assert is being deprecated from our test suite. Use expect for new tests.
 const assert = chai.assert;
+const expect = chai.expect;
 
 // tslint:disable:no-any
 
@@ -313,8 +315,8 @@ describe("domutil", () => {
     });
 
     it("fails on non-text node", () => {
-      assert.throws(domutil.splitTextNode.bind(title, 0 as any),
-                    Error, "insertIntoText called on non-text");
+      expect(() => domutil.splitTextNode(title as any, 0)).to
+        .throw(Error, "insertIntoText called on non-text");
     });
 
     it("splits a text node", () => {
@@ -351,15 +353,13 @@ describe("domutil", () => {
     });
 
     it("fails on non-text node", () => {
-      assert.throws(domutil.insertIntoText.bind(undefined, title as any, 0,
-                                                title),
-                    Error, "insertIntoText called on non-text");
+      expect(() => domutil.insertIntoText(title as any, 0, title)).to
+        .throw(Error, "insertIntoText called on non-text");
     });
 
     it("fails on undefined node to insert", () => {
-      assert.throws(domutil.insertIntoText.bind(undefined, child, 0,
-                                                undefined as any),
-                    Error, "must pass an actual node to insert");
+      expect(() => domutil.insertIntoText(child, 0, undefined as any))
+        .to.throw(Error, "must pass an actual node to insert");
     });
 
     it("inserts the new element", () => {
@@ -585,8 +585,9 @@ describe("domutil", () => {
     });
 
     it("fails on non-text node", () => {
-      assert.throws(domutil.deleteText.bind(title, 0 as any, 0),
-                    Error, "deleteText called on non-text");
+      expect(() => {
+        domutil.deleteText(title as any, 0, 0);
+      }).to.throw(Error, "deleteText called on non-text");
     });
 
     it("modifies a text node", () => {
@@ -674,10 +675,9 @@ describe("domutil", () => {
     });
 
     it("fails if the node is not in the tree", () => {
-      const clone = root.cloneNode(true);
-      assert.throws(
-        domutil.correspondingNode.bind(domutil, root, clone, document.body),
-        Error, "nodeInA is not treeA or a child of treeA");
+      expect(() => domutil.correspondingNode(root, root.cloneNode(true),
+                                             document.body))
+        .to.throw(Error, "nodeInA is not treeA or a child of treeA");
     });
   });
 
@@ -717,9 +717,10 @@ describe("domutil", () => {
     });
 
     it("throws an error on anything else than element or text", () => {
-      assert.throws(domutil.focusNode.bind(undefined, undefined as any), Error,
-                    "tried to focus something other than a text node or " +
-                    "an element.");
+      expect(() => {
+        domutil.focusNode(undefined as any);
+      }).to.throw(Error, "tried to focus something other than a text node or \
+an element.");
     });
   });
 
@@ -1027,13 +1028,13 @@ describe("domutil", () => {
 
   describe("toGUISelector", () => {
     it("raises an error on brackets", () => {
-      assert.throws(domutil.toGUISelector.bind(undefined, "abcde[f]", {}),
-                    Error, "selector is too complex");
+      expect(() => domutil.toGUISelector("abcde[f]", {}))
+        .to.throw(Error, "selector is too complex");
     });
 
     it("raises an error on parens", () => {
-      assert.throws(domutil.toGUISelector.bind(undefined, "abcde:not(f)", {}),
-                    Error, "selector is too complex");
+      expect(() => domutil.toGUISelector("abcde:not(f)", {}))
+        .to.throw(Error, "selector is too complex");
     });
 
     it("converts a > sequence", () => {
@@ -1115,7 +1116,6 @@ _xmlns_http\\:\\/\\/mangalamresearch\\.org\\/ns\\/btw-storage._real \
     let p: Node;
     before(() => {
       p = defined(sourceDoc.querySelector("body p"));
-      assert.equal(p.nodeType, Node.ELEMENT_NODE);
     });
 
     it("returns 0 if the two locations are equal", () => {
