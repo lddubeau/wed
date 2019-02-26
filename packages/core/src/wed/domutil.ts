@@ -178,7 +178,7 @@ export function rangeFromPoints(startContainer: Node,
     reversed = true;
   }
 
-  return { range: range, reversed: reversed };
+  return { range, reversed };
 }
 
 /**
