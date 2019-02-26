@@ -41,12 +41,11 @@ describe("domutil", () => {
   let testPara: HTMLElement;
   let sourceDoc: Document;
 
-  before(() => {
+  before(async () => {
     provider = new DataProvider(`${dataPath}/domutil_test_data/`);
-    return provider.getText("source_converted.xml").then((data) => {
-      const parser = new DOMParser();
-      sourceDoc = parser.parseFromString(data, "application/xml");
-    });
+    const data = await provider.getText("source_converted.xml");
+    const parser = new DOMParser();
+    sourceDoc = parser.parseFromString(data, "application/xml");
   });
 
   before(() => {
