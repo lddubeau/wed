@@ -1392,17 +1392,22 @@ export function pointInContents(element: Element,
 }
 
 /**
- * Starting with the node passed, and walking up the node's
- * parents, returns the first node that matches the selector.
+ * Starting with the node passed, and walking up the node's parents, returns the
+ * first node that matches the selector.
  *
  * @param node The node to start with.
  *
  * @param selector The selector to use for matches.
  *
- * @param limit The algorithm will search up to this limit, inclusively.
+ * @param limit The algorithm will search up to this limit, inclusively. To be
+ * matching, an element must match the selector **and** be within this
+ * limit. "Inclusively" means that if ``limit`` is an element and matches the
+ * selector, then ``limit`` is a match. (Implementation note: ``limit`` does not
+ * make the search faster. Internally, the DOM's ``.closest`` method is used and
+ * the match is rejected if not within ``limit``.)
  *
  * @returns The first element that matches the selector, or ``null`` if nothing
- * matches.
+ * matches within the limit requested.
  */
 export function closest(node: Node | undefined | null,
                         selector: string,
@@ -1411,29 +1416,20 @@ export function closest(node: Node | undefined | null,
     return null;
   }
 
-  // Immediately move out of text nodes.
-  if (isText(node)) {
+  // Immediately move out of text nodes, comments, etc.
+  if (!isElement(node)) {
     node = node.parentNode;
-  }
-
-  while (node != null) {
-    if (!isElement(node)) {
+    // If the parent happens to be nonexistent, or is not an element, there's
+    // nothing for us to search.
+    if (node === null || !isElement(node)) {
       return null;
     }
-
-    if (node.matches(selector)) {
-      break;
-    }
-
-    if (node === limit) {
-      node = null;
-      break;
-    }
-
-    node = node.parentNode;
   }
 
-  return node as Element;
+  const found = node.closest(selector);
+  return (found === null || (limit !== undefined && !limit.contains(found))) ?
+    null :
+    found;
 }
 
 /**
