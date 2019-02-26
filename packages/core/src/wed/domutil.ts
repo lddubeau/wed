@@ -520,12 +520,12 @@ export interface GenericInsertIntoTextContext {
  * @param node The node to insert. If undefined, then this function effectively
  * splits the text node into two parts.
  *
- * @param The operation must clean contiguous text nodes so as to merge them and
- * must not create empty nodes. **This code assumes that the text node into
- * which data is added is not preceded or followed by another text node and that
- * it is not empty.** In other words, if the DOM tree on which this code is used
- * does not have consecutive text nodes and no empty nodes, then after the call,
- * it still won't.
+ * @param clean The operation must clean contiguous text nodes so as to merge
+ * them and must not create empty nodes. **This code assumes that the text node
+ * into which data is added is not preceded or followed by another text node and
+ * that it is not empty.** In other words, if the DOM tree on which this code is
+ * used does not have consecutive text nodes and no empty nodes, then after the
+ * call, it still won't.
  *
  * @returns A pair containing a caret position marking the boundary between what
  * comes before the material inserted and the material inserted, and a caret
@@ -543,7 +543,6 @@ function _genericInsertIntoText(this: GenericInsertIntoTextContext,
                                 clean: boolean = true): InsertionBoundaries {
   // This function is meant to be called with this set to a proper
   // value.
-  /* jshint validthis:true */
   if (!isText(textNode)) {
     throw new Error("insertIntoText called on non-text");
   }
