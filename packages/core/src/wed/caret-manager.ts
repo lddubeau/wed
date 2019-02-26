@@ -1108,7 +1108,7 @@ export class CaretManager implements GUIToDataConverter {
       console.log("selection focus closest real",
                   closestByClass(node, "_real", this.guiRootEl));
       if (isText(node)) {
-        if (offset < node.data.length) {
+        if (offset < node.length) {
           const range = this.doc.createRange();
           range.setStart(node, offset);
           range.setEnd(node, offset + 1);

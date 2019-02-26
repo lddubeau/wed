@@ -131,7 +131,7 @@ function getTestLength(node: Node | Attr): number {
     case Node.CDATA_SECTION_NODE:
     case Node.COMMENT_NODE:
     case Node.PROCESSING_INSTRUCTION_NODE:
-      return (node as Text).data.length;
+      return (node as Text).length;
     case Node.DOCUMENT_NODE:
     case Node.DOCUMENT_FRAGMENT_NODE:
     case Node.ELEMENT_NODE:

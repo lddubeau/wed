@@ -324,7 +324,7 @@ describe("dloc", () => {
       const c = defined(firstBodyP.firstChild) as Text;
       expect(c).to.have.property("nodeType").equal(Node.TEXT_NODE);
       expect(DLoc.makeDLoc(root, c, 100, true)).to.have.property("offset")
-        .equal(c.data.length);
+        .equal(c.length);
     });
 
     it("normalizes an offset that is too large (attribute)", () => {

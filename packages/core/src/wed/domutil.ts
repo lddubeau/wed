@@ -1735,7 +1735,7 @@ string | undefined {
   case Node.ELEMENT_NODE:
     const prev = node.childNodes[offset - 1];
     if (isText(prev)) {
-      return prev.data[prev.data.length - 1];
+      return prev.data[prev.length - 1];
     }
     break;
   default:
