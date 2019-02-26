@@ -9,8 +9,8 @@
 
 import { DLoc } from "./dloc";
 import { isElement, isText } from "./domtypeguards";
-import { Caret, childByClass, closest, closestByClass, indexOf,
-         nextCaretPosition, prevCaretPosition } from "./domutil";
+import { childByClass, closest, closestByClass, indexOf, nextCaretPosition,
+         prevCaretPosition } from "./domutil";
 import { ModeTree } from "./mode-tree";
 import { boundaryXY, getAttrValueNode } from "./wed-util";
 
@@ -203,17 +203,16 @@ export function positionRight(pos: DLoc | undefined | null,
 
   // tslint:disable-next-line:strict-boolean-expressions no-constant-condition
   while (true) {
-    const guiBefore: Element | null = closestByClass(pos.node, "_gui", root);
+    const guiBefore = closestByClass(pos.node, "_gui", root);
 
-    const nextCaret: Caret | null =
-      nextCaretPosition(pos.toArray(), container, false);
+    const nextCaret = nextCaretPosition(pos.toArray(), container);
     if (nextCaret === null) {
       pos = null;
       break;
     }
 
     pos = pos.make(...nextCaret);
-    const { node, offset }: { node: Node; offset: number } = pos;
+    const { node, offset } = pos;
     const closestGUI = closest(node, "._gui:not(._invisible)", root);
     if (closestGUI !== null) {
       const startLabel = closestGUI.classList.contains("__start_label");
@@ -345,18 +344,16 @@ export function positionLeft(pos: DLoc | undefined | null,
   while (true) {
     let elName = closestByClass(pos.node, "_element_name", root);
     const wasInName = (pos.node === elName) && (pos.offset === 0);
-    const prevCaret: Caret | null = prevCaretPosition(pos.toArray(), container,
-                                                      false);
+    const prevCaret = prevCaretPosition(pos.toArray(), container);
     if (prevCaret === null) {
       pos = null;
       break;
     }
 
     pos = pos.make(...prevCaret);
-    const node: Node = pos.node;
+    const node = pos.node;
     let offset = pos.offset;
-    const closestGUI: Element | null = closest(node, "._gui:not(._invisible)",
-                                               root);
+    const closestGUI = closest(node, "._gui:not(._invisible)", root);
     if (closestGUI !== null) {
       const startLabel = closestGUI.classList.contains("__start_label");
       if (startLabel && !wasInName &&

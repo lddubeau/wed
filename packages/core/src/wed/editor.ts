@@ -2824,7 +2824,7 @@ cannot be cut.`, { type: "danger" });
       else {
         // Prevent deleting phantom stuff
         const next =
-          domutil.nextCaretPosition(selFocus.toArray(), this.guiRoot, true)![0];
+          domutil.nextCaretPositionNoText(selFocus.toArray(), this.guiRoot)![0];
         if (!isElement(next) ||
             !(next.classList.contains("_phantom") ||
               next.classList.contains("_phantom_wrap"))) {
@@ -2849,7 +2849,7 @@ cannot be cut.`, { type: "danger" });
       else {
         // Prevent backspacing over phantom stuff
         const prev =
-          domutil.prevCaretPosition(selFocus.toArray(), this.guiRoot, true)![0];
+          domutil.prevCaretPositionNoText(selFocus.toArray(), this.guiRoot)![0];
         if (!isElement(prev) ||
             !(prev.classList.contains("_phantom") ||
               prev.classList.contains("_phantom_wrap"))) {

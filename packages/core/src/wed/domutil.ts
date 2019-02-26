@@ -228,17 +228,11 @@ export type Caret = [Node, number];
  * @param container A DOM node which indicates the container within which caret
  * movements must be contained.
  *
- * @param noText If true, and a text node would be returned, the function will
- * instead return the parent of the text node.
- *
  * @returns The next caret position, or ``null`` if such position does not
  * exist. The ``container`` parameter constrains movements to positions inside
  * it.
  */
-// tslint:disable-next-line:cyclomatic-complexity
-export function nextCaretPosition(caret: Caret,
-                                  container: Node,
-                                  noText: boolean): Caret | null {
+export function nextCaretPosition(caret: Caret, container: Node): Caret | null {
   let [node, offset] = caret;
   if (!container.contains(node)) {
     return null;
@@ -294,19 +288,37 @@ export function nextCaretPosition(caret: Caret,
     }
   }
 
-  if (noText && isText(node)) {
-    parent = node.parentNode;
-    if (parent === null) {
-      throw new Error("detached node");
-    }
-    offset = indexOf(parent.childNodes, node);
-    node = parent;
-  }
-
   return (!container.contains(node) ||
           (node === container && offset >= node.childNodes.length)) ?
     null : // We've moved to a position outside the container.
     [node, offset]; // We have a real position.
+}
+
+/**
+ * Does the same as [[nextCaretPosition]] but if the returned position would be
+ * in a text node, it returns a position in the element that contains the text
+ * node instead.
+ */
+export function nextCaretPositionNoText(caret: Caret,
+                                        container: Node): Caret | null {
+  const loc = nextCaretPosition(caret, container);
+  if (loc === null) {
+    return null;
+  }
+
+  const [node] = loc;
+  if (!isText(node)) {
+    return loc;
+  }
+
+  const parent = node.parentNode;
+  if (parent === null) {
+    throw new Error("detached node");
+  }
+
+  return !container.contains(parent) ?
+    null : // We've moved to a position outside the container.
+    [parent, indexOf(parent.childNodes, node)]; // We have a real position.
 }
 
 /**
@@ -325,17 +337,12 @@ export function nextCaretPosition(caret: Caret,
  * @param container A DOM node which indicates the container within which caret
  * movements must be contained.
  *
- * @param noText If true, and a text node would be returned, the function will
- * instead return the parent of the text node.
- *
  * @returns The previous caret position, or ``null`` if such position does not
  * exist. The ``container`` parameter constrains movements to positions inside
  * it.
  */
 // tslint:disable-next-line:cyclomatic-complexity
-export function prevCaretPosition(caret: Caret,
-                                  container: Node,
-                                  noText: boolean): Caret | null {
+export function prevCaretPosition(caret: Caret, container: Node): Caret | null {
   let [node, offset] = caret;
   if (!container.contains(node)) {
     return null;
@@ -404,20 +411,31 @@ export function prevCaretPosition(caret: Caret,
     }
   }
 
-  if (noText && isText(node)) {
-    parent = node.parentNode;
-    if (parent == null) {
-      throw new Error("detached node");
-    }
-
-    offset = indexOf(parent.childNodes, node);
-    node = parent;
-  }
-
-  // We've moved to a position outside the container.
   return (!container.contains(node) || (node === container && offset < 0)) ?
     null : // We've moved to a position outside the container.
     [node, offset];  // We have a real position.
+}
+
+export function prevCaretPositionNoText(caret: Caret,
+                                        container: Node): Caret | null {
+  const loc = prevCaretPosition(caret, container);
+  if (loc === null) {
+    return null;
+  }
+
+  const [node] = loc;
+  if (!isText(node)) {
+    return loc;
+  }
+
+  const parent = node.parentNode;
+  if (parent === null) {
+    throw new Error("detached node");
+  }
+
+  return !container.contains(parent) ?
+    null : // We've moved to a position outside the container.
+    [parent, indexOf(parent.childNodes, node)];  // We have a real position.
 }
 
 /**

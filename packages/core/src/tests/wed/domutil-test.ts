@@ -63,7 +63,8 @@ describe("domutil", () => {
                                           domutil.Caret | null | undefined,
                                           Node];
 
-  function makeTestFactory(method: typeof domutil.nextCaretPosition):
+  function makeTestFactory(method: typeof domutil.nextCaretPosition,
+                           method2: typeof domutil.nextCaretPositionNoText):
   (name: string, callback: Callback) => void {
     return function makeTest(name: string, callback: Callback): void {
       let caret: domutil.Caret;
@@ -78,37 +79,29 @@ describe("domutil", () => {
 
           empty(domroot);
           domroot.appendChild(data);
+
           if (textExpected === undefined) {
             textExpected = noTextExpected;
           }
-
-          // The isNotNull checks are to ensure we don't majorly screw up in
-          // setting up a test case.
-          if (noTextExpected !== null) {
-            assert.isNotNull(noTextExpected[0]);
-          }
-
-          if (textExpected !== null) {
-            assert.isNotNull(textExpected[0]);
-          }
         });
 
-        it("no_text === true", () => {
-          const result = method(caret, container, true);
-          assert.deepEqual(result, noTextExpected);
-        });
-
-        it("no_text === false", () => {
-          const result = method(caret, container, false);
+        it(`${method.name} returns the expected position`, () => {
+          const result = method(caret, container);
           assert.deepEqual(result, textExpected);
+        });
+
+        it(`${method2.name} returns the expected position`, () => {
+          const result = method2(caret, container);
+          assert.deepEqual(result, noTextExpected);
         });
       });
     };
   }
 
   // tslint:disable:mocha-no-side-effect-code no-inner-html
-  describe("nextCaretPosition", () => {
-    const makeTest = makeTestFactory(domutil.nextCaretPosition);
+  describe("nextCaretPosition and nextCaretPositionNoText", () => {
+    const makeTest = makeTestFactory(domutil.nextCaretPosition,
+                                     domutil.nextCaretPositionNoText);
 
     makeTest("in text", (data) => {
       data.textContent = "test";
@@ -199,8 +192,9 @@ describe("domutil", () => {
              [[document.body.parentNode!, 30000], null, null, document]);
   });
 
-  describe("prevCaretPosition", () => {
-    const makeTest = makeTestFactory(domutil.prevCaretPosition);
+  describe("prevCaretPosition and prevCaretPositionNoText", () => {
+    const makeTest = makeTestFactory(domutil.prevCaretPosition,
+                                     domutil.prevCaretPositionNoText);
 
     makeTest("in text", (data) => {
       data.textContent = "test";
