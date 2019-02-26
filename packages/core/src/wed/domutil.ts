@@ -240,8 +240,6 @@ export function nextCaretPosition(caret: Caret,
                                   container: Node,
                                   noText: boolean): Caret | null {
   let [node, offset] = caret;
-  let found = false;
-
   if (!container.contains(node)) {
     return null;
   }
@@ -249,8 +247,8 @@ export function nextCaretPosition(caret: Caret,
   const doc = isDocument(node) ? node : node.ownerDocument!;
 
   const window = doc.defaultView!;
-  let parent;
-  search_loop:
+  let parent: Node | null;
+  let found = false;
   while (!found) {
     parent = node.parentNode;
     switch (node.nodeType) {
@@ -258,12 +256,12 @@ export function nextCaretPosition(caret: Caret,
       if (offset >= (node as Text).length ||
           // If the parent node is set to normal whitespace handling, then
           // moving the caret forward by one position will skip this whitespace.
-          (parent != null && parent.lastChild === node &&
+          (parent !== null && parent.lastChild === node &&
            window.getComputedStyle(parent as Element, undefined).whiteSpace ===
            "normal" && /^\s+$/.test((node as Text).data.slice(offset)))) {
         // We would move outside the container
-        if (parent == null || node === container) {
-          break search_loop;
+        if (parent === null || node === container) {
+          return null;
         }
 
         offset = indexOf(parent.childNodes, node) + 1;
@@ -277,8 +275,8 @@ export function nextCaretPosition(caret: Caret,
     case Node.ELEMENT_NODE:
       if (offset >= node.childNodes.length) {
         // If we've hit the end of what we can search, stop.
-        if (parent == null || node === container) {
-          break search_loop;
+        if (parent === null || node === container) {
+          return null;
         }
 
         offset = indexOf(parent.childNodes, node) + 1;
@@ -296,26 +294,19 @@ export function nextCaretPosition(caret: Caret,
     }
   }
 
-  if (!found) {
-    return null;
-  }
-
   if (noText && isText(node)) {
     parent = node.parentNode;
-    if (parent == null) {
+    if (parent === null) {
       throw new Error("detached node");
     }
     offset = indexOf(parent.childNodes, node);
     node = parent;
   }
 
-  // We've moved to a position outside the container.
-  if (!container.contains(node) ||
-      (node === container && offset >= node.childNodes.length)) {
-    return null;
-  }
-
-  return [node, offset];
+  return (!container.contains(node) ||
+          (node === container && offset >= node.childNodes.length)) ?
+    null : // We've moved to a position outside the container.
+    [node, offset]; // We have a real position.
 }
 
 /**
@@ -346,8 +337,6 @@ export function prevCaretPosition(caret: Caret,
                                   container: Node,
                                   noText: boolean): Caret | null {
   let [node, offset] = caret;
-  let found = false;
-
   if (!container.contains(node)) {
     return null;
   }
@@ -355,8 +344,8 @@ export function prevCaretPosition(caret: Caret,
   const doc = isDocument(node) ? node : node.ownerDocument!;
 
   const window = doc.defaultView!;
-  let parent;
-  search_loop:
+  let found = false;
+  let parent: Node | null;
   while (!found) {
     offset--;
 
@@ -371,12 +360,12 @@ export function prevCaretPosition(caret: Caret,
       if (offset < 0 ||
           // If the parent node is set to normal whitespace handling, then
           // moving the caret back by one position will skip this whitespace.
-          (parent != null && parent.firstChild === node &&
+          (parent !== null && parent.firstChild === node &&
            window.getComputedStyle(parent as Element, undefined).whiteSpace ===
            "normal" && /^\s+$/.test((node as Text).data.slice(0, offset)))) {
         // We would move outside the container
         if (parent === null || node === container) {
-          break search_loop;
+          return null;
         }
 
         offset = indexOf(parent.childNodes, node);
@@ -389,8 +378,8 @@ export function prevCaretPosition(caret: Caret,
     case Node.ELEMENT_NODE:
       if (offset < 0 || node.childNodes.length === 0) {
         // If we've hit the end of what we can search, stop.
-        if (parent == null || node === container) {
-          break search_loop;
+        if (parent === null || node === container) {
+          return null;
         }
 
         offset = indexOf(parent.childNodes, node);
@@ -415,10 +404,6 @@ export function prevCaretPosition(caret: Caret,
     }
   }
 
-  if (!found) {
-    return null;
-  }
-
   if (noText && isText(node)) {
     parent = node.parentNode;
     if (parent == null) {
@@ -430,11 +415,9 @@ export function prevCaretPosition(caret: Caret,
   }
 
   // We've moved to a position outside the container.
-  if (!container.contains(node) || (node === container && offset < 0)) {
-    return null;
-  }
-
-  return [node, offset];
+  return (!container.contains(node) || (node === container && offset < 0)) ?
+    null : // We've moved to a position outside the container.
+    [node, offset];  // We have a real position.
 }
 
 /**
