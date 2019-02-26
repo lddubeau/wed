@@ -414,6 +414,11 @@ export function prevCaretPosition(caret: Caret, container: Node): Caret | null {
     [node, offset];  // We have a real position.
 }
 
+/**
+ * Does the same as [[prevCaretPosition]] but if the returned position would be
+ * in a text node, it returns a position in the element that contains the text
+ * node instead.
+ */
 export function prevCaretPositionNoText(caret: Caret,
                                         container: Node): Caret | null {
   const loc = prevCaretPosition(caret, container);
