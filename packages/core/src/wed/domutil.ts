@@ -96,21 +96,32 @@ export function comparePositions(firstNode: Node,
     throw new Error("cannot compare disconnected nodes");
   }
 
+  // The secondNode is contained by firstNode.
   if ((comparison & Node.DOCUMENT_POSITION_CONTAINED_BY) !== 0) {
+    // We know that secondNode is contained by firstNode but we still don't know
+    // the relationship between the node pointed by [firstNode, firstOffset] and
+    // secondNode.
     return parentChildCompare(firstNode, firstOffset, secondNode);
   }
 
+  // The secondNode contains firstNode.
   if ((comparison & Node.DOCUMENT_POSITION_CONTAINS) !== 0) {
-    // This raises a type error:
+    // We know that secondNode contains firstNode but we still don't know the
+    // relationship between the node pointed by [secondNode, secondOffset] and
+    // firstNode.
+
+    return parentChildCompare(secondNode, secondOffset, firstNode) < 0 ? 1 : -1;
+    // We cannot reduce it to this, due to a type error:
     //
     // return -parentChildCompare(secondNode, secondOffset, firstNode);
-    return parentChildCompare(secondNode, secondOffset, firstNode) < 0 ? 1 : -1;
   }
 
+  // The secondNode precedes firstNode.
   if ((comparison & Node.DOCUMENT_POSITION_PRECEDING) !== 0) {
     return 1;
   }
 
+  // The secondNode follows firstNode.
   if ((comparison & Node.DOCUMENT_POSITION_FOLLOWING) !== 0) {
     return -1;
   }
