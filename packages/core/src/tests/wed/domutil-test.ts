@@ -40,7 +40,6 @@ const commonMap = {
 describe("domutil", () => {
   let provider: DataProvider;
   let domroot: HTMLElement;
-  let testPara: HTMLElement;
   let sourceDoc: Document;
 
   before(async () => {
@@ -52,16 +51,11 @@ describe("domutil", () => {
 
   before(() => {
     domroot = document.createElement("div");
-    testPara = document.createElement("p");
-    testPara.setAttribute("tabindex", "-1");
-    testPara.textContent = "Test para which has to be visible.";
     document.body.appendChild(domroot);
-    document.body.appendChild(testPara);
   });
 
   after(() => {
     document.body.removeChild(domroot);
-    document.body.removeChild(testPara);
   });
 
   type Callback = (data: HTMLElement) => [domutil.Caret,
@@ -699,28 +693,69 @@ describe("domutil", () => {
   });
 
   describe("focusNode", () => {
+    let testPara: HTMLElement;
+    let diversion: HTMLElement;
+    let text: Text;
+    let comment: Comment;
+    let pi: ProcessingInstruction;
+
+    before(() => {
+      testPara = document.createElement("p");
+      testPara.setAttribute("tabindex", "-1");
+      testPara.textContent = "Test para.";
+      text = testPara.firstChild as Text;
+      comment = document.createComment("foo");
+      pi = document.createProcessingInstruction("a", "b");
+      testPara.appendChild(comment);
+      testPara.appendChild(pi);
+      document.body.appendChild(testPara);
+
+      diversion = document.createElement("p");
+      diversion.setAttribute("tabindex", "-1");
+      document.body.appendChild(diversion);
+    });
+
+    afterEach(() => {
+      diversion.focus();
+    });
+
+    after(() => {
+      document.body.removeChild(testPara);
+      document.body.removeChild(diversion);
+    });
+
     it("focuses an element", () => {
-      const p = testPara;
-      assert.notEqual(p, p.ownerDocument!.activeElement, "p is not focused");
-      domutil.focusNode(p);
-      assert.equal(p, p.ownerDocument!.activeElement, "p is focused");
+      expect(document).to.have.property("activeElement").not.equal(testPara);
+      domutil.focusNode(testPara);
+      expect(document).to.have.property("activeElement").equal(testPara);
     });
 
     it("focuses text's parent", () => {
-      const text = testPara.firstChild!;
-      assert.equal(text.nodeType, Node.TEXT_NODE, "node type is text");
-      assert.notEqual(text, text.ownerDocument!.activeElement,
-                      "text is not focused");
+      expect(document).to.have.property("activeElement").not.equal(testPara);
       domutil.focusNode(text);
-      assert.equal(text.parentNode, text.ownerDocument!.activeElement,
-                   "text's parent is focused");
+      expect(document).to.have.property("activeElement").equal(testPara);
     });
 
-    it("throws an error on anything else than element or text", () => {
+    it("focuses comment's parent", () => {
+      expect(document).to.have.property("activeElement").not.equal(testPara);
+      domutil.focusNode(comment);
+      expect(document).to.have.property("activeElement").equal(testPara);
+    });
+
+    it("focuses pi's parent", () => {
+      expect(document).to.have.property("activeElement").not.equal(testPara);
+      domutil.focusNode(pi);
+      expect(document).to.have.property("activeElement").equal(testPara);
+    });
+
+    // It is not possible to test with CDATA because CDATA is not valid in an
+    // HTML tree.
+
+    it("throws an error when called with bad value", () => {
       expect(() => {
-        domutil.focusNode(undefined as any);
-      }).to.throw(Error, "tried to focus something other than a text node or \
-an element.");
+        domutil.focusNode(document);
+      }).to.throw(Error, "tried to focus something other than an element or an \
+element child.");
     });
   });
 

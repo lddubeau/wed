@@ -182,29 +182,26 @@ export function rangeFromPoints(startContainer: Node,
 }
 
 /**
- * Focuses the node itself or if the node is a text node, focuses the parent.
+ * Focus the node itself, or if the node is an element's child, focus the
+ * parent.
  *
  * @param node The node to focus.
  *
- * @throws {Error} If the node is neither a text node nor an element. Trying to
- * focus something other than these is almost certainly an algorithmic bug.
+ * @throws {Error} If the node is neither an element or an element's
+ * child. Trying to focus something other than these is almost certainly an
+ * algorithmic bug.
  */
 export function focusNode(node: Node): void {
-  const nodeType = node != null ? node.nodeType : undefined;
-  switch (nodeType) {
-  case Node.TEXT_NODE:
-    if (node.parentNode == null) {
-      throw new Error("detached node");
+  let toFocus: Node | null = node;
+  if (!isElement(toFocus)) {
+    toFocus = node.parentNode;
+    if (!isElement(toFocus)) {
+      throw new Error("tried to focus something other than an element or an \
+element child.");
     }
-    (node.parentNode as HTMLElement).focus();
-    break;
-  case Node.ELEMENT_NODE:
-    (node as HTMLElement).focus();
-    break;
-  default:
-    throw new Error("tried to focus something other than a text node or " +
-                    "an element.");
   }
+
+  (toFocus as HTMLElement).focus();
 }
 
 /**
