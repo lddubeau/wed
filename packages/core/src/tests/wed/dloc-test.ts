@@ -5,147 +5,181 @@
  */
 "use strict";
 
-import $ from "jquery";
-
-import * as convert from "wed/convert";
 import { DLoc, DLocRange, DLocRoot, findRoot, getRoot } from "wed/dloc";
 import { isAttr } from "wed/domutil";
-import { encodeAttrName } from "wed/util";
 
 import { DataProvider } from "../util";
 import { dataPath } from "../wed-test-util";
 
-const assert = chai.assert;
+const expect = chai.expect;
 
 // tslint:disable:no-any
 
 function defined<T>(x: T | null | undefined): T {
-  assert.isDefined(x);
+  expect(x).to.not.be.undefined;
   // The assertion above already excludes null and undefined, but TypeScript
   // does not know this.
   return x as T;
 }
 
 describe("dloc", () => {
-  let $root: JQuery;
-  let root: HTMLElement;
+  let xmlDoc: Document;
+  let root: Element;
   let rootObj: DLocRoot;
-  let encodedType: string;
+  let firstP: Element;
+  let firstTitle: Element;
+  let firstQuote: Element;
+  let quoteAtType: Attr;
+  let bodyPs: Element[];
+  let firstBodyP: Element;
+  let secondBodyP: Element;
+  let firstComment: Comment;
+  let firstPI: ProcessingInstruction;
+  let firstCData: CDATASection;
 
-  before(() => new DataProvider(`${dataPath}/dloc_test_data/`)
-         .getText("source_converted.xml")
-         .then((sourceXML) => {
-           root = document.createElement("div");
-           document.body.appendChild(root);
-           $root = $(root);
-           const parser = new window.DOMParser();
-           const xmlDoc = parser.parseFromString(sourceXML, "text/xml");
-           const htmlTree = convert.toHTMLTree(window.document,
-                                               xmlDoc.firstElementChild!);
-           root.appendChild(htmlTree);
-           rootObj = new DLocRoot(root);
-           encodedType = encodeAttrName("type");
-         }));
+  before(async () => {
+    const provider = new DataProvider(`${dataPath}/dloc_test_data/`);
+    const sourceXML =
+      await provider.getText("source_with_comments_etc_converted.xml");
 
-  after(() => {
-    document.body.removeChild(root);
+    const parser = new DOMParser();
+    xmlDoc = parser.parseFromString(sourceXML, "text/xml");
+    root = xmlDoc.documentElement;
+    rootObj = new DLocRoot(root);
+
+    firstP = defined(root.getElementsByTagName("p")[0]);
+    firstTitle = defined(root.getElementsByTagName("title")[0]);
+    firstQuote = defined(root.getElementsByTagName("quote")[0]);
+    // Equivalent to XPath: //quote/@type
+    quoteAtType = defined(firstQuote.getAttributeNode("type"));
+    expect(isAttr(quoteAtType)).to.be.true;
+    bodyPs = Array.prototype.slice.call(root.querySelectorAll("body>p"));
+    firstBodyP = defined(bodyPs[0]);
+    secondBodyP = defined(bodyPs[1]);
+    firstComment =
+      defined(root.getElementsByTagName("body")[0].firstChild) as Comment;
+    expect(firstComment).to.have.property("nodeType").equal(Node.COMMENT_NODE);
+    firstPI = (defined(root.getElementsByTagName("body")[0].childNodes[2]) as
+               ProcessingInstruction);
+    expect(firstPI).to.have.property("nodeType").
+      equal(Node.PROCESSING_INSTRUCTION_NODE);
+    firstCData = secondBodyP.childNodes[1] as CDATASection;
+    expect(firstCData).to.have.property("nodeType").
+      equal(Node.CDATA_SECTION_NODE);
   });
 
   afterEach(() => {
-    // Some tests add elements with the class __test to the DOM tree.
-    // Proactively delete them here.
-    $(".__test").remove();
+    for (const el of
+         Array.prototype.slice.call(root.getElementsByTagName("nonexistent"))) {
+      el.parentNode.removeChild(el);
+    }
   });
 
+  function addTestElement(): Element {
+    const t = xmlDoc.createElement("nonexistent");
+    root.appendChild(t);
+    return t;
+  }
+
   function makeAttributeNodeCase(): { attrLoc: DLoc; loc: DLoc } {
-    const a = defined($(".quote")[0].getAttributeNode(encodedType));
-    const b = defined($(".body .p")[1]);
-    const attrLoc = defined(DLoc.makeDLoc(root, a, 0));
-    const loc = attrLoc.make(b, 1);
+    const attrLoc = DLoc.mustMakeDLoc(root, quoteAtType, 0);
+    const loc = attrLoc.make(firstBodyP, 1);
     return { attrLoc, loc };
   }
 
   function makeInvalidCase(): { loc: DLoc; invalid: DLoc } {
-    $root.append("<div class='__test'></div>");
-    const t = defined($(".__test")[0]);
-    assert.equal(t.nodeType, Node.ELEMENT_NODE);
-    const b = defined($(".body .p")[1]);
-    const loc = defined(DLoc.makeDLoc(root, b, 1));
+    const t = addTestElement();
+    const loc = DLoc.mustMakeDLoc(root, secondBodyP, 1);
     const invalid = loc.make(t, 0);
-    t.parentNode!.removeChild(t);
-    assert.isFalse(invalid.isValid());
+    root.removeChild(t);
+    expect(invalid.isValid()).to.be.false;
     return { loc, invalid };
   }
 
   describe("DLocRoot", () => {
     it("marks the root", () => {
-      assert.equal(findRoot(root), rootObj);
+      expect(findRoot(root)).to.equal(rootObj);
     });
 
     it("fails if the node is already marked", () => {
-      assert.throws(() => {
-        new DLocRoot(root);
-      },
-                    Error,
-                    "node already marked as root");
+      expect(() => new DLocRoot(root)).to
+        .throw(Error, "node already marked as root");
     });
 
     describe("nodeToPath", () => {
       it("returns an empty string on root", () => {
-        assert.equal(rootObj.nodeToPath(root), "");
+        expect(rootObj.nodeToPath(root)).to.equal("");
       });
 
       it("returns a correct path on text node", () => {
-        const node = defined($root.find(".title")[0].childNodes[0]);
-        assert.equal(rootObj.nodeToPath(node), "0/0/0/0/0/0");
+        const node = defined(firstTitle.childNodes[0]);
+        expect(rootObj.nodeToPath(node)).to.equal("0/0/0/0/0");
       });
 
       it("returns a correct path on later text node", () => {
-        const node = defined($root.find(".body>.p")[1].childNodes[2]);
-        assert.equal(rootObj.nodeToPath(node), "0/1/0/1/2");
+        const node = defined(secondBodyP.childNodes[2]);
+        expect(rootObj.nodeToPath(node)).to.equal("1/0/3/2");
       });
 
       it("returns a correct path on attribute", () => {
-        const node =
-          defined($root.find(".body>.p")[1].attributes.getNamedItem("class"));
-        assert.equal(rootObj.nodeToPath(node), "0/1/0/1/@class");
+        expect(rootObj.nodeToPath(quoteAtType)).to.equal("1/0/3/3/@type");
       });
 
-      it("fails on a node which is not a descendant of its root",
-         () => {
-           const node = defined($("body")[0]);
-           assert.throws(rootObj.nodeToPath.bind(rootObj, node),
-                         Error, "node is not a descendant of root");
-         });
+      it("returns a correct path on comment", () => {
+        expect(rootObj.nodeToPath(firstComment)).to.equal("1/0/0");
+      });
+
+      it("returns a correct path on processing instruction", () => {
+        expect(rootObj.nodeToPath(firstPI)).to.equal("1/0/2");
+      });
+
+      it("returns a correct path on CDATA", () => {
+        expect(rootObj.nodeToPath(firstCData)).to.equal("1/0/3/1");
+      });
+
+      it("fails on a node which is not a descendant of its root", () => {
+        expect(() => rootObj.nodeToPath(document.body)).to
+          .throw(Error, "node is not a descendant of root");
+      });
 
       it("fails on invalid node", () => {
-        assert.throws(rootObj.nodeToPath.bind(rootObj, null as any),
-                      Error, "invalid node parameter");
+        expect(() => rootObj.nodeToPath(null as any)).to
+          .throw(Error, "invalid node parameter");
 
-        assert.throws(rootObj.nodeToPath.bind(rootObj, undefined as any),
-                      Error, "invalid node parameter");
+        expect(() => rootObj.nodeToPath(undefined as any)).to
+          .throw(Error, "invalid node parameter");
       });
     });
 
     describe("pathToNode", () => {
       it("returns root when passed an empty string", () => {
-        assert.equal(rootObj.pathToNode(""), root);
+        expect(rootObj.pathToNode("")).to.equal(root);
       });
 
       it("returns a correct node on a text path", () => {
-        const node = defined($root.find(".title")[0].childNodes[0]);
-        assert.equal(rootObj.pathToNode("0/0/0/0/0/0"), node);
+        const node = defined(firstTitle.childNodes[0]);
+        expect(rootObj.pathToNode("0/0/0/0/0")).to.equal(node);
       });
 
       it("returns a correct node on a later text path", () => {
-        const node = defined($root.find(".body>.p")[1].childNodes[2]);
-        assert.equal(rootObj.pathToNode("0/1/0/1/2"), node);
+        const node = defined(secondBodyP.childNodes[2]);
+        expect(rootObj.pathToNode("1/0/3/2")).to.equal(node);
       });
 
       it("returns a correct node on attribute path", () => {
-        const node =
-          defined($root.find(".body>.p")[1].attributes.getNamedItem("class"));
-        assert.equal(rootObj.pathToNode("0/1/0/1/@class"), node);
+        expect(rootObj.pathToNode("1/0/3/3/@type")).to.equal(quoteAtType);
+      });
+
+      it("returns a correct node on comment path", () => {
+        expect(rootObj.pathToNode("1/0/0")).to.equal(firstComment);
+      });
+
+      it("returns a correct node on processing instruction path", () => {
+        expect(rootObj.pathToNode("1/0/2")).to.equal(firstPI);
+      });
+
+      it("returns a correct node on CDATA path", () => {
+        expect(rootObj.pathToNode("1/0/3/1")).to.equal(firstCData);
       });
 
       it("accepts more than one digit per path step", () => {
@@ -153,523 +187,645 @@ describe("dloc", () => {
         // fail with an exception complaining that the path was malformed due to
         // the presence of "10". The null return value is fine since there is no
         // such element, but at least it should not generate an exception.
-        assert.equal(rootObj.pathToNode("0/10"), null);
+        expect(rootObj.pathToNode("0/10")).to.be.null;
       });
 
       it("fails on malformed path", () => {
-        assert.throws(rootObj.pathToNode.bind(rootObj, "+"),
-                     Error, "malformed path expression");
+        expect(() => rootObj.pathToNode("+")).to
+          .throw(Error, "malformed path expression");
       });
     });
   });
 
   describe("findRoot", () => {
     it("finds the root", () => {
-      assert.equal(findRoot(defined($(".p")[0])), rootObj);
+      expect(findRoot(firstP)).to.equal(rootObj);
     });
 
     it("returns undefined if not in a root", () => {
-      assert.isUndefined(findRoot(defined($root.parent()[0])));
+      expect(findRoot(defined(root.parentNode))).to.be.undefined;
     });
   });
 
   describe("getRoot", () => {
     it("gets the root", () => {
-      assert.equal(getRoot(defined($(".p")[0])), rootObj);
+      expect(getRoot(firstP)).to.equal(rootObj);
     });
 
     it("throws an exception if not in a root", () => {
-      assert.throws(getRoot.bind(undefined, defined($root.parent()[0])),
-                   Error, "no root found");
+      expect(() => getRoot(defined(root.parentNode))).to
+        .throw(Error, "no root found");
     });
   });
 
   describe("makeDLoc", () => {
     it("returns undefined when called with undefined location", () => {
-      assert.isUndefined(DLoc.makeDLoc(root, undefined));
+      expect(DLoc.makeDLoc(root, undefined)).to.be.undefined;
     });
 
     it("returns a valid DLoc", () => {
-      const a = defined($(".p")[0]);
-      const loc = DLoc.makeDLoc(root, a, 0)!;
-      assert.equal(loc.node, a);
-      assert.equal(loc.offset, 0);
-      assert.equal(loc.root, root);
-      assert.isTrue(loc.isValid());
+      const loc = DLoc.makeDLoc(root, firstP, 0)!;
+      expect(loc).to.have.property("node").equal(firstP);
+      expect(loc).to.have.property("offset").equal(0);
+      expect(loc).to.have.property("root").equal(root);
+      expect(loc.isValid()).to.be.true;
     });
 
     it("returns a valid DLoc when the root is a DLocRoot", () => {
-      const a = defined($(".p")[0]);
-      const loc = DLoc.makeDLoc(rootObj, a, 0)!;
-      assert.equal(loc.node, a);
-      assert.equal(loc.offset, 0);
-      assert.equal(loc.root, root);
-      assert.isTrue(loc.isValid());
+      const loc = DLoc.makeDLoc(rootObj, firstP, 0)!;
+      expect(loc).to.have.property("node").equal(firstP);
+      expect(loc).to.have.property("offset").equal(0);
+      expect(loc).to.have.property("root").equal(root);
+      expect(loc.isValid()).to.be.true;
     });
 
     it("returns a valid DLoc on an attribute node", () => {
-      const a = defined($(".quote")[0].getAttributeNode(encodedType));
-      const loc = DLoc.makeDLoc(root, a, 0)!;
-      assert.equal(loc.node, a);
-      assert.equal(loc.offset, 0);
-      assert.equal(loc.root, root);
-      assert.isTrue(loc.isValid());
+      const loc = DLoc.makeDLoc(root, quoteAtType, 0)!;
+      expect(loc).to.have.property("node").equal(quoteAtType);
+      expect(loc).to.have.property("offset").equal(0);
+      expect(loc).to.have.property("root").equal(root);
+      expect(loc.isValid()).to.be.true;
     });
 
     it("returns a valid DLoc when called with an array", () => {
-      const a = defined($(".p")[0]);
-      const loc = DLoc.makeDLoc(root, [a, 0])!;
-      assert.equal(loc.node, a);
-      assert.equal(loc.offset, 0);
-      assert.equal(loc.root, root);
-      assert.isTrue(loc.isValid());
+      const loc = DLoc.makeDLoc(root, [firstP, 0])!;
+      expect(loc).to.have.property("node").equal(firstP);
+      expect(loc).to.have.property("offset").equal(0);
+      expect(loc).to.have.property("root").equal(root);
+      expect(loc.isValid()).to.be.true;
     });
 
     it("returns a valid DLoc when the offset is omitted", () => {
-      const a = defined($(".body .p")[1]);
-      const loc = DLoc.makeDLoc(root, a)!;
-      assert.equal(loc.node, a.parentNode);
-      assert.equal(loc.offset, 1);
-      assert.equal(loc.root, root);
-      assert.isTrue(loc.isValid());
+      const loc = DLoc.makeDLoc(root, secondBodyP)!;
+      expect(loc).to.have.property("node").equal(secondBodyP.parentNode);
+      expect(loc).to.have.property("offset").equal(3);
+      expect(loc).to.have.property("root").equal(root);
+      expect(loc.isValid()).to.be.true;
     });
 
     it("returns undefined when called with an array that has an " +
        "undefined first member", () => {
-         assert.isUndefined(DLoc.makeDLoc(root, [undefined!, 0]));
+         expect(DLoc.makeDLoc(root, [undefined!, 0])).to.be.undefined;
     });
 
     it("throws an error when the node is not in the root", () => {
-      const c = defined($root.parent()[0]);
-      assert.throws((DLoc.makeDLoc.bind as any)(undefined, root, c, 0),
-                   Error, "node not in root");
+      expect(() => DLoc.makeDLoc(root, defined(root.parentNode), 0)).to
+        .throw(Error, "node not in root");
     });
 
     it("throws an error when the root is not marked", () => {
-      const c = defined($root.parent()[0]);
-      assert.throws((DLoc.makeDLoc.bind as any)(undefined, c, c, 0), Error,
-                    /^root has not been marked as a root/);
+      const c = defined(root.parentNode);
+      expect(() => DLoc.makeDLoc(c as Document, c, 0)).to
+        .throw(Error, /^root has not been marked as a root/);
     });
 
     it("throws an error when the offset is negative", () => {
-      const c = defined($root.parent()[0]);
-      assert.throws((DLoc.makeDLoc.bind as any)(undefined, root, c, -1), Error,
-                    /^negative offsets are not allowed/);
+      expect(() => DLoc.makeDLoc(root, defined(root.parentNode), -1)).to
+        .throw(Error, /^negative offsets are not allowed/);
     });
 
     it("throws an error when the offset is too large (element)", () => {
-      const c = defined($(".p")[0]);
-      assert.equal(c.nodeType, Node.ELEMENT_NODE);
-      assert.throws((DLoc.makeDLoc.bind as any)(undefined, root, c, 100), Error,
-                    /^offset greater than allowable value/);
+      expect(() => DLoc.makeDLoc(root, firstP, 100)).to
+        .throw(Error, /^offset greater than allowable value/);
     });
 
     it("throws an error when the offset is too large (text)", () => {
-      const c = defined($(".body .p")[0].firstChild);
-      assert.equal(c.nodeType, Node.TEXT_NODE);
-      assert.throws((DLoc.makeDLoc.bind as any)(undefined, root, c, 100), Error,
-                   /^offset greater than allowable value/);
+      const c = defined(firstBodyP.firstChild);
+      expect(c).to.have.property("nodeType").equal(Node.TEXT_NODE);
+      expect(() => DLoc.makeDLoc(root, c, 100)).to
+        .throw(Error, /^offset greater than allowable value/);
     });
 
     it("throws an error when the offset is too large (attribute)", () => {
-      const c = defined($(".quote")[0].getAttributeNode(encodedType));
-      assert.isTrue(isAttr(c));
-      assert.throws((DLoc.makeDLoc.bind as any)(undefined, root, c, 100), Error,
-                    /^offset greater than allowable value/);
+      expect(() => DLoc.makeDLoc(root, quoteAtType, 100)).to
+        .throw(Error, /^offset greater than allowable value/);
+    });
+
+    it("throws an error when the offset is too large (comment)", () => {
+      expect(() => DLoc.makeDLoc(root, firstComment, 100)).to
+        .throw(Error, /^offset greater than allowable value/);
+    });
+
+    it("throws an error when the offset is too large (CData)", () => {
+      expect(() => DLoc.makeDLoc(root, firstCData, 100)).to
+        .throw(Error, /^offset greater than allowable value/);
+    });
+
+    it("throws an error when the offset is too large (PI)", () => {
+      expect(() => DLoc.makeDLoc(root, firstPI, 100)).to
+        .throw(Error, /^offset greater than allowable value/);
     });
 
     it("normalizes a negative offset", () => {
-      const c = defined($(".p")[0]);
-      const loc = DLoc.makeDLoc(root, c, -1, true)!;
-      assert.equal(loc.offset, 0);
+      expect(DLoc.makeDLoc(root, firstP, -1, true)).to.have.property("offset")
+        .equal(0);
     });
 
     it("normalizes an offset that is too large (element)", () => {
-      const c = defined($(".p")[0]);
-      assert.equal(c.nodeType, Node.ELEMENT_NODE);
-      const loc = DLoc.makeDLoc(root, c, 100, true)!;
-      assert.equal(loc.offset, 0);
+      expect(DLoc.makeDLoc(root, firstP, 100, true)).to.have.property("offset")
+        .equal(0);
     });
 
     it("normalizes an offset that is too large (text)", () => {
-      const c = defined($(".body .p")[0].firstChild);
-      assert.equal(c.nodeType, Node.TEXT_NODE);
-      const loc = DLoc.makeDLoc(root, c, 100, true)!;
-      assert.equal(loc.offset, (c as Text).data.length);
+      const c = defined(firstBodyP.firstChild) as Text;
+      expect(c).to.have.property("nodeType").equal(Node.TEXT_NODE);
+      expect(DLoc.makeDLoc(root, c, 100, true)).to.have.property("offset")
+        .equal(c.data.length);
     });
 
     it("normalizes an offset that is too large (attribute)", () => {
-      const c = defined($(".quote")[0].getAttributeNode(encodedType));
-      assert.isTrue(isAttr(c));
-      const loc = DLoc.makeDLoc(root, c, 100, true)!;
-      assert.equal(loc.offset, c.value.length);
+      expect(DLoc.makeDLoc(root, quoteAtType, 100, true)).to.have
+        .property("offset").equal(quoteAtType.value.length);
+    });
+
+    it("normalizes an offset that is too large (comment)", () => {
+      expect(DLoc.makeDLoc(root, firstComment, 100, true)).to.have
+        .property("offset").equal(9);
+    });
+
+    it("normalizes an offset that is too large (CData)", () => {
+      expect(DLoc.makeDLoc(root, firstCData, 100, true)).to.have
+        .property("offset").equal(3);
+    });
+
+    it("normalizes an offset that is too large (PI)", () => {
+      expect(DLoc.makeDLoc(root, firstPI, 100, true)).to.have
+        .property("offset").equal(4);
     });
   });
 
   describe("mustMakeDLoc", () => {
     it("throws when called with undefined location", () => {
-      assert.throws((DLoc.mustMakeDLoc.bind as any)(undefined, root, undefined),
-                    Error,
-                    /^called mustMakeDLoc with an absent node$/);
+      expect(() => DLoc.mustMakeDLoc(root, undefined)).to
+        .throw(Error, /^called mustMakeDLoc with an absent node$/);
     });
 
     it("returns a valid DLoc", () => {
-      const a = defined($(".p")[0]);
-      const loc = DLoc.mustMakeDLoc(root, a, 0);
-      assert.equal(loc.node, a);
-      assert.equal(loc.offset, 0);
-      assert.equal(loc.root, root);
-      assert.isTrue(loc.isValid());
+      const loc = DLoc.mustMakeDLoc(root, firstP, 0);
+      expect(loc).to.have.property("node").equal(firstP);
+      expect(loc).to.have.property("offset").equal(0);
+      expect(loc).to.have.property("root").equal(root);
+      expect(loc.isValid()).to.be.true;
     });
 
     it("returns a valid DLoc when called with an array", () => {
-      const a = defined($(".p")[0]);
-      const loc = DLoc.mustMakeDLoc(root, [a, 0]);
-      assert.equal(loc.node, a);
-      assert.equal(loc.offset, 0);
-      assert.equal(loc.root, root);
-      assert.isTrue(loc.isValid());
+      const loc = DLoc.mustMakeDLoc(root, [firstP, 0]);
+      expect(loc).to.have.property("node").equal(firstP);
+      expect(loc).to.have.property("offset").equal(0);
+      expect(loc).to.have.property("root").equal(root);
+      expect(loc.isValid()).to.be.true;
     });
 
-    it("throws when called with an array that has an undefined first member",
-       () => {
-         assert.throws((DLoc.mustMakeDLoc.bind as any)(
-           undefined,
-           root,
-           [undefined, 0]),
-                       Error,
-                      /^called mustMakeDLoc with an absent node$/);
-       });
+    it("throws when called with [undefined, ...]", () => {
+      expect(() => DLoc.mustMakeDLoc(root, [undefined as any, 0])).to
+        .throw(Error, /^called mustMakeDLoc with an absent node$/);
+    });
   });
 
   describe("DLoc", () => {
     describe("clone", () => {
       it("clones", () => {
-        const a = defined($(".body .p")[0]);
-        const loc = defined(DLoc.makeDLoc(root, a, 1));
-        assert.deepEqual(loc, loc.clone());
+        const loc = DLoc.mustMakeDLoc(root, firstBodyP, 1);
+        expect(loc).to.deep.equal(loc.clone());
       });
     });
 
     describe("make", () => {
       it("makes a new location with the same root", () => {
-        const a = defined($(".body .p")[0]);
-        const b = defined($(".body .p")[1]);
-        const loc = defined(DLoc.makeDLoc(root, a, 1));
-        const loc2 = loc.make(b, 0);
-        assert.equal(loc.root, loc2.root);
-        assert.equal(loc2.node, b);
-        assert.equal(loc2.offset, 0);
+        const loc = DLoc.mustMakeDLoc(root, firstBodyP, 1);
+        const loc2 = loc.make(secondBodyP, 0);
+        expect(loc).to.have.property("root").equal(loc2.root);
+        expect(loc2).to.have.property("node").equal(secondBodyP);
+        expect(loc2).to.have.property("offset").equal(0);
       });
     });
 
     describe("makeRange", () => {
       it("makes a range", () => {
-        const a = defined($(".body .p")[0]);
-        const b = defined($(".body .p")[1]);
-        const loc = defined(DLoc.makeDLoc(root, a, 0));
-        const loc2 = loc.make(b, 1);
-        const range = defined(loc.makeRange(loc2));
-        assert.equal(range.range.startContainer, a);
-        assert.equal(range.range.startOffset, 0);
-        assert.equal(range.range.endContainer, b);
-        assert.equal(range.range.endOffset, 1);
-        assert.isFalse(range.range.collapsed);
-        assert.isFalse(range.reversed);
+        const loc = DLoc.mustMakeDLoc(root, firstBodyP, 0);
+        const loc2 = loc.make(secondBodyP, 1);
+        const range = loc.makeRange(loc2);
+        expect(range).to.have.nested.property("range.startContainer")
+          .equal(firstBodyP);
+        expect(range).to.have.nested.property("range.startOffset").equal(0);
+        expect(range).to.have.nested.property("range.endContainer")
+          .equal(secondBodyP);
+        expect(range).to.have.nested.property("range.endOffset").equal(1);
+        expect(range).to.have.nested.property("range.collapsed").false;
+        expect(range).to.have.property("reversed").false;
       });
 
       it("makes a collapsed range", () => {
-        const a = defined($(".body .p")[0]);
-        const loc = defined(DLoc.makeDLoc(root, a, 0));
-        const range = defined(loc.makeRange());
-        assert.equal(range.startContainer, a);
-        assert.equal(range.startOffset, 0);
-        assert.equal(range.endContainer, a);
-        assert.equal(range.endOffset, 0);
-        assert.isTrue(range.collapsed);
+        const loc = DLoc.mustMakeDLoc(root, firstBodyP, 0);
+        const range = loc.makeRange();
+        expect(range).to.have.property("startContainer").equal(firstBodyP);
+        expect(range).to.have.property("startOffset").equal(0);
+        expect(range).to.have.property("endContainer").equal(firstBodyP);
+        expect(range).to.have.property("endOffset").equal(0);
+        expect(range).to.have.property("collapsed").true;
       });
 
       it("makes a reversed range", () => {
-        const a = defined($(".body .p")[0]);
-        const b = defined($(".body .p")[1]);
-        const loc = defined(DLoc.makeDLoc(root, b, 1));
-        const loc2 = loc.make(a, 0);
-        const range = defined(loc.makeRange(loc2));
-        assert.equal(range.range.startContainer, a);
-        assert.equal(range.range.startOffset, 0);
-        assert.equal(range.range.endContainer, b);
-        assert.equal(range.range.endOffset, 1);
-        assert.isFalse(range.range.collapsed);
-        assert.isTrue(range.reversed);
+        const loc = DLoc.mustMakeDLoc(root, secondBodyP, 1);
+        const loc2 = loc.make(firstBodyP, 0);
+        const range = loc.makeRange(loc2);
+        expect(range).to.have.nested.property("range.startContainer")
+          .equal(firstBodyP);
+        expect(range).to.have.nested.property("range.startOffset").equal(0);
+        expect(range).to.have.nested.property("range.endContainer")
+          .equal(secondBodyP);
+        expect(range).to.have.nested.property("range.endOffset").equal(1);
+        expect(range).to.have.nested.property("range.collapsed").false;
+        expect(range).to.have.property("reversed").true;
+      });
+
+      it("makes a range in a comment", () => {
+        const loc = DLoc.mustMakeDLoc(root, firstComment, 1);
+        const loc2 = loc.make(secondBodyP, 2);
+        const range = loc.makeRange(loc2);
+        expect(range).to.have.nested.property("range.startContainer")
+          .equal(firstComment);
+        expect(range).to.have.nested.property("range.startOffset").equal(1);
+        expect(range).to.have.nested.property("range.endContainer")
+          .equal(secondBodyP);
+        expect(range).to.have.nested.property("range.endOffset").equal(2);
+        expect(range).to.have.nested.property("range.collapsed").false;
+        expect(range).to.have.property("reversed").false;
+      });
+
+      it("makes a range in CData", () => {
+        const loc = DLoc.mustMakeDLoc(root, firstCData, 0);
+        const loc2 = loc.make(firstCData, 2);
+        const range = loc.makeRange(loc2);
+        expect(range).to.have.nested.property("range.startContainer")
+          .equal(firstCData);
+        expect(range).to.have.nested.property("range.startOffset").equal(0);
+        expect(range).to.have.nested.property("range.endContainer")
+          .equal(firstCData);
+        expect(range).to.have.nested.property("range.endOffset").equal(2);
+        expect(range).to.have.nested.property("range.collapsed").false;
+        expect(range).to.have.property("reversed").false;
+      });
+
+      it("makes a range in processing instruction", () => {
+        const loc = DLoc.mustMakeDLoc(root, firstPI, 1);
+        const loc2 = loc.make(secondBodyP, 2);
+        const range = loc.makeRange(loc2);
+        expect(range).to.have.nested.property("range.startContainer")
+          .equal(firstPI);
+        expect(range).to.have.nested.property("range.startOffset").equal(1);
+        expect(range).to.have.nested.property("range.endContainer")
+          .equal(secondBodyP);
+        expect(range).to.have.nested.property("range.endOffset").equal(2);
+        expect(range).to.have.nested.property("range.collapsed").false;
+        expect(range).to.have.property("reversed").false;
       });
 
       it("fails on an attribute node", () => {
         const { attrLoc, loc } = makeAttributeNodeCase();
-        assert.throws(() => attrLoc.makeRange(loc), Error,
-                     "cannot make range from attribute node");
+        expect(() => attrLoc.makeRange(loc)).to
+          .throw(Error, "cannot make range from attribute node");
       });
 
       it("fails on an attribute node passed as other", () => {
         const { attrLoc, loc } = makeAttributeNodeCase();
-        assert.throws(() => loc.makeRange(attrLoc), Error,
-                     "cannot make range from attribute node");
+        expect(() => loc.makeRange(attrLoc)).to
+          .throw(Error, "cannot make range from attribute node");
       });
 
       it("returns undefined on invalid location", () => {
-        const { invalid } = makeInvalidCase();
-        const range = invalid.makeRange();
-        assert.isUndefined(range);
+        expect(makeInvalidCase().invalid.makeRange()).to.be.undefined;
       });
 
       it("returns undefined on invalid other", () => {
         const { loc, invalid } = makeInvalidCase();
-        const range = loc.makeRange(invalid);
-        assert.isUndefined(range);
+        expect(loc.makeRange(invalid)).to.be.undefined;
       });
     });
 
     describe("makeDLocRange", () => {
       it("makes a range", () => {
-        const a = defined($(".body .p")[0]);
-        const b = defined($(".body .p")[1]);
-        const loc = defined(DLoc.makeDLoc(root, a, 0));
-        const loc2 = loc.make(b, 1);
-        const range = defined(loc.makeDLocRange(loc2));
-        assert.equal(range.start, loc);
-        assert.equal(range.end, loc2);
+        const loc = DLoc.mustMakeDLoc(root, firstBodyP, 0);
+        const loc2 = loc.make(secondBodyP, 1);
+        const range = loc.makeDLocRange(loc2);
+        expect(range).to.have.property("start").equal(loc);
+        expect(range).to.have.property("end").equal(loc2);
       });
 
       it("makes a collapsed range", () => {
-        const a = defined($(".body .p")[0]);
-        const loc = defined(DLoc.makeDLoc(root, a, 0));
-        const range = defined(loc.makeDLocRange());
-        assert.equal(range.start, loc);
-        assert.equal(range.end, loc);
-        assert.isTrue(range.collapsed);
+        const loc = DLoc.mustMakeDLoc(root, firstBodyP, 0);
+        const range = loc.makeDLocRange();
+        expect(range).to.have.property("start").equal(loc);
+        expect(range).to.have.property("end").equal(loc);
+        expect(range).to.have.property("collapsed").true;
       });
 
       it("returns undefined on invalid location", () => {
-        const { invalid } = makeInvalidCase();
-        const range = invalid.makeDLocRange();
-        assert.isUndefined(range);
+        expect(makeInvalidCase().invalid.makeDLocRange()).to.be.undefined;
       });
 
       it("returns undefined on invalid other", () => {
         const { loc, invalid } = makeInvalidCase();
-        const range = loc.makeDLocRange(invalid);
-        assert.isUndefined(range);
+        expect(loc.makeDLocRange(invalid)).to.be.undefined;
       });
     });
 
     describe("mustMakeDLocRange", () => {
       it("throws on invalid location", () => {
-        const { invalid } = makeInvalidCase();
-        assert.throws(() => invalid.mustMakeDLocRange(), Error,
-                      "cannot make a range");
+        expect(() => makeInvalidCase().invalid.mustMakeDLocRange()).to
+          .throw(Error, "cannot make a range");
       });
 
       it("throws on invalid other", () => {
         const { loc, invalid } = makeInvalidCase();
-        assert.throws(() => loc.mustMakeDLocRange(invalid), Error,
-                      "cannot make a range");
+        expect(() => loc.mustMakeDLocRange(invalid)).to
+          .throw(Error, "cannot make a range");
       });
     });
 
     describe("toArray", () => {
       it("returns an array with the right values", () => {
-        const a = defined($(".body .p")[0]);
-        const loc = defined(DLoc.makeDLoc(root, a, 1));
-        assert.deepEqual(loc.toArray(), [a, 1]);
+        expect(DLoc.mustMakeDLoc(root, firstBodyP, 1).toArray())
+          .to.deep.equal([firstBodyP, 1]);
       });
     });
 
-    describe("isValid", () => {
-      it("returns true when the location is valid (element)", () => {
-        const p = defined($(".p")[0]);
-        assert.equal(p.nodeType, Node.ELEMENT_NODE);
-        const loc = defined(DLoc.makeDLoc(root, p, 0));
-        assert.isTrue(loc.isValid());
+    describe("#isValid()", () => {
+      describe("returns true when the location is valid", () => {
+        it("in element", () => {
+          expect(DLoc.makeDLoc(root, firstP, 0)!.isValid()).to.be.true;
+        });
+
+        it("in text", () => {
+          const t = defined(firstBodyP.firstChild);
+          expect(t).to.have.property("nodeType").equal(Node.TEXT_NODE);
+          expect(DLoc.makeDLoc(root, t, 0)!.isValid()).to.be.true;
+        });
+
+        it("in attribute", () => {
+          expect(DLoc.makeDLoc(root, quoteAtType, 0)!.isValid()).to.be.true;
+        });
+
+        it("in comment", () => {
+          expect(DLoc.makeDLoc(root, firstComment, 0)!.isValid()).to.be.true;
+        });
+
+        it("in CData", () => {
+          expect(DLoc.makeDLoc(root, firstCData, 0)!.isValid()).to.be.true;
+        });
+
+        it("in PI", () => {
+          expect(DLoc.makeDLoc(root, firstPI, 0)!.isValid()).to.be.true;
+        });
       });
 
-      it("returns true when the location is valid (text)", () => {
-        const t = defined($(".body .p")[0].firstChild);
-        assert.equal(t.nodeType, Node.TEXT_NODE);
-        const loc = defined(DLoc.makeDLoc(root, t, 0));
-        assert.isTrue(loc.isValid());
-      });
+      describe("returns false", () => {
+        describe("when node is no longer in document", () => {
+          it("on element", () => {
+            expect(makeInvalidCase().invalid.isValid()).to.be.false;
+          });
 
-      it("returns true when the location is valid (attribute)", () => {
-        const a = defined($(".quote")[0].getAttributeNode(encodedType));
-        assert.isTrue(isAttr(a));
-        const loc = defined(DLoc.makeDLoc(root, a, 0));
-        assert.isTrue(loc.isValid());
-      });
+          it("on text", () => {
+            const t = addTestElement();
+            t.textContent = "foo";
+            expect(t.firstChild).to.have.property("nodeType")
+              .equal(Node.TEXT_NODE);
+            const loc = DLoc.mustMakeDLoc(root, t.firstChild, 0);
+            root.removeChild(t);
+            expect(loc.isValid()).to.be.false;
+          });
 
-      it("returns false when the node is no longer in the document (element)",
-         () => {
-           $root.append("<div class='__test'></div>");
-           const t = defined($(".__test")[0]);
-           assert.equal(t.nodeType, Node.ELEMENT_NODE);
-           const loc = defined(DLoc.makeDLoc(root, t, 0));
-           t.parentNode!.removeChild(t);
-           assert.isFalse(loc.isValid());
-         });
+          it("on attribute", () => {
+            const t = addTestElement();
+            t.setAttribute("foo", "bar");
+            const attr = t.getAttributeNode("foo");
+            const loc = DLoc.mustMakeDLoc(root, attr, 0);
+            t.removeAttribute("foo");
+            expect(loc.isValid()).to.be.false;
+          });
 
-      it("returns false when the node is no longer in the document (text)",
-         () => {
-           $root.append("<div class='__test'>test</div>");
-           const t = defined($(".__test")[0].firstChild);
-           assert.equal(t.nodeType, Node.TEXT_NODE);
-           const loc = defined(DLoc.makeDLoc(root, t, 0));
-           t.parentNode!.removeChild(t);
-           assert.isFalse(loc.isValid());
-         });
+          it("on comment", () => {
+            const t = addTestElement();
+            const comment = xmlDoc.createComment("Q");
+            t.appendChild(comment);
+            const loc = DLoc.mustMakeDLoc(root, comment, 0);
+            root.removeChild(t);
+            expect(loc.isValid()).to.be.false;
+          });
 
-      it("returns false when the node is no longer in the document (attribute)",
-         () => {
-           $root.append("<div class='__test' foo='bar'></div>");
-           const t = defined($(".__test")[0].attributes.getNamedItem("foo"));
-           assert.isTrue(isAttr(t));
-           const loc = defined(DLoc.makeDLoc(root, t, 0));
-           t.ownerElement!.removeAttribute("foo");
-           assert.isFalse(loc.isValid());
-         });
+          it("on CData", () => {
+            const t = addTestElement();
+            const cdata = xmlDoc.createCDATASection("Q");
+            t.appendChild(cdata);
+            const loc = DLoc.mustMakeDLoc(root, cdata, 0);
+            root.removeChild(t);
+            expect(loc.isValid()).to.be.false;
+          });
 
-      it("returns false when the offset is not longer valid (element)", () => {
-        $root.append("<div class='__test'>test</div>");
-        const t = defined($(".__test")[0]);
-        assert.equal(t.nodeType, Node.ELEMENT_NODE);
-        const loc = defined(DLoc.makeDLoc(root, t, 1));
-        t.removeChild(t.firstChild!);
-        assert.isFalse(loc.isValid());
-      });
+          it("on PI", () => {
+            const t = addTestElement();
+            const pi = xmlDoc.createProcessingInstruction("Q", "T");
+            t.appendChild(pi);
+            const loc = DLoc.mustMakeDLoc(root, pi, 0);
+            root.removeChild(t);
+            expect(loc.isValid()).to.be.false;
+          });
+        });
 
-      it("returns false when the offset is no longer valid (text)", () => {
-        $root.append("<div class='__test'>test</div>");
-        const t = defined($(".__test")[0].firstChild);
-        assert.equal(t.nodeType, Node.TEXT_NODE);
-        const loc = defined(DLoc.makeDLoc(root, t, 4));
-        t.textContent = "t";
-        assert.isFalse(loc.isValid());
-      });
+        describe("when the offset is no longer valid", () => {
+          it("in element", () => {
+            const t = addTestElement();
+            t.textContent = "test";
+            const loc = DLoc.mustMakeDLoc(root, t, 1);
+            t.removeChild(t.firstChild!);
+            expect(loc.isValid()).to.be.false;
+          });
 
-      it("returns false when the offset is no longer valid (attribute)", () => {
-        $root.append("<div class='__test' foo='bar'></div>");
-        const t = defined($(".__test")[0].attributes.getNamedItem("foo"));
-        assert.isTrue(isAttr(t));
-        const loc = defined(DLoc.makeDLoc(root, t, 3));
-        t.value = "f";
-        assert.isFalse(loc.isValid());
+          it("in text", () => {
+            const t = addTestElement();
+            t.textContent = "test";
+            const loc = DLoc.mustMakeDLoc(root, t.firstChild, 4);
+            t.textContent = "t";
+            expect(loc.isValid()).to.be.false;
+          });
+
+          it("in attribute", () => {
+            const t = addTestElement();
+            t.setAttribute("foo", "bar");
+            const attr = defined(t.getAttributeNode("foo"));
+            const loc = DLoc.mustMakeDLoc(root, attr, 3);
+            attr.value = "f";
+            expect(loc.isValid()).to.be.false;
+          });
+
+          it("in comment", () => {
+            const t = addTestElement();
+            const comment = xmlDoc.createComment("abcd");
+            t.appendChild(comment);
+            const loc = DLoc.mustMakeDLoc(root, comment, 4);
+            comment.data = "t";
+            expect(loc.isValid()).to.be.false;
+          });
+
+          it("in CData", () => {
+            const t = addTestElement();
+            const cdata = xmlDoc.createCDATASection("abcd");
+            t.appendChild(cdata);
+            const loc = DLoc.mustMakeDLoc(root, cdata, 4);
+            cdata.data = "t";
+            expect(loc.isValid()).to.be.false;
+          });
+
+          it("in PI", () => {
+            const t = addTestElement();
+            const pi = xmlDoc.createProcessingInstruction("a", "abcd");
+            t.appendChild(pi);
+            const loc = DLoc.mustMakeDLoc(root, pi, 4);
+            pi.data = "t";
+            expect(loc.isValid()).to.be.false;
+          });
+        });
       });
     });
 
-    describe("normalizeOffset", () => {
-      it("makes a new valid location (element)", () => {
-        $root.append("<div class='__test'>test</div>");
-        const t = defined($(".__test")[0]);
-        assert.equal(t.nodeType, Node.ELEMENT_NODE);
-        const loc = defined(DLoc.makeDLoc(root, t, 1));
+    describe("#normalizeOffset() make a new valid location", () => {
+      it("on element", () => {
+        const t = addTestElement();
+        t.textContent = "test";
+        const loc = DLoc.mustMakeDLoc(root, t, 1);
         t.removeChild(t.firstChild!);
-        assert.isFalse(loc.isValid());
+        expect(loc.isValid()).to.be.false;
         const norm = loc.normalizeOffset();
-        assert.isTrue(norm.isValid());
-        assert.notEqual(loc, norm);
-        assert.equal(norm.normalizeOffset(), norm);
+        expect(norm.isValid()).to.be.true;
+        expect(loc).to.not.equal(norm);
+        expect(norm.normalizeOffset()).to.equal(norm);
       });
 
-      it("makes a new valid location (text)", () => {
-        $root.append("<div class='__test'>test</div>");
-        const t = defined($(".__test")[0].firstChild);
-        assert.equal(t.nodeType, Node.TEXT_NODE);
-        const loc = defined(DLoc.makeDLoc(root, t, 4));
-        t.textContent = "t";
-        assert.isFalse(loc.isValid());
+      it("on text", () => {
+        const t = addTestElement();
+        t.textContent = "test";
+        const text = t.firstChild!;
+        expect(text).to.have.property("nodeType").equal(Node.TEXT_NODE);
+        const loc = DLoc.mustMakeDLoc(root, text, 4);
+        text.textContent = "t";
+        expect(loc.isValid()).to.be.false;
         const norm = loc.normalizeOffset();
-        assert.isTrue(norm.isValid());
-        assert.notEqual(loc, norm);
-        assert.equal(norm.normalizeOffset(), norm);
+        expect(norm.isValid()).to.be.true;
+        expect(loc).to.not.equal(norm);
+        expect(norm.normalizeOffset()).to.equal(norm);
       });
 
-      it("makes a new valid location (attribute)", () => {
-        $root.append("<div class='__test' foo='bar'></div>");
-        const t = defined($(".__test")[0].attributes.getNamedItem("foo"));
-        assert.isTrue(isAttr(t));
-        const loc = defined(DLoc.makeDLoc(root, t, 3));
-        t.value = "f";
-        assert.isFalse(loc.isValid());
+      it("on attribute", () => {
+        const t = addTestElement();
+        t.setAttribute("foo", "bar");
+        const attr = t.getAttributeNode("foo")!;
+        expect(isAttr(attr)).to.be.true;
+        const loc = DLoc.mustMakeDLoc(root, attr, 3);
+        attr.value = "f";
+        expect(loc.isValid()).to.be.false;
         const norm = loc.normalizeOffset();
-        assert.isTrue(norm.isValid());
-        assert.notEqual(loc, norm);
-        assert.equal(norm.normalizeOffset(), norm);
+        expect(norm.isValid()).to.be.true;
+        expect(loc).to.not.equal(norm);
+        expect(norm.normalizeOffset()).to.equal(norm);
+      });
+
+      it("on comment", () => {
+        const t = addTestElement();
+        const comment = xmlDoc.createComment("abcd");
+        t.appendChild(comment);
+        const loc = DLoc.mustMakeDLoc(root, comment, 4);
+        comment.data = "t";
+        const norm = loc.normalizeOffset();
+        expect(norm.isValid()).to.be.true;
+        expect(loc).to.not.equal(norm);
+        expect(norm.normalizeOffset()).to.equal(norm);
+      });
+
+      it("on CData", () => {
+        const t = addTestElement();
+        const cdata = xmlDoc.createCDATASection("abcd");
+        t.appendChild(cdata);
+        const loc = DLoc.mustMakeDLoc(root, cdata, 4);
+        cdata.data = "t";
+        const norm = loc.normalizeOffset();
+        expect(norm.isValid()).to.be.true;
+        expect(loc).to.not.equal(norm);
+        expect(norm.normalizeOffset()).to.equal(norm);
+      });
+
+      it("on PI", () => {
+        const t = addTestElement();
+        const pi = xmlDoc.createProcessingInstruction("a", "abcd");
+        t.appendChild(pi);
+        const loc = DLoc.mustMakeDLoc(root, pi, 4);
+        pi.data = "t";
+        const norm = loc.normalizeOffset();
+        expect(norm.isValid()).to.be.true;
+        expect(loc).to.not.equal(norm);
+        expect(norm.normalizeOffset()).to.equal(norm);
       });
     });
 
     describe("equals", () => {
-      let p: Element;
       let loc: DLoc;
       before(() => {
-        p = defined($(".body .p")[0]);
-        assert.equal(p.nodeType, Node.ELEMENT_NODE);
-        loc = defined(DLoc.makeDLoc(root, p, 0));
+        loc = DLoc.mustMakeDLoc(root, firstBodyP, 0);
       });
 
       it("returns true if it is the same object", () => {
-        assert.isTrue(loc.equals(loc));
+        expect(loc.equals(loc)).to.be.true;
       });
 
       it("returns true if the two locations are equal", () => {
-        const loc2 = DLoc.makeDLoc(root, p, 0);
-        assert.isTrue(loc.equals(loc2));
+        const loc2 = DLoc.makeDLoc(root, firstBodyP, 0);
+        expect(loc.equals(loc2)).to.be.true;
       });
 
       it("returns false if other is null", () => {
-        assert.isFalse(loc.equals(null));
+        expect(loc.equals(null)).to.be.false;
       });
 
       it("returns false if other is undefined", () => {
-        assert.isFalse(loc.equals(undefined));
+        expect(loc.equals(undefined)).to.be.false;
       });
 
       it("returns false if the two nodes are unequal", () => {
-        assert.isFalse(loc.equals(loc.make(p.parentNode!, 0)));
+        expect(loc.equals(loc.make(firstBodyP.parentNode!, 0))).to.be.false;
       });
 
       it("returns false if the two offsets are unequal", () => {
-        assert.isFalse(loc.equals(loc.make(p, 1)));
+        expect(loc.equals(loc.make(firstBodyP, 1))).to.be.false;
       });
     });
 
     describe("compare", () => {
-      let p: Element;
       let loc: DLoc;
       before(() => {
-        p = defined($(".body .p")[0]);
-        assert.equal(p.nodeType, Node.ELEMENT_NODE);
-        loc = defined(DLoc.makeDLoc(root, p, 0));
+        loc = DLoc.mustMakeDLoc(root, firstBodyP, 0);
       });
 
       it("returns 0 if it is the same object", () => {
-        assert.equal(loc.compare(loc), 0);
+        expect(loc.compare(loc)).to.equal(0);
       });
 
       it("returns 0 if the two locations are equal", () => {
-        const loc2 = DLoc.mustMakeDLoc(root, p, 0);
-        assert.equal(loc.compare(loc2), 0);
+        const loc2 = DLoc.mustMakeDLoc(root, firstBodyP, 0);
+        expect(loc.compare(loc2)).to.equal(0);
       });
 
       describe("(siblings)", () => {
         let next: DLoc;
 
         before(() => {
-          next = DLoc.mustMakeDLoc(root, p.nextSibling, 0);
+          next = DLoc.mustMakeDLoc(root, firstBodyP.nextSibling, 0);
         });
 
         it("returns -1 if this precedes other", () => {
-          assert.equal(loc.compare(next), -1);
+          expect(loc.compare(next)).to.equal(-1);
         });
 
         it("returns 1 if this follows other", () => {
-          assert.equal(next.compare(loc), 1);
+          expect(next.compare(loc)).to.equal(1);
         });
       });
 
@@ -677,19 +833,16 @@ describe("dloc", () => {
         let quote: DLoc;
         let attr: DLoc;
         before(() => {
-          const quoteNode = root.querySelector(".quote")!;
-          quote = DLoc.mustMakeDLoc(root, quoteNode);
-          attr = DLoc.mustMakeDLoc(
-            root,
-            quoteNode.getAttributeNode(encodedType), 0);
+          quote = DLoc.mustMakeDLoc(root, firstQuote);
+          attr = DLoc.mustMakeDLoc(root, quoteAtType, 0);
         });
 
         it("returns -1 if other is an attribute of this", () => {
-          assert.equal(quote.compare(attr), -1);
+          expect(quote.compare(attr)).to.equal(-1);
         });
 
         it("returns 1 if this is an attribute of other", () => {
-          assert.equal(attr.compare(quote), 1);
+          expect(attr.compare(quote)).to.equal(1);
         });
       });
 
@@ -698,7 +851,7 @@ describe("dloc", () => {
         let attr1: DLoc;
         let attr2: DLoc;
         before(() => {
-          parent = document.createElement("div");
+          parent = xmlDoc.createElement("div");
           parent.setAttribute("b", "2");
           parent.setAttribute("a", "1");
           new DLocRoot(parent);
@@ -707,11 +860,11 @@ describe("dloc", () => {
         });
 
         it("returns -1 if this is an attribute coming before other", () => {
-          assert.equal(attr1.compare(attr2), -1);
+          expect(attr1.compare(attr2)).to.equal(-1);
         });
 
-        it("returns 1 if this is an attribute coming aftger other", () => {
-          assert.equal(attr2.compare(attr1), 1);
+        it("returns 1 if this is an attribute coming after other", () => {
+          expect(attr2.compare(attr1)).to.equal(1);
         });
       });
 
@@ -720,128 +873,125 @@ describe("dloc", () => {
         let parentAfter: DLoc;
 
         before(() => {
-          parentBefore = DLoc.mustMakeDLoc(root, p.parentNode, 0);
-          parentAfter = parentBefore.makeWithOffset(1);
+          parentBefore = DLoc.mustMakeDLoc(root, firstBodyP.parentNode, 1);
+          parentAfter = parentBefore.makeWithOffset(2);
           // We want to check that we are looking at the p element we think
           // we are looking at.
-          assert.equal(parentBefore.node.childNodes[0], p);
+          expect(parentBefore.node.childNodes[1]).to.equal(firstBodyP);
         });
 
         it("returns -1 if this is a parent position before other", () => {
-          assert.equal(parentBefore.compare(loc), -1);
+          expect(parentBefore.compare(loc)).to.equal(-1);
         });
 
         it("returns 1 if this is a parent position after other", () => {
-          assert.equal(parentAfter.compare(loc), 1);
+          expect(parentAfter.compare(loc)).to.equal(1);
         });
 
         it("returns 1 if this is a child position after other", () => {
-          assert.equal(loc.compare(parentBefore), 1);
+          expect(loc.compare(parentBefore)).to.equal(1);
         });
 
         it("returns -1 if this is a child position before other", () => {
-          assert.equal(loc.compare(parentAfter), -1);
+          expect(loc.compare(parentAfter)).to.equal(-1);
         });
       });
     });
 
     describe("pointedNode", () => {
-      let quoteNode: Element;
-      let attributeNode: Attr;
       let quote: DLoc;
-      let attr: DLoc;
       before(() => {
-        quoteNode = root.querySelector(".quote")!;
-        attributeNode = quoteNode.getAttributeNode(encodedType)!;
-        quote = DLoc.mustMakeDLoc(root, quoteNode);
-        attr = DLoc.mustMakeDLoc(root, attributeNode, 0);
+        quote = DLoc.mustMakeDLoc(root, firstQuote);
+        expect(firstQuote).to.have.property("parentNode").equal(quote.node);
       });
 
-      it("returns the child of an element node", () => {
-        assert.equal(quoteNode.parentNode as Node, quote.node);
-        assert.equal(quote.pointedNode, quoteNode);
+      it("is the child of an element node", () => {
+        expect(quote).to.have.property("pointedNode").equal(firstQuote);
       });
 
-      it("returns the text node itself", () => {
-        const text = quoteNode.firstChild!;
-        assert.equal(text.nodeType, Node.TEXT_NODE);
-        const newLoc = quote.make(text, 0);
-        assert.equal(newLoc.pointedNode, text);
+      it("is the text node itself", () => {
+        const text = firstQuote.firstChild!;
+        expect(text).to.have.property("nodeType").equal(Node.TEXT_NODE);
+        expect(quote.make(text, 0)).to.have.property("pointedNode").equal(text);
       });
 
-      it("returns the attribute node itself", () => {
-        assert.equal(attr.pointedNode, attributeNode);
+      it("is the attribute node itself", () => {
+        expect(DLoc.mustMakeDLoc(root, quoteAtType, 0)).to.have
+          .property("pointedNode").equal(quoteAtType);
       });
 
-      it("returns undefined if the offset is past all children", () => {
-        assert.isUndefined(quote.make(quoteNode,
-                                      quoteNode.childNodes.length).pointedNode);
+      it("is the comment node itself", () => {
+        expect(DLoc.mustMakeDLoc(root, firstComment, 0)).to.have
+          .property("pointedNode").equal(firstComment);
+      });
+
+      it("is the CData node itself", () => {
+        expect(DLoc.mustMakeDLoc(root, firstCData, 0)).to.have
+          .property("pointedNode").equal(firstCData);
+      });
+
+      it("is the PI node itself", () => {
+        expect(DLoc.mustMakeDLoc(root, firstPI, 0)).to.have
+          .property("pointedNode").equal(firstPI);
+      });
+
+      it("is undefined if offset is past all children of an element", () => {
+        expect(quote.make(firstQuote, firstQuote.childNodes.length)).to.have
+          .property("pointedNode").undefined;
       });
     });
 
     describe("makeWithOffset", () => {
-      let p: Element;
       let loc: DLoc;
       before(() => {
-        p = defined($(".body .p")[0]);
-        assert.equal(p.nodeType, Node.ELEMENT_NODE);
-        loc = defined(DLoc.makeDLoc(root, p, 0));
+        loc = DLoc.mustMakeDLoc(root, firstBodyP, 0);
       });
 
       it("makes a new object with a new offset", () => {
         const loc2 = loc.makeWithOffset(1);
-        assert.equal(loc2.offset, 1);
-        assert.notEqual(loc.offset, loc2.offset);
-        assert.notEqual(loc, loc2);
+        expect(loc2).to.have.property("offset").equal(1);
+        expect(loc).to.have.property("offset").not.equal(loc2.offset);
+        expect(loc).to.not.equal(loc2);
       });
 
       it("returns the same object if the offset is the same", () => {
-        const loc2 = loc.makeWithOffset(0);
-        assert.equal(loc, loc2);
+        expect(loc).to.equal(loc.makeWithOffset(0));
       });
     });
 
     describe("getLocationInParent", () => {
-      let p: Element;
       let loc: DLoc;
       before(() => {
-        p = defined($(".body .p")[1]);
-        assert.equal(p.nodeType, Node.ELEMENT_NODE);
-        loc = defined(DLoc.makeDLoc(root, p, 0));
+        loc = DLoc.mustMakeDLoc(root, secondBodyP, 0);
       });
 
       it("gets a valid location", () => {
         const loc2 = loc.getLocationInParent();
-        assert.equal(loc2.offset, 1);
-        assert.equal(loc2.node, loc.node.parentNode);
+        expect(loc2).to.have.property("offset").equal(3);
+        expect(loc2).to.have.property("node").equal(loc.node.parentNode);
       });
 
       it("fails if we are already at the root", () => {
-        const loc2 = loc.make(root, 0);
-        assert.throws(loc2.getLocationInParent.bind(loc2),
-                      Error, "node not in root");
+        expect(() => loc.make(root, 0).getLocationInParent()).to
+          .throw(Error, "node not in root");
       });
     });
 
     describe("getLocationAfterInParent", () => {
-      let p: Element;
       let loc: DLoc;
       before(() => {
-        p = defined($(".body .p")[1]);
-        assert.equal(p.nodeType, Node.ELEMENT_NODE);
-        loc = defined(DLoc.makeDLoc(root, p, 0));
+        loc = DLoc.mustMakeDLoc(root, secondBodyP, 0);
       });
 
       it("gets a valid location", () => {
         const loc2 = loc.getLocationAfterInParent();
-        assert.equal(loc2.offset, 2);
-        assert.equal(loc2.node, loc.node.parentNode);
+        expect(loc2).to.have.property("offset").equal(4);
+        expect(loc2).to.have.property("node").equal(loc.node.parentNode);
       });
 
       it("fails if we are already at the root", () => {
-        const loc2 = loc.make(root, 0);
-        assert.throws(loc2.getLocationAfterInParent.bind(loc2),
-                      Error, "node not in root");
+        expect(() => loc.make(root, 0).getLocationAfterInParent()).to
+          .throw(Error, "node not in root");
       });
     });
   });
@@ -851,152 +1001,149 @@ describe("dloc", () => {
     let loc: DLoc;
 
     before(() => {
-      a = defined($(".body .p")[0].firstChild);
+      a = defined(firstBodyP.firstChild);
       loc = DLoc.mustMakeDLoc(root, a, 0);
     });
 
-    describe("collapsed", () => {
+    describe("#collapsed", () => {
       it("is true when a range is collapsed", () => {
-        assert.isTrue(new DLocRange(loc, loc).collapsed);
+        expect(new DLocRange(loc, loc)).to.have.property("collapsed").true;
       });
 
       it("is false when a range is not collapsed", () => {
-        assert.isFalse(new DLocRange(loc, loc.makeWithOffset(1)).collapsed);
+        expect(new DLocRange(loc, loc.makeWithOffset(1))).to.have
+          .property("collapsed").false;
       });
     });
 
-    describe("equals", () => {
+    describe("#equals()", () => {
       it("returns true when other is the same object as this", () => {
         const range = new DLocRange(loc, loc);
-        assert.isTrue(range.equals(range));
+        expect(range.equals(range)).to.be.true;
       });
 
       it("returns true when the two ranges have the same start and end", () => {
         const range = new DLocRange(loc, loc.makeWithOffset(1));
         const range2 = new DLocRange(DLoc.mustMakeDLoc(root, a, 0),
                                      DLoc.mustMakeDLoc(root, a, 1));
-        assert.isTrue(range.equals(range2));
+        expect(range.equals(range2)).to.be.true;
       });
 
       it("returns false when the two ranges differ in start positions", () => {
         const range = new DLocRange(loc, loc.makeWithOffset(1));
         const range2 = new DLocRange(DLoc.mustMakeDLoc(root, a, 1),
                                      DLoc.mustMakeDLoc(root, a, 1));
-        assert.isFalse(range.start.equals(range2.start));
-        assert.isTrue(range.end.equals(range2.end));
-        assert.isFalse(range.equals(range2));
+        expect(range.start.equals(range2.start)).to.be.false;
+        expect(range.end.equals(range2.end)).to.be.true;
+        expect(range.equals(range2)).to.be.false;
       });
 
       it("returns false when the two ranges differ in end positions", () => {
         const range = new DLocRange(loc, loc);
         const range2 = new DLocRange(DLoc.mustMakeDLoc(root, a, 0),
                                      DLoc.mustMakeDLoc(root, a, 1));
-        assert.isTrue(range.start.equals(range2.start));
-        assert.isFalse(range.end.equals(range2.end));
-        assert.isFalse(range.equals(range2));
+        expect(range.start.equals(range2.start)).to.be.true;
+        expect(range.end.equals(range2.end)).to.be.false;
+        expect(range.equals(range2)).to.be.false;
       });
     });
 
-    describe("isValid", () => {
+    describe("#isValid()", () => {
       it("returns true if both ends are valid", () => {
-        assert.isTrue(new DLocRange(loc, loc).isValid());
+        expect(new DLocRange(loc, loc).isValid()).to.be.true;
       });
 
       it("returns false if start is invalid", () => {
-        const { invalid } = makeInvalidCase();
-        assert.isFalse(new DLocRange(invalid, loc).isValid());
+        expect(new DLocRange(makeInvalidCase().invalid, loc).isValid()).to.be
+          .false;
       });
 
       it("returns false if end is invalid", () => {
-        const { invalid } = makeInvalidCase();
-        assert.isFalse(new DLocRange(loc, invalid).isValid());
+        expect(new DLocRange(loc, makeInvalidCase().invalid).isValid()).to.be
+          .false;
       });
     });
 
-    describe("makeDOMRange", () => {
+    describe("#makeDOMRange()", () => {
       it("makes a DOM range", () => {
         const loc2 = loc.makeWithOffset(1);
         const range = new DLocRange(loc, loc2).makeDOMRange()!;
-        assert.isDefined(range);
-        assert.equal(range.startContainer, loc.node);
-        assert.equal(range.startOffset, loc.offset);
-        assert.equal(range.endContainer, loc2.node);
-        assert.equal(range.endOffset, loc2.offset);
+        expect(range).to.not.be.undefined;
+        expect(range).to.have.property("startContainer").equal(loc.node);
+        expect(range).to.have.property("startOffset").equal(loc.offset);
+        expect(range).to.have.property("endContainer").equal(loc2.node);
+        expect(range).to.have.property("endOffset").equal(loc2.offset);
       });
 
       it("fails if start is an attribute node", () => {
         const { attrLoc, loc: loc2 } = makeAttributeNodeCase();
-        assert.throws(() => new DLocRange(attrLoc, loc2).makeDOMRange(), Error,
-                      "cannot make range from attribute node");
+        expect(() => new DLocRange(attrLoc, loc2).makeDOMRange()).to
+          .throw(Error, "cannot make range from attribute node");
       });
 
       it("fails if end is an attribute node", () => {
         const { attrLoc, loc: loc2 } = makeAttributeNodeCase();
-        assert.throws(() => new DLocRange(loc2, attrLoc).makeDOMRange(), Error,
-                      "cannot make range from attribute node");
+        expect(() => new DLocRange(loc2, attrLoc).makeDOMRange()).to
+          .throw(Error, "cannot make range from attribute node");
       });
 
       it("returns undefined if start is invalid", () => {
-        const { invalid } = makeInvalidCase();
-        assert.isUndefined(new DLocRange(invalid, loc).makeDOMRange());
+        expect(new DLocRange(makeInvalidCase().invalid, loc).makeDOMRange())
+          .to.be.undefined;
       });
 
       it("returns undefined if end is invalid", () => {
-        const { invalid } = makeInvalidCase();
-        assert.isUndefined(new DLocRange(loc, invalid).makeDOMRange());
+        expect(new DLocRange(loc, makeInvalidCase().invalid).makeDOMRange())
+          .to.be.undefined;
       });
     });
 
-    describe("mustMakeDOMRange", () => {
+    describe("#mustMakeDOMRange()", () => {
       it("makes a DOM range", () => {
         const loc2 = loc.makeWithOffset(1);
         const range = new DLocRange(loc, loc2).mustMakeDOMRange();
-        assert.isDefined(range);
-        assert.equal(range.startContainer, loc.node);
-        assert.equal(range.startOffset, loc.offset);
-        assert.equal(range.endContainer, loc2.node);
-        assert.equal(range.endOffset, loc2.offset);
+        expect(range).to.not.be.undefined;
+        expect(range).to.have.property("startContainer").equal(loc.node);
+        expect(range).to.have.property("startOffset").equal(loc.offset);
+        expect(range).to.have.property("endContainer").equal(loc2.node);
+        expect(range).to.have.property("endOffset").equal(loc2.offset);
       });
 
       it("throws if start is invalid", () => {
-        const { invalid } = makeInvalidCase();
-        const range = new DLocRange(invalid, loc);
-        assert.throws(() => range.mustMakeDOMRange(), Error,
-                      "cannot make a range");
+        expect(() => new DLocRange(makeInvalidCase().invalid, loc)
+               .mustMakeDOMRange()).to.throw(Error, "cannot make a range");
       });
 
       it("throws if end is invalid", () => {
-        const { invalid } = makeInvalidCase();
-        const range = new DLocRange(loc, invalid);
-        assert.throws(() => range.mustMakeDOMRange(), Error,
-                     "cannot make a range");
+        expect(() => new DLocRange(loc, makeInvalidCase().invalid)
+               .mustMakeDOMRange()).to.throw(Error, "cannot make a range");
       });
     });
 
-    describe("contains", () => {
+    describe("#contains()", () => {
       let range: DLocRange;
       before(() => {
         range = new DLocRange(loc, loc.makeWithOffset(2));
       });
 
       it("returns false if the location is before the range", () => {
-        assert.isFalse(range.contains(loc.make(loc.node.parentNode!, 0)));
+        expect(range.contains(loc.make(loc.node.parentNode!, 0))).to.be.false;
       });
 
       it("returns false if the location is after the range", () => {
-        assert.isFalse(range.contains(loc.makeWithOffset(3)));
+        expect(range.contains(loc.makeWithOffset(3))).to.be.false;
       });
 
       it("returns true if the location is at start of the range", () => {
-        assert.isTrue(range.contains(loc.makeWithOffset(0)));
+        expect(range.contains(loc.makeWithOffset(0))).to.be.true;
       });
 
       it("returns true if the location is at end of the range", () => {
-        assert.isTrue(range.contains(loc.makeWithOffset(2)));
+        expect(range.contains(loc.makeWithOffset(2))).to.be.true;
       });
 
       it("returns true if the location is between the ends", () => {
-        assert.isTrue(range.contains(loc.makeWithOffset(1)));
+        expect(range.contains(loc.makeWithOffset(1))).to.be.true;
       });
     });
   });

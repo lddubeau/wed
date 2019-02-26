@@ -49,36 +49,26 @@ export class DLocRoot {
       throw new Error("node is not a descendant of root");
     }
 
-    const ret = [];
-    while (node !== root) {
-      let parent;
-      if (isAttr(node)) {
-        parent = node.ownerElement;
-        ret.unshift(`@${node.name}`);
-      }
-      else {
-        let offset = 0;
+    let ret = "";
 
-        parent = node.parentNode;
-
-        let offsetNode = node.previousSibling;
-        while (offsetNode !== null) {
-          const t = offsetNode.nodeType;
-          if ((t === Node.TEXT_NODE) || (t === Node.ELEMENT_NODE)) {
-            offset++;
-          }
-          offsetNode = offsetNode.previousSibling;
-        }
-
-        ret.unshift(String(offset));
-      }
-
-      // We checked whether the node is contained by root so we should never run
-      // into a null parent.
-      node = parent!;
+    if (isAttr(node)) {
+      ret = `@${node.name}/`;
+      node = node.ownerElement!;
     }
 
-    return ret.join("/");
+    while (node !== root) {
+      const parent: Node = node.parentNode!;
+      ret = `${indexOf(parent.childNodes, node)}/${ret}`;
+      node = parent;
+    }
+
+    // The algorithm above always leaves an extra forward slash at the end of
+    // the string. (This allows us to build the string without having to worry
+    // as to whether the string already contains data or not (and thus whether
+    // it need a separator or not).)
+    //
+    // We slice to drop the extra slash.
+    return ret.slice(0, -1);
   }
 
   /**
@@ -99,39 +89,22 @@ export class DLocRoot {
       return root;
     }
 
-    const parts = path.split(/\//);
-    let parent: Node = root;
-
+    const parts = path.split("/");
     let attribute;
     // Set aside the last part if it is an attribute.
     if (parts[parts.length - 1][0] === "@") {
       attribute = parts.pop();
     }
 
+    let parent: Node = root;
     for (const part of parts) {
-      if (/^(\d+)$/.test(part)) {
-        let index = parseInt(part);
-        let found = null;
-        let node: Node | null = parent.firstChild;
-        while (node !== null && found === null) {
-          const t = node.nodeType;
-
-          if ((t === Node.TEXT_NODE || (t === Node.ELEMENT_NODE)) &&
-              --index < 0) {
-            found = node;
-          }
-
-          node = node.nextSibling;
-        }
-
-        if (found === null) {
-          return null;
-        }
-
-        parent = found;
-      }
-      else {
+      if (!/^(\d+)$/.test(part)) {
         throw new Error("malformed path expression");
+      }
+
+      parent = parent.childNodes[parseInt(part)];
+      if (parent === undefined) {
+        return null;
       }
     }
 
@@ -149,24 +122,23 @@ attribute`);
 }
 
 function getTestLength(node: Node | Attr): number {
-  let testLength;
   if (isAttr(node)) {
-    testLength = node.value.length;
+    return node.value.length;
   }
-  else {
-    switch (node.nodeType) {
+
+  switch (node.nodeType) {
     case Node.TEXT_NODE:
-      testLength = (node as Text).data.length;
-      break;
+    case Node.CDATA_SECTION_NODE:
+    case Node.COMMENT_NODE:
+    case Node.PROCESSING_INSTRUCTION_NODE:
+      return (node as Text).data.length;
     case Node.DOCUMENT_NODE:
+    case Node.DOCUMENT_FRAGMENT_NODE:
     case Node.ELEMENT_NODE:
-      testLength = node.childNodes.length;
-      break;
+      return node.childNodes.length;
     default:
-      throw new Error("unexpected node type");
-    }
+      throw new Error(`unexpected node type: ${node.nodeType}`);
   }
-  return testLength;
 }
 
 /**
@@ -178,12 +150,23 @@ function getTestLength(node: Node | Attr): number {
  * ``offset`` is a location in that node. ``DLoc`` objects are said to have a
  * ``root`` relative to which they are positioned.
  *
- * A DLoc object can point to an offset inside an ``Element``, inside a ``Text``
- * node or inside an ``Attr``.
+ * A DLoc object can point to an offset insiden:
+ *
+ *
+ * - ``Element``,
+ *
+ * - ``Text``,
+ *
+ * - ``Attr``,
+ *
+ * - ``Comment``,
+ *
+ * - ``CDATASection``,
+ *
+ * - ``ProcessingInstruction``.
  *
  * Use [[makeDLoc]] to make ``DLoc`` objects. Calling this constructor directly
  * is not legal.
- *
  */
 export class DLoc {
   /**
@@ -198,9 +181,9 @@ export class DLoc {
                       public readonly offset: number) {}
 
   /**
-   * This is the node to which this location points. For locations pointing to
-   * attributes and text nodes, that's the same as [[node]]. For locations
-   * pointing to an element, that's the child to which the ``node, offset`` pair
+   * This is the node to which this location points. For locations into nodes
+   * that are not elements, that's the same as [[node]]. For locations pointing
+   * to an element, that's the child to which the ``node, offset`` pair
    * points. Since this pair may point after the last child of an element, the
    * child obtained may be ``undefined``.
    */
@@ -515,8 +498,7 @@ export class DLoc {
    * return ``undefined``.
    */
   mustMakeDLocRange(other?: DLoc): DLocRange {
-    const ret = other !== undefined ?
-      this.makeDLocRange(other) : this.makeDLocRange();
+    const ret = this.makeDLocRange(other);
     if (ret === undefined) {
       throw new Error("cannot make a range");
     }
