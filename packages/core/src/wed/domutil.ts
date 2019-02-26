@@ -217,7 +217,8 @@ export type Caret = [Node, number];
  *
  * This function does not fully emulate how a browser moves the caret. The sole
  * emulation it performs is to check whether whitespace matters or not. It skips
- * whitespace that does not matter.
+ * whitespace that does not matter. It is moreover designed to work in the GUI
+ * tree of a wed editor, not in the data tree.
  *
  * @param caret A caret position where the search starts. This should be an
  * array of length two that has in first position the node where the caret is
@@ -326,7 +327,8 @@ export function nextCaretPositionNoText(caret: Caret,
  *
  * This function does not fully emulate how a browser moves the caret. The sole
  * emulation it performs is to check whether whitespace matters or not. It skips
- * whitespace that does not matter.
+ * whitespace that does not matter.  It is moreover designed to work in the GUI
+ * tree of a wed editor, not in the data tree.
  *
  * @param caret A caret position where the search starts. This should be an
  * array of length two that has in first position the node where the caret is
