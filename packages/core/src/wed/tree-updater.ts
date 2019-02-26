@@ -544,8 +544,8 @@ export class TreeUpdater {
     // genericInsertIntoTextContext handles inserting fragments.
     const ret = domutil.genericInsertIntoText.call(this, parent as Text,
                                                    index as number, node);
-    return [DLoc.mustMakeDLoc(this.tree, ret[0]),
-            DLoc.mustMakeDLoc(this.tree, ret[1])];
+    return [DLoc.mustMakeDLoc(this.tree, ...ret[0]),
+            DLoc.mustMakeDLoc(this.tree, ...ret[1])];
   }
 
   /**
@@ -752,7 +752,7 @@ export class TreeUpdater {
   cut(start: DLoc, end: DLoc): [DLoc, Node[]] {
     const ret = domutil.genericCutFunction.call(this,
                                                 start.toArray(), end.toArray());
-    return [start.make(ret[0]), ret[1]];
+    return [start.make(...ret[0]), ret[1]];
   }
 
   /**

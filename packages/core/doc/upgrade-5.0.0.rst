@@ -76,6 +76,12 @@ Miscelaneous changes
   ``ActionContextMenu`` and ``documentationAction``. (Your code does not need to
   use the removed methods anymore.)
 
+* The methods in the ``dloc`` module that accepted a ``[Node, number]`` tuple no
+  longer accept such tuples. They will crash if passed a tuple like this. This
+  functionality was barely used but it was costly to check whether an array was
+  passed. Most existing usages can be easily converted by spreading the tuple:
+  ``makeDLoc(root, tuple) -> makeDLoc(root, ...tuple)``
+
 Notable Bootstrap Changes
 =========================
 

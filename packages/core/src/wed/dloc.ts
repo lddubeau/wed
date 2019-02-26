@@ -213,14 +213,10 @@ export class DLoc {
    * the location will point to ``node`` rather than be a location that points
    * to the node inside of ``node`` at offset ``offset``.
    *
-   * @param location The location as a node, offset pair.
-   *
    * @param normalize Whether to normalize the offset to a valid value.
    *
    * @returns The location. It returns ``undefined`` if the ``node`` is "absent"
-   * because it is ``undefined`` or ``null``. This is true irrespective of the
-   * signature used. If you use a [[Caret]] and it has an absent node, then the
-   * result is ``undefined``.
+   * because it is ``undefined`` or ``null``.
    *
    * @throws {Error} If ``node`` is not in ``root`` or if ``root`` has not been
    * marked as a root.
@@ -228,18 +224,7 @@ export class DLoc {
    */
   static makeDLoc(root: ValidRoots | DLocRoot,
                   node: Node | Attr | undefined | null,
-                  offset?: number, normalize?: boolean): DLoc | undefined;
-  static makeDLoc(root: ValidRoots | DLocRoot, location: Caret,
-                  normalize?: boolean): DLoc | undefined;
-  static makeDLoc(root: ValidRoots | DLocRoot,
-                  node: Node | Attr | Caret | undefined | null,
-                  offset?: number | boolean,
-                  normalize?: boolean): DLoc | undefined {
-    if (node instanceof Array) {
-      normalize = offset as boolean;
-      [node, offset] = node as Caret;
-    }
-
+                  offset?: number, normalize?: boolean): DLoc | undefined {
     if (normalize === undefined) {
       normalize = false;
     }
@@ -302,54 +287,27 @@ export class DLoc {
    */
   static mustMakeDLoc(root: ValidRoots | DLocRoot,
                       node: Node | Attr | undefined | null,
-                      offset?: number, normalize?: boolean): DLoc;
-  static mustMakeDLoc(root: ValidRoots | DLocRoot, location: Caret,
-                      normalize?: boolean): DLoc;
-  // @ts-ignore
-  static mustMakeDLoc(root: ValidRoots | DLocRoot,
-                      node: Node | Attr | Caret | undefined | null,
-                      // @ts-ignore
-                      offset?: number | boolean,
-                      // @ts-ignore
-                      normalize?: boolean): DLoc {
-    let nodeToCheck = node;
-    if (nodeToCheck instanceof Array) {
-      nodeToCheck = nodeToCheck[0];
-    }
-
-    if (nodeToCheck == null) {
+                      offset?: number, normalize?: boolean): DLoc {
+    const loc = this.makeDLoc(root, node, offset, normalize);
+    if (loc === undefined) {
       throw new Error("called mustMakeDLoc with an absent node");
     }
 
-    // tslint:disable-next-line:no-any
-    return (this.makeDLoc.apply as any)(this, arguments);
+    return loc;
   }
 
   /**
    * Make a new location in the same DOM tree as the current one. This is a
    * convenience function that enables avoid having to pass ``root`` around.
    *
-   * @param caret A node, offset pair.
-   *
    * @param node The node of the new location, if ``caret`` is not used. When a
    * node is passed without offset, the location created will point to the node.
    *
-   * @param offset The offset of the new location, if ``caret`` is not used.
+   * @param offset The offset of the new location.
    *
    * @returns The new location.
    */
-  make(caret: Caret): DLoc;
-  make(node: Node | Attr, offset?: number): DLoc;
-  make(node: Node | Attr | Caret, offset?: number): DLoc {
-    if (node instanceof Array) {
-      return DLoc.mustMakeDLoc(this.root, node);
-    }
-
-    if (offset !== undefined && typeof offset !== "number") {
-      throw new Error(
-        "if the 1st argument is a node, the 2nd must be a number or undefined");
-    }
-
+  make(node: Node | Attr, offset?: number): DLoc {
     return DLoc.mustMakeDLoc(this.root, node, offset);
   }
 

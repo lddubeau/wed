@@ -247,14 +247,6 @@ describe("dloc", () => {
       expect(loc.isValid()).to.be.true;
     });
 
-    it("returns a valid DLoc when called with an array", () => {
-      const loc = DLoc.makeDLoc(root, [firstP, 0])!;
-      expect(loc).to.have.property("node").equal(firstP);
-      expect(loc).to.have.property("offset").equal(0);
-      expect(loc).to.have.property("root").equal(root);
-      expect(loc.isValid()).to.be.true;
-    });
-
     it("returns a valid DLoc when the offset is omitted", () => {
       const loc = DLoc.makeDLoc(root, secondBodyP)!;
       expect(loc).to.have.property("node").equal(secondBodyP.parentNode);
@@ -263,9 +255,11 @@ describe("dloc", () => {
       expect(loc.isValid()).to.be.true;
     });
 
-    it("returns undefined when called with an array that has an " +
-       "undefined first member", () => {
-         expect(DLoc.makeDLoc(root, [undefined!, 0])).to.be.undefined;
+    it("throws when called with an array", () => {
+      // We used to allow passing a node, offset tuple. We don't anymore.
+      // This tests that makeDLoc crashes if passed an array.
+      expect(() => DLoc.makeDLoc(root, [firstP, 0] as any)).to
+        .throw(Error);
     });
 
     it("throws an error when the node is not in the root", () => {
@@ -368,17 +362,11 @@ describe("dloc", () => {
       expect(loc.isValid()).to.be.true;
     });
 
-    it("returns a valid DLoc when called with an array", () => {
-      const loc = DLoc.mustMakeDLoc(root, [firstP, 0]);
-      expect(loc).to.have.property("node").equal(firstP);
-      expect(loc).to.have.property("offset").equal(0);
-      expect(loc).to.have.property("root").equal(root);
-      expect(loc.isValid()).to.be.true;
-    });
-
-    it("throws when called with [undefined, ...]", () => {
-      expect(() => DLoc.mustMakeDLoc(root, [undefined as any, 0])).to
-        .throw(Error, /^called mustMakeDLoc with an absent node$/);
+    it("throws when called with an array", () => {
+      // We used to allow passing a node, offset tuple. We don't anymore.
+      // This tests that mustMakeDLoc crashes if passed an array.
+      expect(() => DLoc.mustMakeDLoc(root, [firstP, 0] as any)).to
+        .throw(Error);
     });
   });
 

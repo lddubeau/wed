@@ -209,7 +209,7 @@ export function positionRight(pos: DLoc | undefined | null,
       break;
     }
 
-    pos = pos.make(nextCaret);
+    pos = pos.make(...nextCaret);
     const { node, offset }: { node: Node; offset: number } = pos;
     const closestGUI = closest(node, "._gui:not(._invisible)", root);
     if (closestGUI !== null) {
@@ -349,7 +349,7 @@ export function positionLeft(pos: DLoc | undefined | null,
       break;
     }
 
-    pos = pos.make(prevCaret);
+    pos = pos.make(...prevCaret);
     const node: Node = pos.node;
     let offset = pos.offset;
     const closestGUI: Element | null = closest(node, "._gui:not(._invisible)",
