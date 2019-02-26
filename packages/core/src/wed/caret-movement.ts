@@ -1,5 +1,7 @@
 /**
- * Library of caret movement computations.
+ * Library of caret movement computations. This library is meant to compute
+ * positions in the GUI tree.
+ *
  * @author Louis-Dominique Dubeau
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
@@ -138,8 +140,9 @@ function bothDecorated(prev: Node | undefined,
  */
 function findNext(haystack: NodeList | HTMLCollection,
                   ref: Node): Node | undefined {
-  const arr: Element[] = Array.prototype.slice.call(haystack);
-  for (const x of arr) {
+  const { length } = haystack;
+  for (let ix = 0; ix < length; ++ix) {
+    const x = haystack[ix];
     // tslint:disable-next-line:no-bitwise
     if ((x.compareDocumentPosition(ref) &
          Node.DOCUMENT_POSITION_PRECEDING) !== 0) {
