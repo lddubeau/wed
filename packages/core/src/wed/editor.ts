@@ -378,7 +378,7 @@ export class Editor implements EditorAPI {
 
     // We could be loaded in a frame in which case we should not alter anything
     // outside our frame.
-    this.$frame = $(closest(this.widget, "html"));
+    this.$frame = $(this.widget.closest("html"));
     const doc = this.doc = this.$frame[0].ownerDocument!;
     this.window = doc.defaultView!;
     this.modals = new StockModals(this);
