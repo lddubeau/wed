@@ -12,7 +12,10 @@ import { isAttr, isDocument, isDocumentFragment, isElement,
 import * as util from "./util";
 
 /**
- * Search an array.
+ * Search an array-like structure. This function does a naive iteration of the
+ * structure. The alternative would be to convert the structure to an array, and
+ * use the Array's ``indexOf`` on that. Overall, we found the naive approach
+ * faster.
  *
  * @param a The array to search.
  *
@@ -20,11 +23,8 @@ import * as util from "./util";
  *
  * @return -1 if the target is not found, or its index.
  */
-export function indexOf(a: NodeList | HTMLCollection, target: Node): number;
-export function indexOf<T>(a: T[], target: T): number;
-export function indexOf<T>(a: T[] | NodeList | HTMLCollection,
-                           target: T | Node): number {
-  const length = a.length;
+export function indexOf(a: NodeList | HTMLCollection, target: Node): number {
+  const { length } = a;
   for (let i = 0; i < length; ++i) {
     if (a[i] === target) {
       return i;
