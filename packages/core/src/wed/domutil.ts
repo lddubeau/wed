@@ -661,8 +661,9 @@ export interface GenericInsertTextContext {
 }
 
 /**
- * Inserts text into a node. This function will use already existing
- * text nodes whenever possible rather than create a new text node.
+ * Inserts text into a node. This function will use already existing text nodes
+ * whenever possible rather than create a new text node.  This function is not
+ * meant to modify attributes, comments, or processing instructions.
  *
  * @param node The node where the text is to be inserted.
  *
@@ -694,55 +695,47 @@ TextInsertionResult {
     };
   }
 
-  let isNew: boolean = false;
-  let textNode: Text;
-  let caret: Caret;
-  work:
-  // tslint:disable-next-line:no-constant-condition strict-boolean-expressions
-  while (true) {
-    switch (node.nodeType) {
-    case Node.ELEMENT_NODE:
-      const child = node.childNodes[index];
-      if (isText(child)) {
-        // Prepend to already existing text node.
-        node = child;
-        index = 0;
-        continue work;
-      }
+  if (!isElement(node) && !isText(node)) {
+    throw new Error("node must be a text node or element node");
+  }
 
+  if (isElement(node)) {
+    const child = node.childNodes[index];
+    if (isText(child)) {
+      // Prepend to already existing text node.
+      node = child;
+      index = 0;
+    }
+    else {
       const prev = node.childNodes[index - 1];
       if (isText(prev)) {
         // Append to already existing text node.
         node = prev;
         index = prev.length;
-        continue work;
       }
-
-      // We have to create a text node
-      textNode = document.createTextNode(text);
-      isNew = true;
-      // Node is necessarily an element when we get here.
-      // tslint:disable-next-line:no-invalid-this
-      this.insertNodeAt(node as Element, index, textNode);
-      caret = [textNode, caretAtEnd ? text.length : 0];
-      break work;
-    case Node.TEXT_NODE:
-      textNode = node as Text;
-      const pre = textNode.data.slice(0, index);
-      const post = textNode.data.slice(index);
-      // tslint:disable-next-line:no-invalid-this
-      this.setTextNodeValue(textNode, pre + text + post);
-      caret = [textNode, caretAtEnd ? index + text.length : index];
-      break work;
-    default:
-      throw new Error(`unexpected node type: ${node.nodeType}`);
+      else {
+        // We have to create a text node
+        const textNode = document.createTextNode(text);
+        this.insertNodeAt(node, index, textNode);
+        return {
+          node: textNode,
+          isNew: true,
+          caret: [textNode, caretAtEnd ? text.length : 0],
+        };
+      }
     }
   }
 
+  if (!isText(node)) {
+    throw new Error("internal error: by this point node must be a text node");
+  }
+
+  const { data } = node;
+  this.setTextNodeValue(node, data.slice(0, index) + text + data.slice(index));
   return {
-    node: textNode,
-    isNew,
-    caret: caret,
+    node,
+    isNew: false,
+    caret: [node, caretAtEnd ? index + text.length : index],
   };
 }
 
