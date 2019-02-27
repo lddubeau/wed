@@ -896,7 +896,7 @@ export function insertText(node: Node,
                            text: string,
                            caretAtEnd?: boolean): TextInsertionResult {
   return genericInsertText.call({
-    insertNodeAt: insertNodeAt,
+    insertNodeAt,
     setTextNodeValue: (textNode: Text, value: string) => {
       textNode.data = value;
     },
@@ -905,8 +905,8 @@ export function insertText(node: Node,
 }
 
 const plainDOMMockup: GenericInsertIntoTextContext = {
-  insertNodeAt: insertNodeAt,
-  deleteNode: deleteNode,
+  insertNodeAt,
+  deleteNode,
 };
 
 /**
