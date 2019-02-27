@@ -233,6 +233,7 @@ export type Caret = [Node, number];
  * exist. The ``container`` parameter constrains movements to positions inside
  * it.
  */
+// tslint:disable-next-line:cyclomatic-complexity
 export function nextCaretPosition(caret: Caret, container: Node): Caret | null {
   let [node, offset] = caret;
   if (!container.contains(node)) {
@@ -282,11 +283,23 @@ export function nextCaretPosition(caret: Caret, container: Node): Caret | null {
         else {
           node = node.childNodes[offset];
           offset = 0;
-          found = !(node.childNodes.length > 0 &&
-                    isText(node.childNodes[offset]));
+          // We want to stop if the new location points *into* a text node or
+          // *into* an empty element, or does not point *to* a text node. (If it
+          // points to a text node, we want to update the location to point
+          // *into* the node.)
+          found = isText(node) || (isElement(node) &&
+                                   (node.childNodes.length === 0 ||
+                                    !isText(node.childNodes[offset])));
         }
         break;
       default:
+        // We point into something else than text or an element, move out to the
+        // sibling.
+        if (parent === null) {
+          return null;
+        }
+        offset = indexOf(parent.childNodes, node) + 1;
+        node = parent;
     }
   }
 
@@ -395,19 +408,22 @@ export function prevCaretPosition(caret: Caret, container: Node): Caret | null {
           node = node.childNodes[offset];
           if (isElement(node)) {
             offset = node.childNodes.length;
-            found = !(node.childNodes.length > 0 &&
-                      isText(node.childNodes[offset - 1]));
+            found = node.childNodes.length === 0 ||
+              !isText(node.childNodes[offset - 1]);
           }
           else {
-            offset = (node as Text).length + 1;
+            offset = (node as Text).length;
+            found = isText(node);
           }
         }
         break;
       default:
-        // We've moved to a position outside the container.
-        if (node === container && offset < 0) {
+        if (parent === null) {
           return null;
         }
+
+        offset = indexOf(parent.childNodes, node);
+        node = parent;
     }
   }
 

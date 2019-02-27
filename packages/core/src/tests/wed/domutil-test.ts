@@ -178,6 +178,30 @@ describe("domutil", () => {
       return [[s.firstChild!, 4], [s, 0], [s.firstChild!, 5], domroot];
     });
 
+    makeTest("skips over nodes that are not element or text", (data) => {
+      // The case is designed so that it does not skip over the whitespace.
+      data.innerHTML = "te<!-- comment --><?pi foo?>st";
+      return [
+        // Place the caret just before the comment.
+        [data, 1],
+        [data, 3],
+        [data.childNodes[3], 0],
+        domroot,
+      ];
+    });
+
+    makeTest("moves out of nodes that are not element or text", (data) => {
+      // The case is designed so that it does not skip over the whitespace.
+      data.innerHTML = "te<!-- comment --><?pi foo?>st";
+      return [
+        // Place the caret inside the comment.
+        [data.childNodes[1], 0],
+        [data, 3],
+        [data.childNodes[3], 0],
+        domroot,
+      ];
+    });
+
     makeTest("does not move out of text container", (data) => {
       data.innerHTML = "test";
       return [[data.firstChild!, 4], null, null, data.firstChild!];
@@ -265,6 +289,30 @@ describe("domutil", () => {
         // Place the caret just after the white space in the 2nd <s> node.
         [s.firstChild!, 3],
         [s, 0], [s.firstChild!, 2],
+        domroot,
+      ];
+    });
+
+    makeTest("skips over nodes that are not element or text", (data) => {
+      // The case is designed so that it does not skip over the whitespace.
+      data.innerHTML = "te<!-- comment --><?pi foo?>st";
+      return [
+        // Place the caret just after the PI.
+        [data, 3],
+        [data, 0],
+        [data.firstChild!, 2],
+        domroot,
+      ];
+    });
+
+    makeTest("moves out of nodes that are not element or text", (data) => {
+      // The case is designed so that it does not skip over the whitespace.
+      data.innerHTML = "te<!-- comment --><?pi foo?>st";
+      return [
+        // Place the caret inside the PI.
+        [data.childNodes[2], 0],
+        [data, 0],
+        [data.firstChild!, 2],
         domroot,
       ];
     });
