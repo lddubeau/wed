@@ -1116,7 +1116,7 @@ export function genericCutFunction(this: GenericCutContext,
   }
 
   let finalCaret: [Node, number];
-  let startText;
+  let startText: Text | undefined;
   if (isText(startContainer)) {
     const sameContainer = startContainer === endContainer;
     const startContainerOffset = indexOf(parent.childNodes, startContainer);
@@ -1153,7 +1153,7 @@ export function genericCutFunction(this: GenericCutContext,
     finalCaret = [startContainer, startOffset];
   }
 
-  let endText;
+  let endText: Text | undefined;
   if (isText(endContainer)) {
     parent = endContainer.parentNode;
     if (parent == null) {
@@ -1187,7 +1187,7 @@ export function genericCutFunction(this: GenericCutContext,
     // tslint:disable-next-line:no-invalid-this
     this.deleteNode(endContainer.childNodes[startOffset]);
   }
-  if (endText != null) {
+  if (endText !== undefined) {
     returnNodes.push(endText);
   }
 
@@ -1209,7 +1209,6 @@ export function genericCutFunction(this: GenericCutContext,
  *
  * @throws {Error} If Nodes in the range are not in the same element.
  */
-// tslint:disable-next-line:max-func-body-length
 export function copy(startCaret: Caret, endCaret: Caret): Node[] {
   // genericCutFunction uses an algorithm similar to the one here and probably
   // should also be modified if this function is modified.
@@ -1234,39 +1233,36 @@ export function copy(startCaret: Caret, endCaret: Caret): Node[] {
     }
   }
 
-  let startText;
+  let startText: Text | undefined;
   if (isText(startContainer)) {
     const sameContainer = startContainer === endContainer;
-    const startContainerOffset = indexOf(parent.childNodes, startContainer);
     const endTextOffset = sameContainer ? endOffset : startContainer.length;
 
     startText = parent.ownerDocument!.createTextNode(
       startContainer.data.slice(startOffset, endTextOffset));
 
     if (sameContainer) {
-      // Both the start and end were in the same node, so the deleteText
-      // operation above did everything needed.
+      // Both the start and end were in the same node, so we have everything we
+      // need.
       return [startText];
     }
 
-    startOffset = startContainerOffset + 1;
+    startOffset = indexOf(parent.childNodes, startContainer) + 1;
     startContainer = parent;
   }
 
-  let endText;
+  let endText: Text | undefined;
   if (isText(endContainer)) {
     parent = endContainer.parentNode;
     if (parent == null) {
       throw new Error("detached node");
     }
 
-    const endContainerOffset = indexOf(parent.childNodes, endContainer);
-
     endText = parent.ownerDocument!.createTextNode(
       endContainer.data.slice(0, endOffset));
 
     // Alter our end to take care of the rest
-    endOffset = endContainerOffset;
+    endOffset = indexOf(parent.childNodes, endContainer);
     endContainer = parent;
   }
 
@@ -1283,7 +1279,7 @@ export function copy(startCaret: Caret, endCaret: Caret): Node[] {
   while (startOffset <= endOffset) {
     returnNodes.push(endContainer.childNodes[startOffset++].cloneNode(true));
   }
-  if (endText != null) {
+  if (endText !== undefined) {
     returnNodes.push(endText);
   }
 
