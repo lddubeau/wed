@@ -549,7 +549,10 @@ export class TreeUpdater {
   }
 
   /**
-   * A primitive method. Inserts a node at the specified position.
+   * Usually, a primitive method. Inserts a node at the specified position.
+   *
+   * If ``node`` is a document fragment, then it is a complex method. It will
+   * iterate over the fragment and insert each child one by one.
    *
    * @param loc The location at which to insert.
    * @param node The node to insert.
