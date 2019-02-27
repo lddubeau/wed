@@ -515,16 +515,12 @@ export type InsertionBoundaries = [Caret, Caret];
 export interface GenericInsertIntoTextContext {
   insertNodeAt(into: Element, index: number, node: Node): void;
   deleteNode(node: Node): void;
-  /**
-   * This function performs roughly the same as insertNodeAt but may be
-   * optimized to take care of fragment handling.
-   */
-  insertFragAt?(into: Element, index: number, node: DocumentFragment): void;
 }
 
 /**
  * Inserts an element into text, effectively splitting the text node in
- * two. This function takes care to modify the DOM tree only once.
+ * two. This function takes care to minimize the number of changes it makes to
+ * the DOM tree.
  *
  * @private
  *
@@ -537,11 +533,11 @@ export interface GenericInsertIntoTextContext {
  * splits the text node into two parts.
  *
  * @param clean The operation must clean contiguous text nodes so as to merge
- * them and must not create empty nodes. **This code assumes that the text node
- * into which data is added is not preceded or followed by another text node and
- * that it is not empty.** In other words, if the DOM tree on which this code is
- * used does not have consecutive text nodes and no empty nodes, then after the
- * call, it still won't.
+ * them and must not create empty nodes. **This flag assumes that ``textNode``
+ * is not preceded or followed by another text node, and that ``textNode`` is
+ * not empty.** (A common scenario is one in which the DOM tree that contains
+ * ``textNode`` is normalized. This satisfies the requirement of the flag. And
+ * the resulting tree will still be normalized if the flag is used.)
  *
  * @returns A pair containing a caret position marking the boundary between what
  * comes before the material inserted and the material inserted, and a caret
@@ -563,13 +559,6 @@ function _genericInsertIntoText(this: GenericInsertIntoTextContext,
     throw new Error("insertIntoText called on non-text");
   }
 
-  let startCaret: Caret;
-  let endCaret: Caret;
-
-  if (clean === undefined) {
-    clean = true;
-  }
-
   // Normalize
   if (index < 0) {
     index = 0;
@@ -578,66 +567,50 @@ function _genericInsertIntoText(this: GenericInsertIntoTextContext,
     index = textNode.length;
   }
 
-  let prev;
-  let next;
-  const isFragment = isDocumentFragment(node);
-
   // A parent is necessarily an element.
   const parent = textNode.parentNode as Element;
-  if (parent == null) {
+  if (parent === null) {
     throw new Error("detached node");
   }
-  let textNodeAt = indexOf(parent.childNodes, textNode);
-  if (clean && (node == null || (isFragment && node.childNodes.length === 0))) {
-    startCaret = endCaret = [textNode, index];
+
+  if (clean && (node == null || (isDocumentFragment(node) &&
+                                 node.childNodes.length === 0))) {
+    const caret: Caret = [textNode, index];
+    return [caret, caret];
   }
-  else {
-    const frag = document.createDocumentFragment();
-    prev = document.createTextNode(textNode.data.slice(0, index));
-    frag.appendChild(prev);
-    if (node != null) {
-      frag.appendChild(node);
-    }
-    next = document.createTextNode(textNode.data.slice(index));
-    const nextLen = next.length;
-    frag.appendChild(next);
 
-    if (clean) {
-      frag.normalize();
-    }
-
-    if (clean && index === 0) {
-      startCaret = [parent, textNodeAt];
-    }
-    else {
-      startCaret = [frag.firstChild!, index];
-    }
-
-    if (clean && index === textNode.length) {
-      endCaret = [parent, textNodeAt + frag.childNodes.length];
-    }
-    else {
-      endCaret = [frag.lastChild!, (frag.lastChild as Text).length - nextLen];
-    }
-
-    // tslint:disable:no-invalid-this
-    this.deleteNode(textNode);
-    if (this.insertFragAt !== undefined) {
-      this.insertFragAt(parent, textNodeAt, frag);
-    }
-    else {
-      while (frag.firstChild != null) {
-        this.insertNodeAt(parent, textNodeAt++, frag.firstChild);
-      }
-    }
-    // tslint:enable:no-invalid-this
+  const frag = document.createDocumentFragment();
+  frag.appendChild(document.createTextNode(textNode.data.slice(0, index)));
+  if (node != null) {
+    frag.appendChild(node);
   }
+  const next = document.createTextNode(textNode.data.slice(index));
+  const nextLen = next.length;
+  frag.appendChild(next);
+
+  if (clean) {
+    frag.normalize();
+  }
+
+  const textNodeAt = indexOf(parent.childNodes, textNode);
+  const startCaret: Caret = (clean && index === 0) ?
+    [parent, textNodeAt] :
+    [frag.firstChild!, index];
+
+  const endCaret: Caret = (clean && index === textNode.length) ?
+    [parent, textNodeAt + frag.childNodes.length] :
+    [frag.lastChild!, (frag.lastChild as Text).length - nextLen];
+
+  this.deleteNode(textNode);
+  this.insertNodeAt(parent, textNodeAt, frag);
+
   return [startCaret, endCaret];
 }
 
 /**
  * Inserts an element into text, effectively splitting the text node in
- * two. This function takes care to modify the DOM tree only once.
+ * two. This function takes care to minimize the number of changes it makes to
+ * the DOM tree.
  *
  * @param textNode The text node that will be cut in two by the new element.
  *
@@ -940,7 +913,6 @@ export function insertText(node: Node,
 
 const plainDOMMockup: GenericInsertIntoTextContext = {
   insertNodeAt: insertNodeAt,
-  insertFragAt: insertNodeAt,
   deleteNode: deleteNode,
 };
 
@@ -959,7 +931,8 @@ function _insertIntoText(textNode: Text,
 
 /**
  * Inserts an element into text, effectively splitting the text node in
- * two. This function takes care to modify the DOM tree only once.
+ * two. This function takes care to minimize the number of changes it makes to
+ * the DOM tree.
  *
  * @param textNode The text node that will be cut in two by the new element.
  *

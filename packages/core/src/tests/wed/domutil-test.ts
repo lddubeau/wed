@@ -17,6 +17,11 @@ const expect = chai.expect;
 
 // tslint:disable:no-any
 
+// tslint:disable-next-line:no-http-string
+const XHTML = "http://www.w3.org/1999/xhtml";
+// tslint:disable-next-line:no-http-string
+const TEI = "http://www.tei-c.org/ns/1.0";
+
 // Utility  XML nodes.
 function empty(el: Element): void {
   // tslint:disable-next-line:no-inner-html
@@ -33,8 +38,7 @@ function defined<T>(x: T | null | undefined): T {
 const commonMap = {
   // tslint:disable-next-line:no-http-string
   btw: "http://mangalamresearch.org/ns/btw-storage",
-  // tslint:disable-next-line:no-http-string
-  tei: "http://www.tei-c.org/ns/1.0",
+  tei: TEI,
 };
 
 describe("domutil", () => {
@@ -382,10 +386,14 @@ describe("domutil", () => {
     let root: Document;
     let title: HTMLElement;
     let child: Text;
+    let p: HTMLElement;
+    let pChild: Text;
     beforeEach(() => {
       root = sourceDoc.cloneNode(true) as Document;
       title = root.getElementsByTagName("title")[0];
       child = title.firstChild as Text;
+      p = root.getElementsByTagName("p")[0];
+      pChild = p.firstChild as Text;
     });
 
     it("fails on non-text node", () => {
@@ -411,7 +419,7 @@ describe("domutil", () => {
       assert.equal(title.childNodes[1], el);
     });
 
-    it("works fine with negative offset", () => {
+    it("works with negative offset", () => {
       const el = child.ownerDocument!.createElement("span");
       const [first, second] = domutil.insertIntoText(child, -1, el);
       assert.deepEqual(first, [el.parentNode!, 0], "first caret");
@@ -422,7 +430,7 @@ describe("domutil", () => {
       assert.equal(title.firstChild, el);
     });
 
-    it("works fine with negative offset and fragment", () => {
+    it("works with negative offset and fragment", () => {
       const frag = document.createDocumentFragment();
       frag.appendChild(document.createTextNode("first"));
       frag.appendChild(document.createElement("span")).textContent = "blah";
@@ -432,23 +440,21 @@ describe("domutil", () => {
       assert.equal(second[0].nodeValue, "lastabcd");
       assert.equal(second[1], 4);
       assert.equal(title.childNodes.length, 3);
-      assert.equal(
-        title.innerHTML,
-        `first<span xmlns="http://www.w3.org/1999/xhtml">blah</span>lastabcd`);
+      assert.equal(title.innerHTML,
+                   `first<span xmlns="${XHTML}">blah</span>lastabcd`);
     });
 
-    it("works fine with negative offset and fragment containing only text",
-       () => {
-         const frag = document.createDocumentFragment();
-         frag.appendChild(document.createTextNode("first"));
-         const [first, second] = domutil.insertIntoText(child, -1, frag);
-         assert.deepEqual(first, [title, 0]);
-         assert.deepEqual(second, [title.firstChild!, 5]);
-         assert.equal(title.childNodes.length, 1);
-         assert.equal(title.innerHTML, "firstabcd");
-       });
+    it("works with negative offset and fragment containing only text", () => {
+      const frag = document.createDocumentFragment();
+      frag.appendChild(document.createTextNode("first"));
+      const [first, second] = domutil.insertIntoText(child, -1, frag);
+      assert.deepEqual(first, [title, 0]);
+      assert.deepEqual(second, [title.firstChild!, 5]);
+      assert.equal(title.childNodes.length, 1);
+      assert.equal(title.innerHTML, "firstabcd");
+    });
 
-    it("works fine with offset beyond text length", () => {
+    it("works with offset beyond text length", () => {
       assert.equal(title.childNodes.length, 1,
                    "the parent should start with one child");
       const el = child.ownerDocument!.createElement("span");
@@ -465,7 +471,7 @@ describe("domutil", () => {
       assert.equal(title.lastChild, el);
     });
 
-    it("works fine with offset beyond text length and fragment", () => {
+    it("works with offset beyond text length and fragment", () => {
       const frag = document.createDocumentFragment();
       frag.appendChild(document.createTextNode("first"));
       frag.appendChild(document.createElement("span")).textContent = "blah";
@@ -476,22 +482,20 @@ describe("domutil", () => {
       assert.deepEqual(first, [title.firstChild!, 4]);
       assert.deepEqual(second, [title, 3]);
       assert.equal(title.childNodes.length, 3);
-      assert.equal(
-        title.innerHTML,
-        `abcdfirst<span xmlns="http://www.w3.org/1999/xhtml">blah</span>last`);
+      assert.equal(title.innerHTML,
+                   `abcdfirst<span xmlns="${XHTML}">blah</span>last`);
        });
 
-    it("works fine with offset beyond text length and fragment containing " +
-       "only text", () => {
-         const frag = document.createDocumentFragment();
-         frag.appendChild(document.createTextNode("first"));
-         const [first, second] =
-           domutil.insertIntoText(child, child.nodeValue!.length, frag);
-         assert.deepEqual(first, [title.firstChild!, 4]);
-         assert.deepEqual(second, [title, title.childNodes.length]);
-         assert.equal(title.childNodes.length, 1);
-         assert.equal(title.innerHTML, "abcdfirst");
-       });
+    it("works with offset beyond text length and text-only fragment", () => {
+      const frag = document.createDocumentFragment();
+      frag.appendChild(document.createTextNode("first"));
+      const [first, second] =
+        domutil.insertIntoText(child, child.nodeValue!.length, frag);
+      assert.deepEqual(first, [title.firstChild!, 4]);
+      assert.deepEqual(second, [title, title.childNodes.length]);
+      assert.equal(title.childNodes.length, 1);
+      assert.equal(title.innerHTML, "abcdfirst");
+    });
 
     it("cleans up after inserting a text node", () => {
       const text = document.createTextNode("test");
@@ -501,6 +505,18 @@ describe("domutil", () => {
       assert.equal(second[0].nodeValue, "abtestcd");
       assert.equal(second[1], 6);
       assert.equal(title.childNodes.length, 1);
+    });
+
+    it("cleans up after inserting an element into whitespace", () => {
+      const el = document.createElement("hi");
+      const [first, second] = domutil.insertIntoText(pChild, 1, el);
+      expect(p).to.have.property("innerHTML")
+        .equal(` <hi xmlns="${XHTML}"></hi>  with  spaces  `);
+      expect(first[0]).to.have.property("data").equal(" ");
+      expect(first[1]).to.equal(1);
+      expect(second[0]).to.have.property("data").equal("  with  spaces  ");
+      expect(second[1]).to.equal(0);
+      expect(p).to.have.property("childNodes").lengthOf(3);
     });
 
     it("cleans up after inserting a fragment with text", () => {
