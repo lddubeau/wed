@@ -1518,7 +1518,7 @@ export function textToHTML(text: string): string {
 }
 
 const separators = ",>+~ ";
-const separatorRe = new RegExp(`([${separators}]+)`);
+const separatorRe = new RegExp(`([${separators}])`);
 
 /**
  * Converts a CSS selector written as if it were run against the XML document
@@ -1547,16 +1547,20 @@ export function toGUISelector(selector: string,
     throw new Error("we do not accept escaped colons for now");
   }
 
-  const parts = selector.split(separatorRe);
   let ret = "";
-  for (const part of parts) {
-    if (/[a-zA-Z]/.test(part[0])) {
-      const nameSplit = part.trim().split(/(.#)/);
-      ret += util.classFromOriginalName(nameSplit[0], namespaces) +
-        nameSplit.slice(1).join("");
+  for (const part of selector.split(separatorRe)) {
+    if (separators.includes(part)) {
+      ret += part;
     }
     else {
-      ret += part;
+      const [name, ...rest] = part.split(/(\.|#)/);
+      if (name !== "") {
+        ret += util.classFromOriginalName(name, namespaces) +
+          rest.join("");
+      }
+      else {
+        ret += part;
+      }
     }
   }
   return ret;
