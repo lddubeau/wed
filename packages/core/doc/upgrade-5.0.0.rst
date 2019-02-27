@@ -82,6 +82,9 @@ Miscelaneous changes
   passed. Most existing usages can be easily converted by spreading the tuple:
   ``makeDLoc(root, tuple) -> makeDLoc(root, ...tuple)``
 
+* ``domutil.dumpRangeToString`` and ``domutil.dumpCurrentSelection`` are
+  removed.
+
 Notable Bootstrap Changes
 =========================
 

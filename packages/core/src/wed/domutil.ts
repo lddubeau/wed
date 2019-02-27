@@ -1309,40 +1309,6 @@ export function dumpRange(msg: string, range?: RangeLike): void {
 }
 
 /**
- * Dumps the current selection to the console.
- *
- * @param msg A message to output in front of the range information.
- *
- * @param win The window for which to dump selection information.
- */
-export function dumpCurrentSelection(msg: string, win: Window): void {
-  dumpRange(msg, getSelectionRange(win));
-}
-
-/**
- * Dumps a range to a string.
- *
- * @param msg A message to output in front of the range information.
- *
- * @param range The range.
- */
-export function dumpRangeToString(msg: string, range?: RangeLike): string {
-  let ret;
-  if (range == null) {
-    ret = [msg, "no range"];
-  }
-  else {
-    ret = [msg,
-           (range.startContainer as Element).outerHTML,
-           range.startOffset,
-           (range.endContainer as Element).outerHTML,
-           range.endOffset];
-  }
-
-  return ret.join(", ");
-}
-
-/**
  * Checks whether a point is in the element's contents. This means inside the
  * element and **not** inside one of the scrollbars that the element may
  * have. The coordinates passed must be **relative to the document.** If the
