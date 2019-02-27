@@ -1548,24 +1548,18 @@ export function toGUISelector(selector: string,
   }
 
   const parts = selector.split(separatorRe);
-  let ret: string[] = [];
-  for (let part of parts) {
-    if (part.length !== 0) {
-      if (separators.indexOf(part) > -1) {
-        ret.push(part);
-      }
-      else if (/[a-zA-Z]/.test(part[0])) {
-        part = part.trim();
-        const nameSplit = part.split(/(.#)/);
-        ret.push(util.classFromOriginalName(nameSplit[0], namespaces));
-        ret = ret.concat(nameSplit.slice(1));
-      }
-      else {
-        ret.push(part);
-      }
+  let ret = "";
+  for (const part of parts) {
+    if (/[a-zA-Z]/.test(part[0])) {
+      const nameSplit = part.trim().split(/(.#)/);
+      ret += util.classFromOriginalName(nameSplit[0], namespaces) +
+        nameSplit.slice(1).join("");
+    }
+    else {
+      ret += part;
     }
   }
-  return ret.join("");
+  return ret;
 }
 
 /**
