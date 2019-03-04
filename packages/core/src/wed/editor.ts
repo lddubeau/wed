@@ -25,6 +25,7 @@ import { Action, UnspecifiedAction } from "./action";
 import { CaretChange, CaretManager } from "./caret-manager";
 import * as caretMovement from "./caret-movement";
 import { Clipboard, containsClipboardAttributeCollection } from "./clipboard";
+import { sanitizeXML } from "./convert";
 import { DLoc, DLocRoot } from "./dloc";
 import * as domlistener from "./domlistener";
 import { isAttr, isElement, isText } from "./domtypeguards";
@@ -1273,6 +1274,7 @@ export class Editor implements EditorAPI {
     const parser = new this.window.DOMParser();
     if (xmlData !== undefined && xmlData !== "") {
       this.dataRoot = parser.parseFromString(xmlData, "text/xml");
+      sanitizeXML(this.dataRoot);
       this._dataChild = this.dataRoot.firstChild as Element;
     }
     else {

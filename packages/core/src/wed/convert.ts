@@ -16,7 +16,6 @@ const XMLNS_NAMESPACE: string = "http://www.w3.org/2000/xmlns/";
 const TYPE_TO_KIND = {
   __proto__: null,
   [Node.COMMENT_NODE]: "comment",
-  [Node.CDATA_SECTION_NODE]: "cdata",
   [Node.DOCUMENT_TYPE_NODE]: "doctype",
 };
 
@@ -120,7 +119,6 @@ export function toHTMLTree(doc: Document, node: Node): Node {
       }
       break;
     case Node.COMMENT_NODE:
-    case Node.CDATA_SECTION_NODE:
       ret = document.createElement("div");
       const kind = TYPE_TO_KIND[node.nodeType];
       if (kind === undefined) {
@@ -144,6 +142,41 @@ export function toHTMLTree(doc: Document, node: Node): Node {
   }
 
   return ret;
+}
+
+export function _sanitizeXML(node: Node): void {
+  switch (node.nodeType) {
+    case Node.ELEMENT_NODE:
+    case Node.DOCUMENT_NODE:
+    case Node.DOCUMENT_FRAGMENT_NODE:
+      let child: Node | null = node.firstChild;
+      while (child !== null) {
+        const next = child.nextSibling;
+        _sanitizeXML(child);
+        child = next;
+      }
+      break;
+    case Node.CDATA_SECTION_NODE:
+      const text = document.createTextNode((node as CDATASection).data);
+      node.parentNode!.replaceChild(text, node);
+      break;
+    default:
+      // Other nodes are left as they are.
+  }
+}
+
+/**
+ * "Sanitize" an XML tree. Wed does not support full roundtrippability so some
+ * XML constructs are converted to what wed can use. In particular CData
+ * sections become plain text.
+ */
+export function sanitizeXML(node: Node): void {
+  _sanitizeXML(node);
+
+  // We normalize once, after everything is done so that CData that were
+  // adjacent to Text and converted to Text are merged with the adjacent Text,
+  // or removed if they were empty.
+  node.normalize();
 }
 
 //  LocalWords:  MPL subtree tagName localName xmlns normalizeNS namespaceURI

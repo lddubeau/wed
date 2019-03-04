@@ -11,6 +11,6 @@ ef</title></head>
 <?pi data
 next line?>
 abc<em>def&amp;
-gh<em/><![CDATA[<>]]>abc</em>
+gh<em/>abc</em>
 </body>
 </html>

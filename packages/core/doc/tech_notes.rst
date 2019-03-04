@@ -743,6 +743,52 @@ There's no trivial way to support XPath right now. We're keeping an eye on
 development of XPath libraries to determine a moment when adding such support is
 reasonable.
 
+The Problem with CData
+======================
+
+CData is essentially a facility that exists to help people who must deal with
+the raw XML encoding. Instead of typing::
+
+    <foo>It is true that 2 &lt; 3 and 4 &gt; 3.</foo>
+
+One could type::
+
+    <foo><![CDATA[It is true that 2 < 3 and 4 > 3.]]></foo>
+
+The encoding of markup characters is simplified in such sections.
+
+When it comes to wed's support of CData, we must consider that:
+
+* A document that contains a CData section can just as well be serialized
+  without CData: all CData sections can be converted to plain text with the
+  proper encoding. In other words, there's no sequence of characters that can be
+  represented with CData that cannot be represented as plain text.
+
+* XML tools in general may not preserve CData sections. (That, is when a
+  document using CData sections passes through a tool that transforms it, the
+  CData section may be converted to play text by the tool.) XSLT is a case in
+  point. By default it does not preserve CData sections, and the control it does
+  provide over the creation of CData sections is quite blunt. So, generally,
+  CData sections are brittle.
+
+* Wed is aimed specifically at providing an editing laywer *between* the raw XML
+  and the user. In particular if someone wants to type "2 < 3" in a document in
+  wed, they do not have to escape the less-than symbol. Wed does it for them. So
+  using CData while editing documents *in wed* is not particularly useful.
+
+* Wed depends on the DOM for its functioning, and the DOM treats CData as a
+  second-class citizen. The biggest issue is that it is completely ignored by
+  ``Node.normalize``. Two CData in sequence won't be merged. A empty CData won't
+  be deleted. A ``CDATASection`` between two ``Text`` nodes won't be touched,
+  etc. Quite a few algorithms are simplified by first normalizing a DOM tree, or
+  they aim to produce a normalized result. CData would require special, and
+  complicated handling.
+
+For these reasons, wed does not preserve CData sections in the documents it
+reads, nor does it allow the arbitrary creation of CData sections. It does read
+documents with CData sections but these sections are all converted to plain
+text.
+
 Historical Notes
 ================
 
