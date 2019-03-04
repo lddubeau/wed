@@ -624,7 +624,7 @@ export function deleteNode(node: Node): void {
  */
 function insertNodeAt(parent: Element, index: number, node: Node): void {
   const child = parent.childNodes[index];
-  parent.insertBefore(node, child != null ? child : null);
+  parent.insertBefore(node, child !== undefined ? child : null);
 }
 
 /**
@@ -949,7 +949,7 @@ export function genericCutFunction(this: GenericCutContext,
     returnNodes.push(endText);
   }
 
-  if (endContainer.childNodes[startOffset - 1] != null) {
+  if (endContainer.childNodes[startOffset - 1] !== undefined) {
     // tslint:disable-next-line:no-invalid-this
     this.mergeTextNodes(endContainer.childNodes[startOffset - 1]);
   }
@@ -1160,7 +1160,7 @@ export function closestByClass(node: Node | undefined | null, cl: string,
     node = node.parentNode;
   }
 
-  while (node != null) {
+  while (node !== null) {
     if (!isElement(node)) {
       return null;
     }
@@ -1201,7 +1201,7 @@ export function siblingByClass(node: Node | null, cl: string): Element | null {
   }
 
   let child = parent.firstElementChild;
-  while (child != null && !child.classList.contains(cl)) {
+  while (child !== null && !child.classList.contains(cl)) {
     child = child.nextElementSibling;
   }
   return child;
@@ -1223,7 +1223,7 @@ export function childrenByClass(node: Node | null, cl: string): Element[] {
 
   const ret = [];
   let child = node.firstElementChild;
-  while (child != null) {
+  while (child !== null) {
     if (child.classList.contains(cl)) {
       ret.push(child);
     }
@@ -1249,7 +1249,7 @@ export function childByClass(node: Node | null, cl: string): Element | null {
   }
 
   let child = node.firstElementChild;
-  while (child != null && !child.classList.contains(cl)) {
+  while (child !== null && !child.classList.contains(cl)) {
     child = child.nextElementSibling;
   }
   return child;
@@ -1359,7 +1359,7 @@ export function dataFind(node: Element, selector: string,
     return null;
   }
   const data = $.data(foundNodes, "wed_mirror_node");
-  return (data != null) ? data : null;
+  return data != null ? data : null;
 }
 
 /**
@@ -1498,7 +1498,7 @@ export function isNotDisplayed(el: HTMLElement,
 
   // We don't put a menu for attributes that are somehow not
   // displayed.
-  while (el != null && el !== root) {
+  while (el !== null && el !== root) {
     if (el.style.display === "none") {
       return true;
     }
