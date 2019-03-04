@@ -873,7 +873,7 @@ export function genericCutFunction(this: GenericCutContext,
     }
   }
 
-  let finalCaret: [Node, number];
+  let finalCaret: Caret;
   let startText: Text | undefined;
   if (isText(startContainer)) {
     const sameContainer = startContainer === endContainer;
