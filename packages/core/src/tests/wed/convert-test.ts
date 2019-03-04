@@ -4,8 +4,6 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 
-import * as browsers from "@wedxml/common/browsers";
-
 import * as convert from "wed/convert";
 
 import { DataProvider } from "../util";
@@ -47,19 +45,15 @@ describe("convert", () => {
   });
 
   describe("toHTMLTree", () => {
-    function makeTest(name: string, differsOnIE: boolean = false): void {
+    function makeTest(name: string): void {
       const convertedName = name.replace(/ /g, "-");
-
-      // If the test differs on IE and we are on IE, then add -ie to the
-      // basename.
-      const ie = differsOnIE && browsers.MSIE;
       describe("", () => {
         let source: string;
         let expected: string;
         before(async () => {
           [source, expected] = await Promise.all([
             provider.getText(`${convertedName}.xml`),
-            provider.getText(`${convertedName + (ie ? "-ie" : "")}.html`),
+            provider.getText(`${convertedName}.html`),
           ]);
         });
 
@@ -76,9 +70,9 @@ describe("convert", () => {
 
     // tslint:disable:mocha-no-side-effect-code
     makeTest("should convert xml to html");
-    makeTest("should encode name prefixes", true);
+    makeTest("should encode name prefixes");
     makeTest("should encode dashes in attribute names");
-    makeTest("should encode namespace changes", true);
+    makeTest("should encode namespace changes");
     // tslint:enable:mocha-no-side-effect-code
   });
 });
