@@ -85,6 +85,8 @@ Miscelaneous changes
 * ``domutil.dumpRangeToString`` and ``domutil.dumpCurrentSelection`` are
   removed.
 
+* ``domutil.{prev,next}CaretPosition*`` have been moved to ``caret-movement``.
+
 Notable Bootstrap Changes
 =========================
 

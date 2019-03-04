@@ -8,9 +8,9 @@
  */
 
 import { DLoc } from "./dloc";
-import { isElement, isText } from "./domtypeguards";
-import { childByClass, closest, closestByClass, indexOf, nextCaretPosition,
-         prevCaretPosition } from "./domutil";
+import { isDocument, isElement, isText } from "./domtypeguards";
+import { Caret, childByClass, closest, closestByClass,
+         indexOf } from "./domutil";
 import { ModeTree } from "./mode-tree";
 import { boundaryXY, getAttrValueNode } from "./wed-util";
 
@@ -151,6 +151,253 @@ function findNext(haystack: NodeList | HTMLCollection,
   }
 
   return undefined;
+}
+
+/**
+ * This function determines the caret position if the caret was moved forward.
+ *
+ * This function does not fully emulate how a browser moves the caret. The sole
+ * emulation it performs is to check whether whitespace matters or not. It skips
+ * whitespace that does not matter. It is moreover designed to work in the GUI
+ * tree of a wed editor, not in the data tree.
+ *
+ * @param caret A caret position where the search starts. This should be an
+ * array of length two that has in first position the node where the caret is
+ * and in second position the offset in that node. This pair is to be
+ * interpreted in the same way node, offset pairs are interpreted in selection
+ * or range objects.
+ *
+ * @param container A DOM node which indicates the container within which caret
+ * movements must be contained.
+ *
+ * @returns The next caret position, or ``null`` if such position does not
+ * exist. The ``container`` parameter constrains movements to positions inside
+ * it.
+ */
+// tslint:disable-next-line:cyclomatic-complexity
+export function nextCaretPosition(caret: Caret, container: Node): Caret | null {
+  let [node, offset] = caret;
+  if (!container.contains(node)) {
+    return null;
+  }
+
+  const doc = isDocument(node) ? node : node.ownerDocument!;
+
+  const window = doc.defaultView!;
+  let found = false;
+  while (!found) {
+    const parent = node === container ? null : node.parentNode;
+    switch (node.nodeType) {
+      case Node.TEXT_NODE:
+        if (offset >= (node as Text).length ||
+            // If the parent node is set to normal whitespace handling, then
+            // moving the caret forward by one position will skip this
+            // whitespace.
+            (parent !== null && parent.lastChild === node &&
+             window.getComputedStyle(parent as Element, undefined)
+             .whiteSpace === "normal" &&
+             /^\s+$/.test((node as Text).data.slice(offset)))) {
+          // We would move outside the container
+          if (parent === null) {
+            return null;
+          }
+
+          offset = indexOf(parent.childNodes, node) + 1;
+          node = parent;
+        }
+        else {
+          offset++;
+          found = true;
+        }
+        break;
+      case Node.ELEMENT_NODE:
+        if (offset >= node.childNodes.length) {
+          // If we've hit the end of what we can search, stop.
+          if (parent === null) {
+            return null;
+          }
+
+          offset = indexOf(parent.childNodes, node) + 1;
+          node = parent;
+          found = true;
+        }
+        else {
+          node = node.childNodes[offset];
+          offset = 0;
+          // We want to stop if the new location points *into* a text node or
+          // *into* an empty element, or does not point *to* a text node. (If it
+          // points to a text node, we want to update the location to point
+          // *into* the node.)
+          found = isText(node) || (isElement(node) &&
+                                   (node.childNodes.length === 0 ||
+                                    !isText(node.childNodes[offset])));
+        }
+        break;
+      default:
+        // We point into something else than text or an element, move out to the
+        // sibling.
+        if (parent === null) {
+          return null;
+        }
+        offset = indexOf(parent.childNodes, node) + 1;
+        node = parent;
+    }
+  }
+
+  return (node === container && offset >= node.childNodes.length) ?
+    null : // We've moved to a position outside the container.
+    [node, offset]; // We have a real position.
+}
+
+/**
+ * Does the same as [[nextCaretPosition]] but if the returned position would be
+ * in a text node, it returns a position in the element that contains the text
+ * node instead.
+ */
+export function nextCaretPositionNoText(caret: Caret,
+                                        container: Node): Caret | null {
+  const loc = nextCaretPosition(caret, container);
+  if (loc === null) {
+    return null;
+  }
+
+  const [node] = loc;
+  if (!isText(node)) {
+    return loc;
+  }
+
+  const parent = node.parentNode;
+  if (parent === null) {
+    throw new Error("detached node");
+  }
+
+  return !container.contains(parent) ?
+    null : // We've moved to a position outside the container.
+    [parent, indexOf(parent.childNodes, node)]; // We have a real position.
+}
+
+/**
+ * This function determines the caret position if the caret was moved backwards.
+ *
+ * This function does not fully emulate how a browser moves the caret. The sole
+ * emulation it performs is to check whether whitespace matters or not. It skips
+ * whitespace that does not matter.  It is moreover designed to work in the GUI
+ * tree of a wed editor, not in the data tree.
+ *
+ * @param caret A caret position where the search starts. This should be an
+ * array of length two that has in first position the node where the caret is
+ * and in second position the offset in that node. This pair is to be
+ * interpreted in the same way node, offset pairs are interpreted in selection
+ * or range objects.
+ *
+ * @param container A DOM node which indicates the container within which caret
+ * movements must be contained.
+ *
+ * @returns The previous caret position, or ``null`` if such position does not
+ * exist. The ``container`` parameter constrains movements to positions inside
+ * it.
+ */
+// tslint:disable-next-line:cyclomatic-complexity
+export function prevCaretPosition(caret: Caret, container: Node): Caret | null {
+  let [node, offset] = caret;
+  if (!container.contains(node)) {
+    return null;
+  }
+
+  const doc = isDocument(node) ? node : node.ownerDocument!;
+
+  const window = doc.defaultView!;
+  let found = false;
+  while (!found) {
+    offset--;
+    const parent = node === container ? null : node.parentNode;
+    switch (node.nodeType) {
+      case Node.TEXT_NODE:
+        if (offset < 0 ||
+            // If the parent node is set to normal whitespace handling, then
+            // moving the caret back by one position will skip this whitespace.
+            (parent !== null && parent.firstChild === node &&
+             window.getComputedStyle(parent as Element, undefined)
+             .whiteSpace === "normal" &&
+             /^\s+$/.test((node as Text).data.slice(0, offset)))) {
+          // We would move outside the container
+          if (parent === null) {
+            return null;
+          }
+
+          offset = indexOf(parent.childNodes, node);
+          node = parent;
+        }
+        else {
+          found = true;
+        }
+        break;
+      case Node.ELEMENT_NODE:
+        if (offset < 0 || node.childNodes.length === 0) {
+          // If we've hit the end of what we can search, stop.
+          if (parent === null) {
+            return null;
+          }
+
+          offset = indexOf(parent.childNodes, node);
+          node = parent;
+          found = true;
+        }
+        // If node.childNodes.length === 0, the first branch would have been
+        // taken. No need to test that offset indexes to something that exists.
+        else {
+          node = node.childNodes[offset];
+          if (isElement(node)) {
+            offset = node.childNodes.length;
+            found = node.childNodes.length === 0 ||
+              !isText(node.childNodes[offset - 1]);
+          }
+          else {
+            offset = (node as Text).length;
+            found = isText(node);
+          }
+        }
+        break;
+      default:
+        if (parent === null) {
+          return null;
+        }
+
+        offset = indexOf(parent.childNodes, node);
+        node = parent;
+    }
+  }
+
+  return (node === container && offset < 0) ?
+    null : // We've moved to a position outside the container.
+    [node, offset];  // We have a real position.
+}
+
+/**
+ * Does the same as [[prevCaretPosition]] but if the returned position would be
+ * in a text node, it returns a position in the element that contains the text
+ * node instead.
+ */
+export function prevCaretPositionNoText(caret: Caret,
+                                        container: Node): Caret | null {
+  const loc = prevCaretPosition(caret, container);
+  if (loc === null) {
+    return null;
+  }
+
+  const [node] = loc;
+  if (!isText(node)) {
+    return loc;
+  }
+
+  const parent = node.parentNode;
+  if (parent === null) {
+    throw new Error("detached node");
+  }
+
+  return !container.contains(parent) ?
+    null : // We've moved to a position outside the container.
+    [parent, indexOf(parent.childNodes, node)];  // We have a real position.
 }
 
 export type Direction = "right" | "left" | "up" | "down";
