@@ -755,7 +755,8 @@ export type ElementPair = [Element, Element];
 /**
  * Returns the **element** nodes that contain the start and the end of the
  * range. If an end of the range happens to be in a text node, the element node
- * will be that node's parent.
+ * will be that node's parent. If a boundary of the range is immediately in a
+ * text or element, then there is no pair to return.
  *
  * @private
  *
@@ -764,58 +765,60 @@ export type ElementPair = [Element, Element];
  * values is the same as for DOM ``Range`` objects. Therefore, the object passed
  * can be a DOM range.
  *
- * @returns A pair of nodes.
- *
- * @throws {Error} If a node in ``range`` is not of element or text Node types.
+ * @returns A pair of nodes, or ``null`` if there is no pair to return.
  */
-function nodePairFromRange(range: RangeLike): ElementPair {
-  let startNode;
-  switch (range.startContainer.nodeType) {
+function nodePairFromRange(range: RangeLike): ElementPair | null {
+  let startNode: Element;
+  const { startContainer, endContainer } = range;
+  switch (startContainer.nodeType) {
   case Node.TEXT_NODE:
-    startNode = range.startContainer.parentNode as Element;
-    if (startNode == null) {
-      throw new Error("detached node");
-    }
-    break;
-  case Node.ELEMENT_NODE:
-    startNode = range.startContainer as Element;
-    break;
-  default:
-    throw new Error(`unexpected node type: ${range.startContainer.nodeType}`);
-
+      startNode = startContainer.parentNode as Element;
+      if (startNode === null) {
+        throw new Error("detached node");
+      }
+      break;
+    case Node.ELEMENT_NODE:
+      startNode = startContainer as Element;
+      break;
+    default:
+      return null;
   }
 
-  let endNode;
-  switch (range.endContainer.nodeType) {
-  case Node.TEXT_NODE:
-    endNode = range.endContainer.parentNode as Element;
-    if (endNode == null) {
-      throw new Error("detached node");
-    }
-    break;
-  case Node.ELEMENT_NODE:
-    endNode = range.endContainer as Element;
-    break;
-  default:
-    throw new Error(`unexpected node type: ${range.endContainer.nodeType}`);
+  let endNode: Element;
+  switch (endContainer.nodeType) {
+    case Node.TEXT_NODE:
+      endNode = endContainer.parentNode as Element;
+      if (endNode === null) {
+        throw new Error("detached node");
+      }
+      break;
+    case Node.ELEMENT_NODE:
+      endNode = endContainer as Element;
+      break;
+    default:
+      return null;
   }
+
   return [startNode, endNode];
 }
 
 /**
  * Determines whether a range is well-formed. A well-formed range is one which
- * starts and ends in the same element.
+ * has its start and end in the same element. If either the start or the end is
+ * in a text node, then that boundary is adjusted to the element which contains
+ * the node. If either boundary is inside something which is neither an element
+ * or a text node, then the range is not well-formed.
  *
- * @param range An object which has the ``startContainer``,
- * ``startOffset``, ``endContainer``, ``endOffset`` attributes set. The
- * interpretation of these values is the same as for DOM ``Range``
- * objects. Therefore, the object passed can be a DOM range.
+ * @param range An object which has the ``startContainer``, ``startOffset``,
+ * ``endContainer``, ``endOffset`` attributes set. The interpretation of these
+ * values is the same as for DOM ``Range`` objects. Therefore, the object passed
+ * can be a DOM range.
  *
  * @returns ``true`` if the range is well-formed.  ``false`` if not.
  */
 export function isWellFormedRange(range: RangeLike): boolean {
   const pair = nodePairFromRange(range);
-  return pair[0] === pair[1];
+  return pair !== null && pair[0] === pair[1];
 }
 
 export interface GenericCutContext {

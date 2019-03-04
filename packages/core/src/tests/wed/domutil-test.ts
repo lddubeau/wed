@@ -429,7 +429,7 @@ describe("domutil", () => {
       assert.isNotNull(node); // make sure we got something
       assert.isDefined(node); // make sure we got something
       assert.equal(domutil.lastDescendantOrSelf(node),
-                   root.getElementsByTagName("p")[5].lastChild);
+                   root.getElementsByTagName("p")[6].lastChild);
     });
   });
 
@@ -534,6 +534,82 @@ describe("domutil", () => {
         domutil.focusNode(document);
       }).to.throw(Error, "tried to focus something other than an element or an \
 element child.");
+    });
+  });
+
+  describe("isWellFormedRange", () => {
+    let p: HTMLElement;
+    let p2: HTMLElement;
+    before(() => {
+      p = sourceDoc.querySelector("body>p:nth-of-type(2)") as HTMLElement;
+      p2 = sourceDoc.querySelector("body>p:nth-of-type(5)") as HTMLElement;
+    });
+
+    describe("returns true when", () => {
+      it("both boundaries are in the same element", () => {
+        expect(domutil.isWellFormedRange({ startContainer: p, startOffset: 0,
+                                           endContainer: p, endOffset: 1 }))
+          .to.be.true;
+      });
+
+      it("both boundaries are in text in the same element", () => {
+        const startContainer = p.firstChild!;
+        expect(startContainer).to.have.property("nodeType")
+          .equal(Node.TEXT_NODE);
+        const endContainer = p.childNodes[2];
+        expect(endContainer).to.have.property("nodeType").equal(Node.TEXT_NODE);
+        expect(domutil.isWellFormedRange({ startContainer, startOffset: 0,
+                                           endContainer, endOffset: 0 }))
+          .to.be.true;
+      });
+
+      it("one boundary in element and other text in same element", () => {
+        const endContainer = p.childNodes[2];
+        expect(endContainer).to.have.property("nodeType").equal(Node.TEXT_NODE);
+        expect(domutil.isWellFormedRange({ startContainer: p, startOffset: 0,
+                                           endContainer, endOffset: 0 }))
+          .to.be.true;
+      });
+    });
+
+    describe("returns false when", () => {
+      it("both boundaries are not in the same element", () => {
+        const endContainer = p.childNodes[1];
+        expect(endContainer).to.have.property("nodeType")
+          .equal(Node.ELEMENT_NODE);
+        expect(domutil.isWellFormedRange({ startContainer: p, startOffset: 0,
+                                           endContainer, endOffset: 1 }))
+          .to.be.false;
+      });
+
+      it("both boundaries are not in text in the same element", () => {
+        const startContainer = p.firstChild!;
+        expect(startContainer).to.have.property("nodeType")
+          .equal(Node.TEXT_NODE);
+        const endContainer = p.childNodes[1].firstChild!;
+        expect(endContainer).to.have.property("nodeType").equal(Node.TEXT_NODE);
+        expect(domutil.isWellFormedRange({ startContainer, startOffset: 0,
+                                           endContainer, endOffset: 0 }))
+          .to.be.false;
+      });
+
+      it("first boundary is in a comment", () => {
+        const startContainer = p2.childNodes[1];
+        expect(startContainer).to.have.property("nodeType")
+          .equal(Node.COMMENT_NODE);
+        expect(domutil.isWellFormedRange({ startContainer, startOffset: 0,
+                                           endContainer: p2, endOffset: 2 }))
+          .to.be.false;
+      });
+
+      it("second boundary is in a comment", () => {
+        const endContainer = p2.childNodes[1];
+        expect(endContainer).to.have.property("nodeType")
+          .equal(Node.COMMENT_NODE);
+        expect(domutil.isWellFormedRange({ startContainer: p2, startOffset: 0,
+                                           endContainer, endOffset: 0 }))
+          .to.be.false;
+      });
     });
   });
 
