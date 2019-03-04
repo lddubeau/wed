@@ -743,6 +743,8 @@ There's no trivial way to support XPath right now. We're keeping an eye on
 development of XPath libraries to determine a moment when adding such support is
 reasonable.
 
+.. _problem_with_cdata:
+
 The Problem with CData
 ======================
 

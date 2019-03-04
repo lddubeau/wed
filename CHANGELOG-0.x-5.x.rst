@@ -1,4 +1,4 @@
-Please note that Github currently does not implement all reStructuredText
+MPlease note that Github currently does not implement all reStructuredText
 directives, so some links in this document may not work correctly when viewed
 there.
 
@@ -14,6 +14,9 @@ odd bug fix may not get mentioned here at all.
 
   - Breaking change: the ``packed`` distribution no longer contains a
     non-minified bundle.
+
+  - CData can now appear in the documents loaded by wed. **HOWEVER**, wed does
+    not preserve CData. When read CData is converted to text.
 
 * 4.0.0:
 
