@@ -548,8 +548,10 @@ export function unlinkTree(root: Element): void {
 }
 
 /**
- * Returns the first descendant or the node passed to the function if the node
- * happens to not have a descendant. The function searches in document order.
+ * Returns the first descendant without children or the node passed to the
+ * function if this node happens to not have a descendant. The function searches
+ * in document order, depth first. Note that the returned node is *not*
+ * necessarily the deepest descendant among all descendants of the node.
  *
  * When passed ``<p><b>A</b><b><q>B</q></b></p>`` this code would return the
  * text node "A" because it has no children and is first.
@@ -572,9 +574,10 @@ Node | null {
 }
 
 /**
- * Returns the last descendant or the node passed to the function if the node
- * happens to not have a descendant. The function searches in reverse document
- * order.
+ * Returns the last descendant without children or the node passed to the
+ * function if this node happens to not have a descendant. The function searches
+ * in reverse document order, depth first. Note that the returned node is *not*
+ * necessarily the deepest descendant among all descendants of the node.
  *
  * When passed ``<p><b>A</b><b><q>B</q></b></p>`` this code would return the
  * text node "B" because it has no children and is last.
