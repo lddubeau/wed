@@ -19,6 +19,7 @@ import { DataProvider } from "../util";
 import { dataPath } from "../wed-test-util";
 
 const assert = chai.assert;
+const expect = chai.expect;
 
 // tslint:disable-next-line:no-http-string
 const TEI = "http://www.tei-c.org/ns/1.0";
@@ -188,19 +189,17 @@ describe("TreeUpdater", () => {
 
   describe("splitAt", () => {
     it("fails on node which is not child of the top", () => {
-      const top = root.querySelector("._name_p");
-      const node = root.querySelector("._name_title");
-      assert.throws((tu.splitAt.bind as any)(tu, top, node, 0), Error,
-                    "split location is not inside top");
+      const top = root.querySelector("._name_p")!;
+      const node = root.querySelector("._name_title")!;
+      expect(() => tu.splitAt(top, node, 0)).
+        to.throw(Error, "split location is not inside top");
     });
 
     it("fails if splitting would denormalize an element", () => {
       const node = root.querySelector("._name_title")!;
-      assert.throws((tu.splitAt.bind as any)(tu, node.firstChild,
-                                             node.firstChild, 2),
-                    Error,
-                    "splitAt called in a way that would result in " +
-                    "two adjacent text nodes");
+      expect(() => tu.splitAt(node.firstChild!, node.firstChild!, 2))
+        .to.throw(Error, "splitAt called in a way that would result in two \
+adjacent text nodes");
     });
 
     it("splitting recursively, one level of depth generates appropriate events",
@@ -440,9 +439,9 @@ before \
 
   describe("deleteText", () => {
     it("fails on non-text node", () => {
-      const node = root.querySelector("._name_title")!;
-      assert.throws((tu.deleteText.bind as any)(tu, node, 0, "t"), Error,
-                   "deleteText called on non-text");
+      expect(() => {
+        tu.deleteText(root.querySelector("._name_title")! as any, 0, 1);
+      }).to.throw(Error, "deleteText called on non-text");
     });
 
     it("generates appropriate events when it modifies a text node", () => {
@@ -488,8 +487,9 @@ before \
   describe("setAttribute", () => {
     it("fails on non-element node", () => {
       const node = root.querySelector("._name_title")!.firstChild;
-      assert.throws(tu.setAttribute.bind(tu, node as Element, "q", "ab"), Error,
-                    "setAttribute called on non-element");
+      expect(() => {
+        tu.setAttribute(node as Element, "q", "ab");
+      }).to.throw(Error, "setAttribute called on non-element");
     });
 
     it("generates appropriate events when changing an attribute", () => {
@@ -541,15 +541,14 @@ before \
   describe("insertIntoText", () => {
     it("fails on non-text node", () => {
       const node = root.querySelector("._name_title")!;
-      assert.throws(tu.insertIntoText.bind(tu, node as any, 0, node), Error,
-                    "insertIntoText called on non-text");
+      expect(() => tu.insertIntoText(node as any, 0, node))
+        .to.throw(Error, "insertIntoText called on non-text");
     });
 
     it("fails on undefined node to insert", () => {
-      const node = root.querySelector("._name_title")!.firstChild;
-      assert.throws(tu.insertIntoText.bind(tu, node as Text, 0,
-                                           undefined as any),
-                    Error, "must pass an actual node to insert");
+      const node = root.querySelector("._name_title")!.firstChild as Text;
+      expect(() => tu.insertIntoText(node, 0, undefined as any))
+        .to.throw(Error, "must pass an actual node to insert");
     });
 
     it("generates appropriate events when inserting a new element", () => {
@@ -704,9 +703,9 @@ before \
 
   describe("setTextNodeValue", () => {
     it("fails on non-text node", () => {
-      const node = root.querySelector("._name_title")!;
-      assert.throws(tu.setTextNode.bind(tu, node as any, "test"), Error,
-                   "setTextNode called on non-text");
+      expect(() => {
+        tu.setTextNode((root.querySelector as any)("._name_title"), "test");
+      }).to.throw(Error, "setTextNode called on non-text");
     });
 
     it("generates appropriate events when setting text", () => {
@@ -982,9 +981,9 @@ before \
       // test.
       const node = root.querySelectorAll("._name_body>._name_p")[2]
         .querySelector("._name_quote")!;
-      assert.throws(tu.removeNodes.bind(tu, [node, node.parentNode!]),
-                    Error,
-                   "nodes are not immediately contiguous in document order");
+      expect(() => tu.removeNodes([node, node.parentNode!]))
+        .to.throw(Error,
+                  "nodes are not immediately contiguous in document order");
     });
 
     it("generates appropriate events when merging text", () => {
