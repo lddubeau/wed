@@ -233,7 +233,7 @@ export function correspondingNode(treeA: Node, treeB: Node,
   let current = nodeInA;
   while (current !== treeA) {
     const parent = current.parentNode;
-    if (parent == null) {
+    if (parent === null) {
       throw new Error("nodeInA is not treeA or a child of treeA");
     }
     path.push(indexOf(parent.childNodes, current));
@@ -509,7 +509,7 @@ export function deleteText(node: Text, index: number, length: number): void {
 
   node.deleteData(index, length);
   if (node.length === 0) {
-    if (node.parentNode == null) {
+    if (node.parentNode === null) {
       throw new Error("detached node");
     }
     node.parentNode.removeChild(node);
@@ -605,7 +605,7 @@ Node | null {
  * @param node The node to remove.
  */
 export function deleteNode(node: Node): void {
-  if (node.parentNode == null) {
+  if (node.parentNode === null) {
     // For historical reasons we raise an error rather than make it a noop.
     throw new Error("detached node");
   }
@@ -740,7 +740,7 @@ export function mergeTextNodes(node: Node): Caret {
   }
 
   const parent = node.parentNode;
-  if (parent == null) {
+  if (parent === null) {
     throw new Error("detached node");
   }
   return [parent, indexOf(parent.childNodes, node) + 1];
@@ -859,7 +859,7 @@ export function genericCutFunction(this: GenericCutContext,
   }
 
   let parent = startContainer.parentNode;
-  if (parent == null) {
+  if (parent === null) {
     throw new Error("detached node");
   }
 
@@ -868,7 +868,7 @@ export function genericCutFunction(this: GenericCutContext,
     startOffset = indexOf(parent.childNodes, startContainer);
     startContainer = parent;
     parent = startContainer.parentNode;
-    if (parent == null) {
+    if (parent === null) {
       throw new Error("detached node");
     }
   }
@@ -914,7 +914,7 @@ export function genericCutFunction(this: GenericCutContext,
   let endText: Text | undefined;
   if (isText(endContainer)) {
     parent = endContainer.parentNode;
-    if (parent == null) {
+    if (parent === null) {
       throw new Error("detached node");
     }
 
@@ -977,7 +977,7 @@ export function copy(startCaret: Caret, endCaret: Caret): Node[] {
     throw new Error("range is not well-formed");
   }
   let parent = startContainer.parentNode;
-  if (parent == null) {
+  if (parent === null) {
     throw new Error("detached node");
   }
 
@@ -986,7 +986,7 @@ export function copy(startCaret: Caret, endCaret: Caret): Node[] {
     startOffset = indexOf(parent.childNodes, startContainer);
     startContainer = parent;
     parent = startContainer.parentNode;
-    if (parent == null) {
+    if (parent === null) {
       throw new Error("detached node");
     }
   }
@@ -1012,7 +1012,7 @@ export function copy(startCaret: Caret, endCaret: Caret): Node[] {
   let endText: Text | undefined;
   if (isText(endContainer)) {
     parent = endContainer.parentNode;
-    if (parent == null) {
+    if (parent === null) {
       throw new Error("detached node");
     }
 
@@ -1196,7 +1196,7 @@ export function siblingByClass(node: Node | null, cl: string): Element | null {
   }
 
   const parent = node.parentNode as Element;
-  if (parent == null) {
+  if (parent === null) {
     return null;
   }
 
@@ -1268,7 +1268,7 @@ let textToHTMLSpan: HTMLSpanElement;
  * @returns The converted text.
  */
 export function textToHTML(text: string): string {
-  if (textToHTMLSpan == null) {
+  if (textToHTMLSpan === undefined) {
     textToHTMLSpan = document.createElement("span");
   }
   textToHTMLSpan.textContent = text;
@@ -1355,7 +1355,7 @@ export function dataFind(node: Element, selector: string,
   const guiSelector = toGUISelector(selector, namespaces);
   const guiNode = $.data(node, "wed_mirror_node") as Element;
   const foundNodes = guiNode.querySelector(guiSelector);
-  if (foundNodes == null) {
+  if (foundNodes === null) {
     return null;
   }
   const data = $.data(foundNodes, "wed_mirror_node");
