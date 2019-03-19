@@ -76,4 +76,12 @@ export function isDocument(node?: Node | null): node is Document {
   return node != null && node.nodeType === Node.DOCUMENT_NODE;
 }
 
+export function isComment(node?: Node | null): node is Comment {
+  return node != null && node.nodeType === Node.COMMENT_NODE;
+}
+
+export function isPI(node?: Node | null): node is ProcessingInstruction {
+  return node != null && node.nodeType === Node.PROCESSING_INSTRUCTION_NODE;
+}
+
 //  LocalWords:  Typeguards MPL isAttribute attrNodeType
