@@ -9,7 +9,8 @@
 import { indexOf } from "./domutil";
 import { Editor } from "./editor";
 import { BeforeDeleteNodeEvent, InsertNodeAtEvent, SetAttributeNSEvent,
-         SetTextNodeValueEvent, TreeUpdater } from "./tree-updater";
+         SetTextNodeValueEvent, TreeUpdater,
+         TreeUpdaterEvents } from "./tree-updater";
 import * as undo from "./undo";
 
 function getOuterHTML(node: Node | undefined | null): string {
@@ -27,6 +28,7 @@ function getOuterHTML(node: Node | undefined | null): string {
 class InsertNodeAtUndo extends undo.Undo {
   private readonly parentPath: string;
   private node: Node | undefined;
+  private readonly index: number;
 
   /**
    * @param treeUpdater The tree updater to use to perform undo or redo
@@ -36,8 +38,9 @@ class InsertNodeAtUndo extends undo.Undo {
    * @param index
    */
   constructor(private readonly treeUpdater: TreeUpdater,
-              parent: Node, private readonly index: number) {
+              { parent, index }: InsertNodeAtEvent) {
     super("InsertNodeAtUndo");
+    this.index = index;
     this.parentPath = treeUpdater.nodeToPath(parent);
 
     // We do not take a node parameter and save it here because further
@@ -80,15 +83,18 @@ class InsertNodeAtUndo extends undo.Undo {
  */
 class SetTextNodeValueUndo extends undo.Undo {
   private readonly nodePath: string;
+  private readonly value: string;
+  private readonly oldValue: string;
 
   /**
    * @param treeUpdater The tree updater to use to perform undo or redo
    * operations.
    */
   constructor(private readonly treeUpdater: TreeUpdater,
-              node: Text, private readonly value: string,
-              private readonly oldValue: string) {
+              { node, value, oldValue }: SetTextNodeValueEvent) {
     super("SetTextNodeValueUndo");
+    this.value = value;
+    this.oldValue = oldValue;
     this.nodePath = treeUpdater.nodeToPath(node);
   }
 
@@ -126,7 +132,8 @@ class DeleteNodeUndo extends undo.Undo {
    * @param treeUpdater The tree updater to use to perform undo or redo
    * operations.
    */
-  constructor(private readonly treeUpdater: TreeUpdater, node: Node) {
+  constructor(private readonly treeUpdater: TreeUpdater,
+              { node }: BeforeDeleteNodeEvent) {
     super("DeleteNodeUndo");
     const parent = node.parentNode!;
     this.parentPath = treeUpdater.nodeToPath(parent);
@@ -167,17 +174,23 @@ class DeleteNodeUndo extends undo.Undo {
  */
 class SetAttributeNSUndo extends undo.Undo {
   private readonly nodePath: string;
+  private readonly ns: string;
+  private readonly attribute: string;
+  private readonly oldValue: string | null;
+  private readonly newValue: string | null;
 
   /**
    * @param treeUpdater The tree updater to use to perform undo or redo
    * operations.
    */
   constructor(private readonly treeUpdater: TreeUpdater,
-              node: Element, private readonly ns: string,
-              private readonly attribute: string,
-              private readonly oldValue: string | null,
-              private readonly newValue: string | null) {
+              { node, ns, attribute, oldValue,
+                newValue }: SetAttributeNSEvent) {
     super("SetAttributeNSUndo");
+    this.ns = ns;
+    this.attribute = attribute;
+    this.oldValue = oldValue;
+    this.newValue = newValue;
     this.nodePath = treeUpdater.nodeToPath(node);
   }
 
@@ -203,6 +216,24 @@ class SetAttributeNSUndo extends undo.Undo {
   }
 }
 
+type RecorderEvents = InsertNodeAtEvent | SetTextNodeValueEvent |
+  BeforeDeleteNodeEvent | SetAttributeNSEvent;
+type RecorderEventNames = RecorderEvents["name"];
+
+type EventNameToHandler<N extends TreeUpdaterEvents["name"]> =
+  N extends RecorderEventNames ?
+  new (updater: TreeUpdater,
+       ev: Extract<RecorderEvents, { name: N }>) => undo.Undo : undefined;
+
+type HandlerMap =
+  { [k in TreeUpdaterEvents["name"]]: EventNameToHandler<k> };
+
+const ctors: HandlerMap = Object.create(null);
+ctors.InsertNodeAt = InsertNodeAtUndo;
+ctors.SetTextNodeValue = SetTextNodeValueUndo;
+ctors.BeforeDeleteNode = DeleteNodeUndo;
+ctors.SetAttributeNS = SetAttributeNSUndo;
+
 /**
  * Records undo operations.
  */
@@ -217,22 +248,19 @@ export class UndoRecorder {
   constructor(private readonly editor: Editor,
               private readonly treeUpdater: TreeUpdater) {
     treeUpdater.events.subscribe((ev) => {
-      switch (ev.name) {
-      case "InsertNodeAt":
-        this.insertNodeAtHandler(ev);
-        break;
-      case "SetTextNodeValue":
-        this.setTextNodeValueHandler(ev);
-        break;
-      case "BeforeDeleteNode":
-        this.beforeDeleteNodeHandler(ev);
-        break;
-      case "SetAttributeNS":
-        this.setAttributeNSHandler(ev);
-        break;
-      default:
-        // Do nothing...
+      if (this.suppress) {
+        return;
       }
+
+      const ctor = ctors[ev.name];
+      if (ctor === undefined) {
+        return;
+      }
+
+      // We need the type assertion here because TS does not realize that `ev`
+      // is of the type that the handler requires.
+      // tslint:disable-next-line:no-any
+      this.editor.recordUndo(new ctor(this.treeUpdater, ev as any));
     });
   }
 
@@ -250,39 +278,6 @@ export class UndoRecorder {
       throw new Error("spurious call to suppressRecording");
     }
     this.suppress = suppress;
-  }
-
-  private insertNodeAtHandler(ev: InsertNodeAtEvent): void {
-    if (this.suppress) {
-      return;
-    }
-    this.editor.recordUndo(new InsertNodeAtUndo(this.treeUpdater,
-                                                ev.parent,
-                                                ev.index));
-  }
-
-  private setTextNodeValueHandler(ev: SetTextNodeValueEvent): void {
-    if (this.suppress) {
-      return;
-    }
-    this.editor.recordUndo(new SetTextNodeValueUndo(
-      this.treeUpdater, ev.node, ev.value, ev.oldValue));
-  }
-
-  private beforeDeleteNodeHandler(ev: BeforeDeleteNodeEvent): void {
-    if (this.suppress) {
-      return;
-    }
-    this.editor.recordUndo(new DeleteNodeUndo(this.treeUpdater, ev.node));
-  }
-
-  private setAttributeNSHandler(ev: SetAttributeNSEvent): void {
-    if (this.suppress) {
-      return;
-    }
-    this.editor.recordUndo(new SetAttributeNSUndo(
-      this.treeUpdater,
-      ev.node, ev.ns, ev.attribute, ev.oldValue, ev.newValue));
   }
 }
 
