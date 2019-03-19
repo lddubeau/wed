@@ -320,16 +320,19 @@ export class TreeUpdater {
   protected _splitAt(top: Node, node: Node, index: number): SplitResult {
     // We need to check this now because some operations below may remove node
     // from the DOM tree.
-    const stop = (node === top);
+    const stop = node === top;
 
     const parent = node.parentNode;
-    let ret: SplitResult;
     if (isText(node)) {
       if (index === 0) {
-        ret = [null, node];
+        if (stop) {
+          return [null, node];
+        }
       }
       else if (index === node.length) {
-        ret = [node, null];
+        if (stop) {
+          return [node, null];
+        }
       }
       else {
         const textAfter = node.data.slice(index);
@@ -338,7 +341,10 @@ export class TreeUpdater {
           parent.insertBefore(parent.ownerDocument!.createTextNode(textAfter),
                               node.nextSibling);
         }
-        ret = [node, node.nextSibling];
+
+        if (stop) {
+          return [node, node.nextSibling];
+        }
       }
     }
     else if (isElement(node)) {
@@ -351,7 +357,7 @@ export class TreeUpdater {
 
       const clone = node.cloneNode(true);
       // Remove all nodes at index and after.
-      while (node.childNodes[index] != null) {
+      while (node.childNodes[index] !== undefined) {
         node.removeChild(node.childNodes[index]);
       }
 
@@ -364,14 +370,12 @@ export class TreeUpdater {
         parent.insertBefore(clone, node.nextSibling);
       }
 
-      ret = [node, clone];
+      if (stop) {
+        return [node, clone];
+      }
     }
     else {
       throw new Error(`unexpected node type: ${node.nodeType}`);
-    }
-
-    if (stop) { // We've just split the top, so end here...
-      return ret;
     }
 
     if (parent === null) {
