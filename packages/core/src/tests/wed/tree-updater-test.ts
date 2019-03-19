@@ -59,6 +59,8 @@ describe("TreeUpdater", () => {
       DeleteNode: 0,
       SetAttributeNS: 0,
       Changed: 0,
+      SetCommentValue: 0,
+      SetPIBody: 0,
     };
 
     private _events: Record<EventNames, number> = {
@@ -69,6 +71,8 @@ describe("TreeUpdater", () => {
       DeleteNode: 0,
       SetAttributeNS: 0,
       Changed: 0,
+      SetCommentValue: 0,
+      SetPIBody: 0,
     };
 
     private expectIx: number = 0;
@@ -996,6 +1000,53 @@ after</p>`);
 
       // Check that nothing changed.
       assert.equal(doc.documentElement.outerHTML, initialHTML);
+      listener.check();
+    });
+  });
+
+  describe("setCommentValue", () => {
+    it("generates appropriate events", () => {
+      const p = doc.querySelectorAll("body>p")[4];
+      const comment = p.childNodes[1] as Comment;
+      const originalLength = p.childNodes.length;
+      expect(comment).to.have.property("nodeType").equal(Node.COMMENT_NODE);
+      const listener = new Listener(tu, [{
+        name: "SetCommentValue" as "SetCommentValue",
+        node: comment,
+        value: "foo",
+        oldValue: " a comment ",
+      }, CHANGED]);
+
+      tu.setCommentValue(comment, "foo");
+
+      // Check that we're doing what we think we're doing.
+      expect(p.childNodes).to.be.lengthOf(originalLength);
+      expect(comment.data).to.equal("foo");
+      expect(comment).to.have.property("parentNode").equal(p);
+      listener.check();
+    });
+  });
+
+  describe("setPIBody", () => {
+    it("generates appropriate events", () => {
+      const p = doc.querySelectorAll("body>p")[4];
+      const pi = p.childNodes[3] as ProcessingInstruction;
+      const originalLength = p.childNodes.length;
+      expect(pi).to.have.property("nodeType")
+        .equal(Node.PROCESSING_INSTRUCTION_NODE);
+      const listener = new Listener(tu, [{
+        name: "SetPIBody" as "SetPIBody",
+        node: pi,
+        value: "foo",
+        oldValue: "body",
+      }, CHANGED]);
+
+      tu.setPIBody(pi, "foo");
+
+      // Check that we're doing what we think we're doing.
+      expect(p.childNodes).to.be.lengthOf(originalLength);
+      expect(pi.data).to.equal("foo");
+      expect(pi).to.have.property("parentNode").equal(p);
       listener.check();
     });
   });

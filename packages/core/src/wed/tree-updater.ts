@@ -8,7 +8,8 @@
 import { Observable, Subject } from "rxjs";
 
 import { DLoc, DLocRoot, findRoot } from "./dloc";
-import { isDocumentFragment, isElement, isNode, isText } from "./domtypeguards";
+import { isComment, isDocumentFragment, isElement, isNode,
+         isPI, isText } from "./domtypeguards";
 import * as domutil from "./domutil";
 
 const indexOf = domutil.indexOf;
@@ -62,11 +63,25 @@ export interface SetAttributeNSEvent extends TreeUpdaterEvent {
   newValue: string | null;
 }
 
+export interface SetCommentValueEvent extends TreeUpdaterEvent {
+  name: "SetCommentValue";
+  node: Comment;
+  value: string;
+  oldValue: string;
+}
+
+export interface SetPIBodyEvent extends TreeUpdaterEvent {
+  name: "SetPIBody";
+  node: ProcessingInstruction;
+  value: string;
+  oldValue: string;
+}
+
 export type TreeUpdaterEvents = ChangedEvent | BeforeInsertNodeAtEvent |
   InsertNodeAtEvent | SetTextNodeValueEvent | BeforeDeleteNodeEvent |
-  DeleteNodeEvent | SetAttributeNSEvent;
+  DeleteNodeEvent | SetAttributeNSEvent | SetCommentValueEvent | SetPIBodyEvent;
 
-export type InsertableAtom = string | Element | Text;
+export type InsertableAtom = string | Element | Text | DocumentFragment;
 export type Insertable = InsertableAtom | InsertableAtom[] | NodeList;
 
 export type SplitResult = [Node | null, Node | null];
@@ -651,6 +666,49 @@ export class TreeUpdater {
     const oldValue = node.data;
     node.data = value;
     this._emit({ name: "SetTextNodeValue", node, value, oldValue });
+  }
+
+  /**
+   * A primitive method. Sets a comment node to a specified value.
+   *
+   * @param node The comment node to modify.
+   *
+   * @param value The new value of the node.
+   *
+   * @emits SetCommentValue
+   * @emits ChangedEvent
+   * @throws {Error} If called on a non-Comment node type.
+   */
+  setCommentValue(node: Comment, value: string): void {
+    if (!isComment(node)) {
+      throw new Error("setCommentValue called on non-comment");
+    }
+
+    const oldValue = node.data;
+    node.data = value;
+    this._emit({ name: "SetCommentValue", node, value, oldValue });
+  }
+
+  /**
+   * A primitive method. Sets the body of a processing instruction to a
+   * specified value.
+   *
+   * @param node The processing instruction node to modify.
+   *
+   * @param value The new value of the node.
+   *
+   * @emits SetPIBodyEvent
+   * @emits ChangedEvent
+   * @throws {Error} If called on a non-processing-instruction node type.
+   */
+  setPIBody(node: ProcessingInstruction, value: string): void {
+    if (!isPI(node)) {
+      throw new Error("setPIBody called on non-processing-instruction");
+    }
+
+    const oldValue = node.data;
+    node.data = value;
+    this._emit({ name: "SetPIBody", node, value, oldValue });
   }
 
   /**
