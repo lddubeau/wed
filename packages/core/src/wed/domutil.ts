@@ -140,7 +140,7 @@ export function comparePositions(firstNode: Node,
 export function getSelectionRange(win: Window): Range | undefined {
   const sel = win.getSelection();
 
-  if (sel === undefined || sel.rangeCount < 1) {
+  if (sel === null || sel.rangeCount < 1) {
     return undefined;
   }
 

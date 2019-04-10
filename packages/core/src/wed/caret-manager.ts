@@ -874,7 +874,8 @@ export class CaretManager implements GUIToDataConverter {
     this._sel = undefined;
     this.mark.refresh();
     const sel = this._getDOMSelection();
-    if (sel.rangeCount > 0 && this.guiRootEl.contains(sel.focusNode)) {
+    if (sel !== null && sel.rangeCount > 0 &&
+        this.guiRootEl.contains(sel.focusNode)) {
       sel.removeAllRanges();
     }
     this._caretChange();
@@ -916,6 +917,13 @@ export class CaretManager implements GUIToDataConverter {
    */
   private _setDOMSelectionRange(range: Range): void {
     const sel = this._getDOMSelection();
+
+    // This may happen if a selection is not meaningful for our window. In this
+    // case, we cannot change it.
+    if (sel === null) {
+      return;
+    }
+
     sel.removeAllRanges();
     sel.addRange(range);
 
@@ -1002,7 +1010,7 @@ export class CaretManager implements GUIToDataConverter {
     }
   }
 
-  private _getDOMSelection(): Selection {
+  private _getDOMSelection(): Selection | null {
     return this.win.getSelection();
   }
 
