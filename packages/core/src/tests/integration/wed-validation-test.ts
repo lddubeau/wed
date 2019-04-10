@@ -31,7 +31,7 @@ describe("wed validation:", () => {
   // let refreshRunner: TaskRunner;
   let guiRoot: Element;
   let ps: NodeListOf<Element>;
-  let startSpy: sinon.SinonSpy;
+  let startSpy: sinon.SinonSpy<[], void>;
 
   before(async () => {
     setup = new EditorSetup(`${dataPath}/wed_test_data/source_converted.xml`,
