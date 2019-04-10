@@ -33,7 +33,7 @@ export abstract class MetadataJSONReader implements MetadataReader {
     return this._validator;
   }
 
-  read(object: Object): Metadata {
+  read(object: {}): Metadata {
     this.validate(object);
     return this.convert(object);
   }
@@ -43,7 +43,7 @@ export abstract class MetadataJSONReader implements MetadataReader {
    *
    * @param object The object to validate.
    */
-  private validate(object: Object): void {
+  private validate(object: {}): void {
     const validator = this.validator;
     const valid = validator(object) as boolean;
     if (!valid) {
@@ -66,7 +66,7 @@ export abstract class MetadataJSONReader implements MetadataReader {
    *
    * @returns A new metadata instance.
    */
-  protected abstract convert(object: Object): Metadata;
+  protected abstract convert(object: {}): Metadata;
 }
 
 //  LocalWords:  MPL

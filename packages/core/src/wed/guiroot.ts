@@ -101,7 +101,7 @@ function findInPhantomWrap(top: Element, index: number): FindResult {
   }
 
   return {
-    found: found,
+    found,
     count: originalIndex - index,
   };
 }

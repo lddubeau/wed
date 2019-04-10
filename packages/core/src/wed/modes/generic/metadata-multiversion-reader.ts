@@ -34,7 +34,7 @@ export class MetadataMultiversionReader implements MetadataReader {
     }
   }
 
-  read(object: Object): Metadata {
+  read(object: {}): Metadata {
     // tslint:disable-next-line:no-any
     const version = (object as any).version;
     if (version === undefined) {

@@ -70,7 +70,7 @@ describe("DBSaver", () => {
   let sandbox: sinon.SinonSandbox;
   let rt: Runtime;
   let doc: Document;
-  let putStub: sinon.SinonStub;
+  let putStub: sinon.SinonStub<[string, string], Promise<void>>;
   let saver: DBSaver;
 
   before(() => {

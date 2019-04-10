@@ -62,7 +62,7 @@ corrupted state and thus an internal error`);
   }
 
   /**
-   * Set the data caret.
+   * Set the data caret from the path passed in.
    *
    * @param caret A caret.
    */

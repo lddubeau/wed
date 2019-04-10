@@ -30,7 +30,7 @@ class PseudoAtomicRectChange {
     const height = rect.height + dy;
     el.style.width = `${width}px`;
     el.style.height = `${height}px`;
-    this.changes.push({ el: el, rect: rect });
+    this.changes.push({ el, rect });
     const newRect = el.getBoundingClientRect();
 
     // Check whether the change "took". If not, roll back.

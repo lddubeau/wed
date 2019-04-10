@@ -11,9 +11,7 @@ import { Editor } from "./editor";
 import { Mode } from "./mode";
 import { EditorAPI } from "./mode-api";
 
-interface ModeConstructor {
-  new (editor: EditorAPI, modeOptions: {}): Mode;
-}
+type ModeConstructor = new (editor: EditorAPI, modeOptions: {}) => Mode;
 
 interface ModeModule {
   Mode: ModeConstructor;

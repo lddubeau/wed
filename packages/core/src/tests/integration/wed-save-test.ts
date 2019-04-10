@@ -43,7 +43,7 @@ describe("wed save:", () => {
       .then(() => {
         assert.deepEqual(server.lastSaveRequest, {
           command: "save",
-          version: version,
+          version,
           data: "<TEI xmlns=\"http://www.tei-c.org/ns/1.0\">\
 <teiHeader><fileDesc><titleStmt><title>abcd</title></titleStmt>\
 <publicationStmt><p/></publicationStmt><sourceDesc><p/></sourceDesc>\
@@ -71,7 +71,7 @@ describe("wed save:", () => {
       .then(() => {
         assert.deepEqual(server.lastSaveRequest, {
           command: "save",
-          version: version,
+          version,
           data: "<TEI xmlns=\"http://www.tei-c.org/ns/1.0\">\
 <teiHeader><fileDesc><titleStmt><title>abcd</title></titleStmt>\
 <publicationStmt><p><abbr/></p></publicationStmt><sourceDesc><p/></sourceDesc>\
@@ -114,7 +114,7 @@ describe("wed save:", () => {
         autosaved = true;
         assert.deepEqual(server.lastSaveRequest, {
           command: "autosave",
-          version: version,
+          version,
           data: "<TEI xmlns=\"http://www.tei-c.org/ns/1.0\">\
 <teiHeader><fileDesc><titleStmt><title>abcd</title></titleStmt>\
 <publicationStmt/><sourceDesc><p/></sourceDesc>\
@@ -147,7 +147,7 @@ describe("wed save:", () => {
              autosaved = true;
              assert.deepEqual(server.lastSaveRequest, {
                command: "autosave",
-               version: version,
+               version,
                data: "<TEI xmlns=\"http://www.tei-c.org/ns/1.0\">\
 <teiHeader><fileDesc><titleStmt><title>abcd</title></titleStmt>\
 <publicationStmt/><sourceDesc><p/></sourceDesc>\

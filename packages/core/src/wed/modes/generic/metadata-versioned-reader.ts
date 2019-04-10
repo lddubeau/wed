@@ -107,10 +107,8 @@ got ${metadata.version}`);
 /**
  * A constructor of [[MetadataBase]] objects.
  */
-export interface MetadataBaseCtor {
-  // tslint:disable-next-line:no-any
-  new (...args: any[]): MetadataBase;
-}
+// tslint:disable-next-line:no-any
+export type MetadataBaseCtor = new (...args: any[]) => MetadataBase;
 
 /**
  * A reader that reads a versioned format of the metadata.
@@ -122,7 +120,7 @@ export class MetadataReaderBase extends MetadataJSONReader {
     super(metadataSchema);
   }
 
-  protected convert(object: Object): Metadata {
+  protected convert(object: {}): Metadata {
     return new this.metadataClass(object as MetadataInterface);
   }
 }

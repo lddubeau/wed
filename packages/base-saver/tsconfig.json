@@ -5,7 +5,8 @@
     "paths": {
       "merge-options": ["../../types/merge-options"]
     },
-    "outDir": "build/dist"
+    "outDir": "build/dist",
+    "types": []
   },
   "include": [
     "src/**/*.ts",

@@ -141,8 +141,6 @@ export class EditingMenuManager {
   }
 
   /**
-   * Display a context menu.
-   *
    * @param cmClass The class to use to create the menu.
    *
    * @param x The position of the menu.

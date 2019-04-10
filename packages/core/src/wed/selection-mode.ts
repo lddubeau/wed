@@ -17,6 +17,7 @@ export enum SelectionMode {
   UNIT,
 }
 
+// tslint:disable-next-line:no-namespace
 export namespace SelectionMode {
   /**
    * Get the selection mode that follows another mode.

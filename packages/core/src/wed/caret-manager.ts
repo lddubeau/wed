@@ -256,7 +256,10 @@ export class CaretManager implements GUIToDataConverter {
   }
 
   /**
-   * Get a normalized caret.
+   * Get a the current caret, normalized. If the current caret is no longer
+   * pointing to a valid position, then it is moved to a valid position. (This
+   * modifies the state of the caret.) Furthermore, if the caret is inside a
+   * placeholder, it is moved out of it.
    *
    * @returns A normalized caret, or ``undefined`` if there is no caret.
    */

@@ -58,7 +58,8 @@ describe("domtypeguards", () => {
     });
   });
 
-  function makeGuardTest(fn: Function, trueCase: string): void {
+  function makeGuardTest(fn: (nodes: Node | undefined | null) => boolean,
+                         trueCase: string): void {
     describe(fn.name, () => {
       it(`returns true on ${trueCase}`, () => {
         expect(fn(allNodes[trueCase])).to.be.true;

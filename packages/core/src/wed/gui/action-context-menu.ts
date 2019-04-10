@@ -273,7 +273,7 @@ export class ActionContextMenu extends ContextMenu<Item> {
         title = "Show operations not covered by other filter buttons.";
       }
       $(child).tooltip({
-        title: title,
+        title,
         // If we don't set it to be on the body, then the tooltip will be
         // clipped by the dropdown. However, we then run into the problem that
         // when the dropdown menu is removed, the tooltip may remain displayed.
@@ -307,7 +307,7 @@ export class ActionContextMenu extends ContextMenu<Item> {
         title = "Show operations not covered by other filter buttons.";
       }
       $(child).tooltip({
-        title: title,
+        title,
         // If we don't set it to be on the body, then the tooltip will be
         // clipped by the dropdown. However, we then run into the problem that
         // when the dropdown menu is removed, the tooltip may remain displayed.

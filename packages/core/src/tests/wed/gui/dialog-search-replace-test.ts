@@ -352,7 +352,7 @@ describe("dialog-search-replace", () => {
       checkHighlightRanges(pSevenFirstThree);
     });
 
-    it("replaces all", function (): void {
+    it("replaces all", function(): void {
       // tslint:disable-next-line:no-invalid-this
       this.timeout(4000);
       editor.caretManager.setCaret(editor.caretManager.minCaret);

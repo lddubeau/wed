@@ -403,7 +403,7 @@ ${domutil.textToHTML(attributes[name])}</span>"</span>`;
 
       const name = dataNode.name;
       if (!editor.isAttrProtected(dataNode)) {
-        pushItems({ name: name, node: dataNode },
+        pushItems({ name, node: dataNode },
                   mode.getContextualActions("delete-attribute", name,
                                             dataNode) as
                   Action<TransformationData>[]);
@@ -427,7 +427,7 @@ ${domutil.textToHTML(attributes[name])}</span>"</span>`;
       const orig = util.getOriginalName(node);
 
       if (!topNode) {
-        pushItems({ node: node, name: orig },
+        pushItems({ node, name: orig },
                   mode.getContextualActions(
                     ["unwrap", "delete-element"],
                     orig, $.data(node, "wed_mirror_node"), 0) as
@@ -478,8 +478,8 @@ ${domutil.textToHTML(attributes[name])}</span>"</span>`;
           for (const { tr, name } of
                editor.getElementTransformationsAt(caretInside,
                                                   "wrap-content")) {
-            menuItems.push({ data: name !== undefined ?
-                             { name, node: node } : null, action: tr });
+            menuItems.push({ data: name !== undefined ? { name, node } : null,
+                             action: tr });
           }
         }
       }

@@ -60,7 +60,7 @@ export interface State {
 export class TaskRunner {
   private readonly _timeout: number = 0;
   private readonly _maxTimespan: number = 100;
-  private readonly _boundWrapper: Function = this._workWrapper.bind(this);
+  private readonly _boundWrapper: () => void = this._workWrapper.bind(this);
   private _timeoutId: number | undefined;
   private _state: BehaviorSubject<State>;
 
@@ -90,7 +90,7 @@ export class TaskRunner {
       running: false,
       completed: false,
       terminated: false,
-    });
+    } as State);
 
     this.state = this._state.asObservable();
   }

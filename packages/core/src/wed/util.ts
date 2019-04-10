@@ -176,7 +176,7 @@ string {
  *
  * @returns The encoded string.
  */
-export function stringToCodeSequence(str: string):  string {
+export function stringToCodeSequence(str: string): string {
   let encoded = "";
   for (const char of str) {
     encoded += `x${char.charCodeAt(0).toString(16)}`;
@@ -197,7 +197,7 @@ const ENCODED_RE = /^(?:x[a-f0-9]+)+$/;
  *
  * @returns The decoded string.
  */
-export function codeSequenceToString(str: string):  string {
+export function codeSequenceToString(str: string): string {
   if (!ENCODED_RE.test(str)) {
     throw new Error("badly encoded string");
   }
@@ -632,8 +632,9 @@ export function convertPatternObj(obj: any, resolver: any): string {
  *
  * See https://github.com/Microsoft/TypeScript/issues/12123.
  */
-// tslint:disable:no-any
+// tslint:disable-next-line:no-any ban-types
 export function fixPrototype(obj: any, parent: Function): void {
+  // tslint:disable-next-line:ban-types
   const oldProto: Function = Object.getPrototypeOf !== undefined ?
     Object.getPrototypeOf(obj) : obj.__proto__;
 
@@ -646,8 +647,6 @@ export function fixPrototype(obj: any, parent: Function): void {
     }
   }
 }
-
-// tslint:enable:no-any
 
 //  LocalWords:  Mangalam MPL Dubeau util CSS wed's unencoded URIs localName ns
 //  LocalWords:  escapeCSSClass xmlns prepended nextID NG NameChoice AnyName

@@ -256,7 +256,7 @@ export class ModeTree implements ModeTreeAPI {
     return this.getWedOptions(node).attributes.handling;
   }
 
-  getAttributeHidingSpecs(node: Node):  AttributeHidingSpecs | null {
+  getAttributeHidingSpecs(node: Node): AttributeHidingSpecs | null {
     return this.getModeNode(node).attributeHidingSpecs;
   }
 

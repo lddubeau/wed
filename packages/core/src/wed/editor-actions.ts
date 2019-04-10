@@ -12,7 +12,7 @@ import { makeHTML } from "./gui/icon";
 import { DocumentationActionData, EditorAPI } from "./mode-api";
 import { SelectionMode } from "./selection-mode";
 
-export type ActionCtor = { new (editor: EditorAPI): Action };
+export type ActionCtor = new (editor: EditorAPI) => Action;
 
 export type Handler = (editor: EditorAPI) => void;
 

@@ -8,7 +8,7 @@
 import { AssertionError } from "chai";
 
 // tslint:disable-next-line:no-any
-export type ErrorClass = { new (...args: any[]): Error };
+export type ErrorClass = new (...args: any[]) => Error;
 
 export async function delay(timeout: number): Promise<void> {
   await new Promise((resolve) => setTimeout(resolve, timeout));

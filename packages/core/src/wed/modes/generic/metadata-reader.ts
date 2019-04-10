@@ -19,7 +19,7 @@ export interface MetadataReader {
    *
    * @param object A plain object that holds the metadata to be read.
    */
-  read(object: Object): Metadata;
+  read(object: {}): Metadata;
 }
 
 //  LocalWords:  MPL

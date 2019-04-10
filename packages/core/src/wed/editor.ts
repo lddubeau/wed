@@ -388,6 +388,7 @@ export class Editor implements EditorAPI {
     // some case, it may be difficult to just override individual values.
     // tslint:disable-next-line:no-any strict-boolean-expressions
     if ((options as any).ignore_module_config) {
+      // tslint:disable-next-line:no-console
       console.warn("the option ignore_module_config is no longer useful");
     }
 
@@ -2370,7 +2371,7 @@ cannot be cut.`, { type: "danger" });
 
     // At this point data is a single top level fake <div> element
     // which contains the contents we actually want to paste.
-    this.fireTransformation(this.pasteTr, { to_paste: data, e: e });
+    this.fireTransformation(this.pasteTr, { to_paste: data, e });
   }
 
   private unitPasteHandler(e: JQueryEventObject): void {
@@ -2388,7 +2389,7 @@ cannot be cut.`, { type: "danger" });
       return;
     }
 
-    this.fireTransformation(this.pasteUnitTr, { to_paste: top, e: e });
+    this.fireTransformation(this.pasteUnitTr, { to_paste: top, e });
   }
 
   private pasteIntoElement(caret: DLoc, toPaste: Element): DLoc {
@@ -3371,7 +3372,7 @@ cannot be cut.`, { type: "danger" });
   }
 
   /**
-   * Expand the error panel.
+   * Expand the error panel. This is a no-op if the panel is already expanded.
    */
   expandErrorPanel(): void {
     if ((this.$navigationPanel[0] as HTMLElement).style.display === "none") {
@@ -3601,11 +3602,7 @@ cannot be cut.`, { type: "danger" });
                                         rect.right, rect.bottom);
         if (min === undefined || min.dist.y > dist.y ||
             (min.dist.y === dist.y && min.dist.x > dist.x)) {
-          min = {
-            dist: dist,
-            node: checkNode,
-            start: start,
-          };
+          min = { dist, node: checkNode, start };
 
           // Returning true means the search can end.
           return (dist.y === 0 && dist.x === 0);

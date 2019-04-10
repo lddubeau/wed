@@ -103,7 +103,7 @@ export abstract class BaseSaver implements Saver {
   private lastSave: number | undefined;
 
   /**
-   * The last kind of save.
+   * The kind of the last save that was performed, if any.
    */
   private lastSaveKind: SaveKind | undefined;
 
@@ -128,7 +128,7 @@ export abstract class BaseSaver implements Saver {
    */
   public readonly events: Observable<SaveEvents>;
 
-  private _boundAutosave: Function;
+  private readonly _boundAutosave: () => void;
 
   protected dataTree!: Node;
   protected version!: string;
@@ -379,9 +379,8 @@ export abstract class BaseSaver implements Saver {
   }
 }
 
-export interface SaverConstructor {
-  new (runtime: Runtime, options: SaverOptions): BaseSaver;
-}
+export type SaverConstructor =
+  new (runtime: Runtime, options: SaverOptions) => BaseSaver;
 
 //  LocalWords:  param unintialized Mangalam MPL Dubeau autosaved autosaves pre
 //  LocalWords:  autosave runtime autosaving setAutosaveInterval setTimeout

@@ -883,7 +883,7 @@ export class TreeUpdater {
    * @emits ChangedEvent
    */
   deleteNode(node: Node): void {
-    this._emit({ name: "BeforeDeleteNode", node: node });
+    this._emit({ name: "BeforeDeleteNode", node });
     // The following is functionally equivalent to $(node).detach(), which is
     // what we want.
     const parent = node.parentNode;

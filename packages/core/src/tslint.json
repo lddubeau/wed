@@ -30,6 +30,8 @@
       "jquery": "$",
       "ajv": "Ajv",
       "interactjs": "interact"
-    }]
+    }],
+    "object-literal-key-quotes": [false, "Turn this off for now. We may want",
+                                  "to revisit later."]
   }
 }

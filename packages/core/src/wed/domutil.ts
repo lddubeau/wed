@@ -209,7 +209,7 @@ element child.");
  * would present to the user. It can index in text nodes and element nodes but
  * not in attributes.
  */
-export type Caret = [Node, number];
+export type Caret = readonly [Node, number];
 
 /**
  * Given two trees A and B of DOM nodes, this function finds the node in tree B

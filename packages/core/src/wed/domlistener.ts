@@ -526,7 +526,7 @@ export class DOMListener {
    *
    * @param rest The arguments to pass to the handler.
    */
-  // tslint:disable-next-line:no-any
+  // tslint:disable-next-line:no-any ban-types
   protected _callHandler(handler: Function, ...rest: any[]): void {
     rest.unshift(this.root);
     handler.apply(undefined, rest);
@@ -557,7 +557,7 @@ export class DOMListener {
 
     const toCall = (ccCalls as CallSpec<Events>[]).concat(arCalls, ieCalls);
     for (const call of toCall) {
-      this._callHandler.call(this, call.fn, ...call.params);
+      this._callHandler(call.fn, ...call.params);
     }
 
     this._scheduleProcessTriggers();
@@ -588,7 +588,7 @@ export class DOMListener {
 
     const toCall = (ccCalls as CallSpec<Events>[]).concat(arCalls, ieCalls);
     for (const call of toCall) {
-      this._callHandler.call(this, call.fn, ...call.params);
+      this._callHandler(call.fn, ...call.params);
     }
 
     this._scheduleProcessTriggers();

@@ -642,7 +642,8 @@ element child.");
       }
     }
 
-    let cut: Function;
+    let cut:
+    (startCaret: domutil.Caret, endCaret: domutil.Caret) => domutil.CutResult;
     before(() => {
       cut = domutil.genericCutFunction.bind({
         deleteText: domutil.deleteText,
@@ -652,8 +653,8 @@ element child.");
     });
 
     it("removes nodes and merges text", () => {
-      const start = [p.firstChild!, 4] as domutil.Caret;
-      const end = [p.lastChild!, 3] as domutil.Caret;
+      const start = [p.firstChild!, 4] as const;
+      const end = [p.lastChild!, 3] as const;
       assert.equal(p.childNodes.length, 5);
 
       const nodes = Array.prototype.slice.call(
@@ -670,15 +671,15 @@ element child.");
       assert.equal(p.innerHTML, "befoter");
 
       // Check the caret position.
-      assert.deepEqual(final, [p.firstChild, 4]);
+      assert.deepEqual(final, [p.firstChild!, 4]);
 
       // Check that the nodes are those we expected.
       checkNodes(cutContent, nodes);
     });
 
     it("returns proper nodes when merging a single node", () => {
-      const start = [p.firstChild, 4];
-      const end = [p.firstChild, 6];
+      const start = [p.firstChild!, 4] as const;
+      const end = [p.firstChild!, 6] as const;
       assert.equal(p.childNodes.length, 5);
 
       const nodes = [p.ownerDocument!.createTextNode("re")];
@@ -689,15 +690,15 @@ element child.");
       assert.equal(p.firstChild!.nodeValue, "befo ");
 
       // Check the caret position.
-      assert.deepEqual(final, [p.firstChild, 4]);
+      assert.deepEqual(final, [p.firstChild!, 4]);
 
       // Check that the nodes are those we expected.
       checkNodes(cutContent, nodes);
     });
 
     it("empties an element without problem", () => {
-      const start = [p, 0];
-      const end = [p, p.childNodes.length];
+      const start = [p, 0] as const;
+      const end = [p, p.childNodes.length] as const;
       assert.equal(p.childNodes.length, 5);
 
       const nodes = Array.prototype.slice.call(p.childNodes);
@@ -713,8 +714,8 @@ element child.");
     });
 
     it("accepts a start caret in text and an end caret outside text", () => {
-      const start = [p.firstChild, 0];
-      const end = [p, p.childNodes.length];
+      const start = [p.firstChild!, 0] as const;
+      const end = [p, p.childNodes.length] as const;
       assert.equal(p.childNodes.length, 5);
 
       const nodes = Array.prototype.slice.call(p.cloneNode(true).childNodes);
@@ -730,8 +731,8 @@ element child.");
     });
 
     it("accepts a start caret outside text and an end caret in text", () => {
-      const start = [p, 0];
-      const end = [p.lastChild, p.lastChild!.nodeValue!.length];
+      const start = [p, 0] as const;
+      const end = [p.lastChild!, p.lastChild!.nodeValue!.length] as const;
       assert.equal(p.childNodes.length, 5);
 
       const nodes = Array.prototype.slice.call(p.cloneNode(true).childNodes);

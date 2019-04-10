@@ -77,6 +77,7 @@ import * as contextMenu_ from "./wed/gui/context-menu";
 import * as modal_ from "./wed/gui/modal";
 import * as tooltip_ from "./wed/gui/tooltip";
 import * as typeaheadPopup_ from "./wed/gui/typeahead-popup";
+// tslint:disable-next-line:no-namespace
 export namespace gui {
   export import button = button_;
   export import contextMenu = contextMenu_;
