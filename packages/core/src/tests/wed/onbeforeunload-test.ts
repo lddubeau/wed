@@ -17,7 +17,7 @@ describe("onbeforeunload", () => {
   let frame: HTMLIFrameElement;
   let frameWindow: Window;
 
-  beforeEach((done) => {
+  beforeEach(done => {
     frame = document.createElement("iframe");
     document.body.appendChild(frame);
     frameWindow = frame.contentWindow!;

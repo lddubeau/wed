@@ -11,7 +11,7 @@ import { AssertionError } from "chai";
 export type ErrorClass = new (...args: any[]) => Error;
 
 export async function delay(timeout: number): Promise<void> {
-  await new Promise((resolve) => setTimeout(resolve, timeout));
+  await new Promise(resolve => setTimeout(resolve, timeout));
 }
 
 export async function waitFor(fn: () => boolean | Promise<boolean>,

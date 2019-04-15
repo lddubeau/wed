@@ -43,7 +43,7 @@ class Tracker {
     this.flags.push(false);
     return (arg: T) => {
       if (index > 0) {
-        this._ordered = this.flags.slice(0, index).every((x) => x);
+        this._ordered = this.flags.slice(0, index).every(x => x);
       }
       this.flags[index] = true;
       real(arg);
@@ -52,7 +52,7 @@ class Tracker {
 
   /** True if all wrappers were called. */
   get allCalled(): boolean {
-    return this.flags.every((x) => x);
+    return this.flags.every(x => x);
   }
 
   /** True if the wrappers were called in the same order as created. */
@@ -78,7 +78,7 @@ describe("Undo", () => {
 
     it("emits an UndoEvent after the undo is done", () => {
       const tracker = new Tracker();
-      undo.events.pipe(first()).subscribe(tracker.wrap((x) => {
+      undo.events.pipe(first()).subscribe(tracker.wrap(x => {
         expect(x).to.deep.equal({
           name: "Undo",
           undo,
@@ -98,7 +98,7 @@ describe("Undo", () => {
 
     it("emits an RedoEvent after the redo is done", () => {
       const tracker = new Tracker();
-      undo.events.pipe(first()).subscribe(tracker.wrap((x) => {
+      undo.events.pipe(first()).subscribe(tracker.wrap(x => {
         expect(x).to.deep.equal({
           name: "Redo",
           undo,
@@ -142,7 +142,7 @@ describe("UndoGroup", () => {
 
     it("emits UndoEvents for all undos", () => {
       const tracker = new Tracker();
-      group.events.pipe(first()).subscribe(tracker.wrap((x) => {
+      group.events.pipe(first()).subscribe(tracker.wrap(x => {
         expect(x).to.deep.equal({
           name: "Undo",
           undo: secondUndo,
@@ -152,7 +152,7 @@ describe("UndoGroup", () => {
           bar: false,
         });
       }));
-      group.events.pipe(elementAt(1)).subscribe(tracker.wrap((x) => {
+      group.events.pipe(elementAt(1)).subscribe(tracker.wrap(x => {
         expect(x).to.deep.equal({
           name: "Undo",
           undo: firstUndo,
@@ -162,7 +162,7 @@ describe("UndoGroup", () => {
           bar: false,
         });
       }));
-      group.events.pipe(elementAt(2)).subscribe(tracker.wrap((x) => {
+      group.events.pipe(elementAt(2)).subscribe(tracker.wrap(x => {
         expect(x).to.deep.equal({
           name: "Undo",
           undo: group,
@@ -190,7 +190,7 @@ describe("UndoGroup", () => {
     it("emits RedoEvents for all redos", () => {
       group.undo();
       const tracker = new Tracker();
-      group.events.pipe(first()).subscribe(tracker.wrap((x) => {
+      group.events.pipe(first()).subscribe(tracker.wrap(x => {
         expect(x).to.deep.equal({
           name: "Redo",
           undo: firstUndo,
@@ -200,7 +200,7 @@ describe("UndoGroup", () => {
           bar: false,
         });
       }));
-      group.events.pipe(elementAt(1)).subscribe(tracker.wrap((x) => {
+      group.events.pipe(elementAt(1)).subscribe(tracker.wrap(x => {
         expect(x).to.deep.equal({
           name: "Redo",
           undo: secondUndo,
@@ -210,7 +210,7 @@ describe("UndoGroup", () => {
           bar: true,
         });
       }));
-      group.events.pipe(elementAt(2)).subscribe(tracker.wrap((x) => {
+      group.events.pipe(elementAt(2)).subscribe(tracker.wrap(x => {
         expect(x).to.deep.equal({
           name: "Redo",
           undo: group,
@@ -568,7 +568,7 @@ describe("UndoList", () => {
       ul.endGroup();
 
       const tracker = new Tracker();
-      ul.events.pipe(first()).subscribe(tracker.wrap((x) => {
+      ul.events.pipe(first()).subscribe(tracker.wrap(x => {
         expect(x).to.deep.equal({
           name: "Undo",
           undo: undo2,
@@ -578,7 +578,7 @@ describe("UndoList", () => {
           undo1: true,
         });
       }));
-      ul.events.pipe(elementAt(1)).subscribe(tracker.wrap((x) => {
+      ul.events.pipe(elementAt(1)).subscribe(tracker.wrap(x => {
         expect(x).to.deep.equal({
           name: "Undo",
           undo: undo1,
@@ -588,7 +588,7 @@ describe("UndoList", () => {
           undo1: false,
         });
       }));
-      ul.events.pipe(elementAt(2)).subscribe(tracker.wrap((x) => {
+      ul.events.pipe(elementAt(2)).subscribe(tracker.wrap(x => {
         expect(x).to.deep.equal({
           name: "Undo",
           undo: group1,

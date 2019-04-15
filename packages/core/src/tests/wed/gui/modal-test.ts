@@ -130,7 +130,7 @@ describe("Modal", () => {
       assert.isUndefined(modal.getClicked());
     });
 
-    it("returns the button clicked", (done) => {
+    it("returns the button clicked", done => {
       const okCancel = modal.addOkCancel();
       const $dom = modal.getTopLevel();
       wedroot.appendChild($dom[0]);
@@ -157,7 +157,7 @@ describe("Modal", () => {
       assert.isUndefined(modal.getClickedAsText());
     });
 
-    it("returns the name of the button clicked", (done) => {
+    it("returns the name of the button clicked", done => {
       modal.addOkCancel();
       const $dom = modal.getTopLevel();
       wedroot.appendChild($dom[0]);
@@ -188,14 +188,14 @@ describe("Modal", () => {
       clearWedRoot();
     });
 
-    it("calls callback with proper values", (done) => {
+    it("calls callback with proper values", done => {
       let clicked = false;
       window.setTimeout(() => {
         clicked = true;
         $dom.find(".btn-primary").click();
       }, 1);
 
-      modal.modal((ev) => {
+      modal.modal(ev => {
         assert.equal(ev.type, "hidden");
         assert.equal(ev.namespace, "bs.modal");
         assert.equal(ev.currentTarget, $dom[0]);
@@ -204,7 +204,7 @@ describe("Modal", () => {
       });
     });
 
-    it("without a callback", (done) => {
+    it("without a callback", done => {
       window.setTimeout(() => {
         $dom.find(".btn-primary").click();
         // Wait a bit before considering it done.
@@ -218,7 +218,7 @@ describe("Modal", () => {
       modal.modal();
     });
 
-    it("cleans event handlers properly", (done) => {
+    it("cleans event handlers properly", done => {
       function click(): void {
         modal.getPrimary().click();
       }

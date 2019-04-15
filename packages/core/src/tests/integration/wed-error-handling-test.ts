@@ -33,7 +33,7 @@ describe("wed error handling:", () => {
     setup.restore();
   });
 
-  it("tell user to reload when save fails hard", (done) => {
+  it("tell user to reload when save fails hard", done => {
     server.emptyResponseOnSave = true;
     const $modal = onerror.__test!.$modal;
     $modal.on("shown.bs.modal", () => {
@@ -45,11 +45,11 @@ describe("wed error handling:", () => {
     editor.type(keyConstants.SAVE);
   });
 
-  it("warn of disconnection when server returns a bad status", (done) => {
+  it("warn of disconnection when server returns a bad status", done => {
     server.failOnSave = true;
     const $modal = editor.modals.getModal("disconnect").getTopLevel();
     $modal.on("shown.bs.modal", () => {
-      editor.saver.events.pipe(filter((ev) => ev.name === "Saved"),
+      editor.saver.events.pipe(filter(ev => ev.name === "Saved"),
                                first())
         .subscribe(() => {
           // Was saved on retry!
@@ -67,7 +67,7 @@ describe("wed error handling:", () => {
     editor.type(keyConstants.SAVE);
   });
 
-  it("bring up modal when document was edited by someone else", (done) => {
+  it("bring up modal when document was edited by someone else", done => {
     server.preconditionFailOnSave = true;
     const $modal = editor.modals.getModal("editedByOther").getTopLevel();
     $modal.on("shown.bs.modal", () => {
@@ -80,7 +80,7 @@ describe("wed error handling:", () => {
     editor.type(keyConstants.SAVE);
   });
 
-  it("bring up modal when there is a new version of editor", (done) => {
+  it("bring up modal when there is a new version of editor", done => {
     server.tooOldOnSave = true;
     const $modal = editor.modals.getModal("tooOld").getTopLevel();
     $modal.on("shown.bs.modal", () => {
@@ -93,7 +93,7 @@ describe("wed error handling:", () => {
     editor.type(keyConstants.SAVE);
   });
 
-  it("no recovery when save fails hard", (done) => {
+  it("no recovery when save fails hard", done => {
     server.emptyResponseOnSave = true;
     const $modal = onerror.__test!.$modal;
     $modal.on("shown.bs.modal", () => {
@@ -118,7 +118,7 @@ describe("wed error handling:", () => {
     editor.type(keyConstants.SAVE);
   });
 
-  it("recovery on uncaught exception", (done) => {
+  it("recovery on uncaught exception", done => {
     // We can't just raise an exception because mocha will intercept it and it
     // will never get to the onerror handler. If we raise the error in a
     // timeout, it will go straight to onerror.

@@ -108,7 +108,7 @@ export class TaskRunner {
   }
 
   onCompleted(): Promise<State> {
-    return this.state.pipe(first((state) => state.completed)).toPromise();
+    return this.state.pipe(first(state => state.completed)).toPromise();
   }
 
   private _stateFieldChange<T extends keyof State>(field: T,

@@ -172,7 +172,7 @@ export class CaretManager implements GUIToDataConverter {
     this._events = new Subject();
     this.events = this._events.asObservable();
 
-    $(this.guiRootEl).on("focus", (ev) => {
+    $(this.guiRootEl).on("focus", ev => {
       this.focusInputField();
       ev.preventDefault();
       ev.stopPropagation();

@@ -79,7 +79,7 @@ describe("TreeUpdater", () => {
 
     constructor(updater: TreeUpdater,
                 readonly expected: (EventOrTest)[]) {
-      updater.events.subscribe((ev) => {
+      updater.events.subscribe(ev => {
         const evName = ev.name;
         this._events[evName]++;
         const it = expected[this.expectIx++];

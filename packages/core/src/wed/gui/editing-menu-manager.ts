@@ -157,7 +157,7 @@ export class EditingMenuManager {
     // Eliminate duplicate items. We perform a check only in the description of
     // the action, and on ``data.name``.
     const seen: Record<string, boolean> = Object.create(null);
-    items = items.filter((item) => {
+    items = items.filter(item => {
       // "\0" not a legitimate value in descriptions.
       let actionKey = `${(item.action !== null ?
                        item.action.getDescription() : "")}\0`;
@@ -332,7 +332,7 @@ export class EditingMenuManager {
 
     if (possible.length === 0) {
       // Nothing from the mode, use the validator.
-      this.editor.validator.possibleAt(dataCaret.node, 0).forEach((ev) => {
+      this.editor.validator.possibleAt(dataCaret.node, 0).forEach(ev => {
         if (ev.name !== "attributeValue") {
           return;
         }
@@ -420,8 +420,7 @@ export class EditingMenuManager {
     const pos = this.computeMenuPosition(undefined, true);
     this.caretManager.pushSelection();
     this.currentDropdown = new ReplacementMenu(
-      this.doc, pos.left, pos.top, possible,
-      (selected) => {
+      this.doc, pos.left, pos.top, possible, selected => {
         this.currentDropdown = undefined;
         this.caretManager.popSelection();
 
@@ -496,8 +495,7 @@ export class EditingMenuManager {
     this.dismiss();
     this.caretManager.pushSelection();
     this.currentTypeahead = new TypeaheadPopup(
-      this.doc, x, y, width, placeholder, options,
-      (obj) => {
+      this.doc, x, y, width, placeholder, options, obj => {
         this.currentTypeahead = undefined;
         this.caretManager.popSelection();
         if (dismissCallback !== undefined) {

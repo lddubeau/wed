@@ -181,7 +181,7 @@ export class ToggleButton extends Button {
     super(desc, abbreviatedDesc, icon, extraClass);
     this._pressed = initialyPressed;
 
-    this.events.subscribe((event) => {
+    this.events.subscribe(event => {
       if (event.name !== "Click" || this.el === undefined) {
         return;
       }

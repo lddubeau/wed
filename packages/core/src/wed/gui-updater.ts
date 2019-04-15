@@ -33,7 +33,7 @@ export class GUIUpdater extends TreeUpdater {
     super(guiTree);
     this.haveTooltips =
       guiTree.ownerDocument!.getElementsByClassName("wed-has-tooltip");
-    this.treeUpdater.events.subscribe((ev) => {
+    this.treeUpdater.events.subscribe(ev => {
       switch (ev.name) {
       case "InsertNodeAt":
         this._insertNodeAtHandler(ev);

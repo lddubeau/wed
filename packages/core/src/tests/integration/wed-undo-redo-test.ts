@@ -226,7 +226,7 @@ describe("wed undo redo:", () => {
     caretManager.setCaret(elName.firstChild, 0);
     caretCheck(editor, elName.firstChild!, 0,
                "the caret should be in the element name");
-    subscription = editor.transformations.subscribe((ev) => {
+    subscription = editor.transformations.subscribe(ev => {
       if (ev.name === "EndTransformation") {
         ev.abort("moo");
       }
@@ -248,7 +248,7 @@ describe("wed undo redo:", () => {
     caretManager.setCaret(elName.firstChild, 0);
     caretCheck(editor, elName.firstChild!, 0,
                "the caret should be in the element name");
-    subscription = editor.transformations.subscribe((ev) => {
+    subscription = editor.transformations.subscribe(ev => {
       if (ev.name === "EndTransformation") {
         assert.equal(getAttributeValuesFor(p).length, 1, "one attribute");
         editor.dataUpdater.setAttribute(dataP as Element, "abbr", "moo");
@@ -269,7 +269,7 @@ describe("wed undo redo:", () => {
 
     editor.type("blah");
     const prom =  editor.undoEvents
-      .pipe(filter((ev) => ev.name === "Undo"), first()).toPromise();
+      .pipe(filter(ev => ev.name === "Undo"), first()).toPromise();
     const button = editor.widget
       .querySelector("[data-original-title='Undo']") as HTMLElement;
     button.click();
@@ -288,7 +288,7 @@ describe("wed undo redo:", () => {
 
     // ... then we can redo.
     const prom =  editor.undoEvents
-      .pipe(filter((ev) => ev.name === "Redo"), first()).toPromise();
+      .pipe(filter(ev => ev.name === "Redo"), first()).toPromise();
     const button = editor.widget
       .querySelector("[data-original-title='Redo']") as HTMLElement;
     button.click();

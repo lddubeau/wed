@@ -92,7 +92,7 @@ export class Modal {
     this._$header = $dom.find(".modal-header");
     this._$body = $dom.find(".modal-body");
     this._$footer = $dom.find(".modal-footer");
-    $dom.on("click", ".btn", (ev) => {
+    $dom.on("click", ".btn", ev => {
       this._$clicked = $(ev.currentTarget);
       return true;
     });

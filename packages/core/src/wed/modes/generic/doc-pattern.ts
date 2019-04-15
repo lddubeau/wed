@@ -59,7 +59,7 @@ class Concat {
   constructor(private readonly values: DocPattern[]) {}
 
   execute(context: Context): string {
-    return this.values.map((value) => value.execute(context)).join("");
+    return this.values.map(value => value.execute(context)).join("");
   }
 }
 
@@ -132,7 +132,7 @@ export function compile(pattern: string): DocPattern {
           }
 
           // We slice to drop the parentheses.
-          let params = paramList.slice(1, -1).split(",").map((x) => x.trim());
+          let params = paramList.slice(1, -1).split(",").map(x => x.trim());
           if (params.length !== 2) {
             throw new Error("an s transform takes 2 parameters");
           }
@@ -145,7 +145,7 @@ quotes: ${param}`);
           }
 
           // Drop the wrapping quotes.
-          params = params.map((x) => x.slice(1, -1));
+          params = params.map(x => x.slice(1, -1));
           patterns.push(new Substitution(params[0], params[1],
                                          new Interpolation(name)));
         }

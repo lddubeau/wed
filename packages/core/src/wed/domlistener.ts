@@ -377,7 +377,7 @@ export class DOMListener {
    */
   constructor(private readonly root: Node,
               private readonly updater: TreeUpdater) {
-    this.updater.events.subscribe((ev) => {
+    this.updater.events.subscribe(ev => {
       switch (ev.name) {
       case "InsertNodeAt":
         this._insertNodeAtHandler(ev);

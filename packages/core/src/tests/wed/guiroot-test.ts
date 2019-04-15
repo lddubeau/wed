@@ -35,7 +35,7 @@ describe("guiroot", () => {
 
   before(() => new DataProvider(`${dataPath}/guiroot_test_data/`)
          .getText("source_converted.xml")
-         .then((sourceXML) => {
+         .then(sourceXML => {
            root = document.createElement("div");
            document.body.appendChild(root);
            $root = $(root);

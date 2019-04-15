@@ -247,7 +247,7 @@ export class UndoRecorder {
    */
   constructor(private readonly editor: Editor,
               private readonly treeUpdater: TreeUpdater) {
-    treeUpdater.events.subscribe((ev) => {
+    treeUpdater.events.subscribe(ev => {
       if (this.suppress) {
         return;
       }

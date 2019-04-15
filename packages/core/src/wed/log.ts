@@ -131,7 +131,7 @@ log4javascript.AjaxAppender {
   const layout = new log4javascript.XmlLayout();
   appender.setLayout(layout);
   if (headers !== undefined) {
-    Object.keys(headers).forEach((x) => {
+    Object.keys(headers).forEach(x => {
       appender.addHeader(x, headers[x]);
     });
   }

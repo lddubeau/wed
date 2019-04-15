@@ -213,7 +213,7 @@ export class TestDecorator extends GenericDecorator {
       moveCaretTo: this.editor.caretManager.makeCaret(container, offset),
     };
 
-    const items = actions.map((action) => ({
+    const items = actions.map(action => ({
       data,
       action,
     }));

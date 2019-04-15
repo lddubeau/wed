@@ -964,7 +964,7 @@ _xmlns_http\\:\\/\\/mangalamresearch\\.org\\/ns\\/btw-storage._real \
 
   describe("dataFind/dataFindAll", () => {
     let dataRoot: Element;
-    before(() => provider.getText("dataFind_converted.xml").then((data) => {
+    before(() => provider.getText("dataFind_converted.xml").then(data => {
       const parser = new DOMParser();
       const dataDoc = parser.parseFromString(data, "application/xml");
       dataRoot = dataDoc.firstChild as Element;
@@ -990,7 +990,7 @@ _xmlns_http\\:\\/\\/mangalamresearch\\.org\\/ns\\/btw-storage._real \
       const results = domutil.dataFindAll(dataRoot, "btw:sense-emphasis",
                                           commonMap);
       assert.equal(results.length, 4);
-      results.forEach((x) => {
+      results.forEach(x => {
         assert.equal(x.tagName, "btw:sense-emphasis");
         assert.isTrue(dataRoot.contains(x));
       });

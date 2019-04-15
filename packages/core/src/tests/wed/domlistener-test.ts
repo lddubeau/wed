@@ -133,7 +133,7 @@ describe("domlistener", () => {
   }
 
   it("fires included-element, added-element and children-changed when " +
-     "adding a fragment", (done) => {
+     "adding a fragment", done => {
        mark = new Mark(5, {
          "included ul": 1,
          "added ul": 1,
@@ -173,7 +173,7 @@ describe("domlistener", () => {
      });
 
   it("generates added-element with the right previous and next siblings",
-     (done) => {
+     done => {
        mark = new Mark(2, { "added li": 2 }, listener, done);
        listener.addHandler(
          "added-element", "._real.li",
@@ -195,7 +195,7 @@ describe("domlistener", () => {
      });
 
   it("generates removing-element and removed-element with " +
-     "the right previous and next siblings", (done) => {
+     "the right previous and next siblings", done => {
        mark = new Mark(4, {
          "removing li": 2,
          "removed li": 2,
@@ -237,7 +237,7 @@ describe("domlistener", () => {
 
   it("fires excluding-element, excluded-element, removing-element, " +
      "removed-element, children-changing and children-changed when " +
-     "removing a fragment", (done) => {
+     "removing a fragment", done => {
        root.appendChild(fragmentToAdd);
        mark = new Mark(10, {
          "excluding ul": 1,
@@ -315,10 +315,10 @@ describe("domlistener", () => {
        mark.check();
      });
 
-  it("trigger triggered twice, invoked once", (done) => {
+  it("trigger triggered twice, invoked once", done => {
     mark = new Mark(3, { "triggered test": 1, "included li": 2 },
                     listener, done);
-    listener.addHandler("trigger", "test", (thisRoot) => {
+    listener.addHandler("trigger", "test", thisRoot => {
       assert.equal(thisRoot, root);
       mark.mark("triggered test");
     });
@@ -338,18 +338,18 @@ describe("domlistener", () => {
     }, 0);
   });
 
-  it("trigger triggering a trigger", (done) => {
+  it("trigger triggering a trigger", done => {
     mark = new Mark(4, {
       "triggered test": 1,
       "triggered test2": 1,
       "included li": 2,
     }, listener, done);
-    listener.addHandler("trigger", "test", (thisRoot) => {
+    listener.addHandler("trigger", "test", thisRoot => {
       assert.equal(thisRoot, root);
       listener.trigger("test2");
       mark.mark("triggered test");
     });
-    listener.addHandler("trigger", "test2", (thisRoot) => {
+    listener.addHandler("trigger", "test2", thisRoot => {
       assert.equal(thisRoot, root);
       mark.mark("triggered test2");
     });
@@ -370,7 +370,7 @@ describe("domlistener", () => {
     }, 0);
   });
 
-  it("fires text-changed when changing a text node", (done) => {
+  it("fires text-changed when changing a text node", done => {
     mark = new Mark(1, { "text-changed": 1 }, listener, done);
     listener.addHandler(
       "text-changed", "._real.li", ((thisRoot, element, oldValue) => {
@@ -388,7 +388,7 @@ describe("domlistener", () => {
     mark.check();
   });
 
-  it("fires children-changed when adding a text node", (done) => {
+  it("fires children-changed when adding a text node", done => {
     // The handler is called twice. Once when the single text node which was
     // already there is removed. Once when the new text node is added.
 
@@ -427,7 +427,7 @@ describe("domlistener", () => {
     mark.check();
   });
 
-  it("fires attribute-changed when changing an attribute", (done) => {
+  it("fires attribute-changed when changing an attribute", done => {
     mark = new Mark(1, { "attribute-changed": 1 }, listener, done);
     listener.addHandler("attribute-changed", "._real.li",
                         ((thisRoot, element, ns, name, oldValue) => {
@@ -447,7 +447,7 @@ describe("domlistener", () => {
     mark.check();
   });
 
-  it("fires attribute-changed when deleting an attribute", (done) => {
+  it("fires attribute-changed when deleting an attribute", done => {
     mark = new Mark(1, { "attribute-changed": 1 }, listener, done);
     listener.addHandler("attribute-changed", "._real.li",
                         ((thisRoot, element, ns, name, oldValue) => {
@@ -470,7 +470,7 @@ describe("domlistener", () => {
   });
 
   it("generates children-changed with the right previous and " +
-     "next siblings when adding", (done) => {
+     "next siblings when adding", done => {
        mark = new Mark(1, { "children ul": 1 }, listener, done);
        root.appendChild(fragmentToAdd);
        const li = root.querySelectorAll("._real.li");
@@ -495,7 +495,7 @@ describe("domlistener", () => {
      });
 
   it("generates children-changing and children-changed with " +
-     "the right previous and next siblings when removing", (done) => {
+     "the right previous and next siblings when removing", done => {
        fragmentToAdd = $(`<div class='_real ul'><div class='_real li'>A</div>\
 <div class='_real li'>B</div><div class='_real li'>C</div></div>`)[0];
 
@@ -540,7 +540,7 @@ describe("domlistener", () => {
      });
 
   it("generates included-element with the right tree, previous, next siblings",
-     (done) => {
+     done => {
        mark = new Mark(8, {
          "included li at root": 2,
          "included li at ul": 2,

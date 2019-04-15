@@ -394,7 +394,7 @@ ${domutil.textToHTML(attributes[name])}</span>"</span>`;
       const treeCaret =
         DLoc.mustMakeDLoc(editor.dataRoot, dataNode.ownerElement);
       const toAddTo = treeCaret.node.childNodes[treeCaret.offset];
-      editor.validator.possibleAt(treeCaret, true).forEach((event) => {
+      editor.validator.possibleAt(treeCaret, true).forEach(event => {
         if (event.name !== "attributeName") {
           return;
         }
@@ -453,7 +453,7 @@ ${domutil.textToHTML(attributes[name])}</span>"</span>`;
         const toAddTo = treeCaret.node.childNodes[treeCaret.offset];
         const attributeHandling = editor.modeTree.getAttributeHandling(toAddTo);
         if (attributeHandling === "edit") {
-          editor.validator.possibleAt(treeCaret, true).forEach((event) => {
+          editor.validator.possibleAt(treeCaret, true).forEach(event => {
             if (event.name !== "attributeName") {
               return;
             }

@@ -59,40 +59,32 @@ export function makeAction(desc: string,
 }
 
 // tslint:disable-next-line:variable-name
-export const Save =
-  makeAction("Save", makeHTML("upload"), false,
-             (editor) => {
-               // tslint:disable-next-line:no-floating-promises
-               editor.save();
-             });
+export const Save = makeAction("Save", makeHTML("upload"), false, editor => {
+  // tslint:disable-next-line:no-floating-promises
+  editor.save();
+});
 
 // tslint:disable-next-line:variable-name
-export const Undo =
-  makeAction("Undo", makeHTML("undo"), false,
-             (editor) => {
-               editor.undo();
-             });
+export const Undo = makeAction("Undo", makeHTML("undo"), false, editor => {
+  editor.undo();
+});
 
 // tslint:disable-next-line:variable-name
-export const Redo =
-  makeAction("Redo", makeHTML("redo"), false,
-             (editor) => {
-               editor.redo();
-             });
+export const Redo = makeAction("Redo", makeHTML("redo"), false, editor => {
+  editor.redo();
+});
 
 // tslint:disable-next-line:variable-name
 export const DecreaseLabelVisibilityLevel =
   makeAction("Decrease label visibility level", "Decrease label visibility",
-             makeHTML("arrow-down"), false,
-             (editor) => {
+             makeHTML("arrow-down"), false, editor => {
                editor.decreaseLabelVisiblityLevel();
              });
 
 // tslint:disable-next-line:variable-name
 export const IncreaseLabelVisibilityLevel =
   makeAction("Increase label visibility level", "Increase label visibility",
-             makeHTML("arrow-up"), false,
-             (editor) => {
+             makeHTML("arrow-up"), false, editor => {
                editor.increaseLabelVisibilityLevel();
              });
 

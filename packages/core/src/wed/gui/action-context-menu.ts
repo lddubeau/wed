@@ -176,7 +176,7 @@ export class ActionContextMenu extends ContextMenu<Item> {
               dismissCallback?: DismissCallback) {
     super(document, x, y, [], dismissCallback);
 
-    this.actionItems = items.map((item) => {
+    this.actionItems = items.map(item => {
       const { action, data, atStart } = item;
       const el = this.makeMenuItemElement();
       const icon = action.getIcon();

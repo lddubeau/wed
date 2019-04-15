@@ -285,7 +285,7 @@ describe("wed transformation:", () => {
     trs[0].execute({ node: undefined, name: "biblFull" });
   });
 
-  it("the editor emits transformation events", (done) => {
+  it("the editor emits transformation events", done => {
     const p = ps[0];
     const dataP = editor.toDataNode(p);
     const elName = getElementNameFor(p)!;
@@ -296,7 +296,7 @@ describe("wed transformation:", () => {
     caretCheck(editor, elName.firstChild!, 0,
                "the caret should be in the element name");
     let first = true;
-    editor.transformations.subscribe((ev) => {
+    editor.transformations.subscribe(ev => {
       assert.equal(ev.transformation, tr as Transformation);
       if (first) {
         assert.equal(ev.name, "StartTransformation");

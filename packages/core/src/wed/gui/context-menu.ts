@@ -96,7 +96,7 @@ export abstract class ContextMenu<T> {
     // Bootstrap may dispatch clicks onto the toggle. We must catch them.
     $toggle.on("click", this.contentsClickHandler.bind(this));
 
-    $menu.on("mousedown", (ev) => {
+    $menu.on("mousedown", ev => {
       ev.stopPropagation();
     });
 

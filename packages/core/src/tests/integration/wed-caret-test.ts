@@ -557,7 +557,7 @@ span selection mode`,
     });
   });
 
-  it("moving the caret scrolls the pane", (done) => {
+  it("moving the caret scrolls the pane", done => {
     const initial = editor.dataRoot;
     caretManager.setCaret(initial.firstChild, 0);
 

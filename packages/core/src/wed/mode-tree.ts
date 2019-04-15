@@ -363,7 +363,7 @@ export class ModeTree implements ModeTreeAPI {
    * Call on each decorator to add its event handlers.
    */
   addDecoratorHandlers(): void {
-    this.root.eachTopFirst((node) => {
+    this.root.eachTopFirst(node => {
       node.decorator.addHandlers();
     });
   }
@@ -372,7 +372,7 @@ export class ModeTree implements ModeTreeAPI {
    * Call on each decorator to start listening.
    */
   startListening(): void {
-    this.root.eachTopFirst((node) => {
+    this.root.eachTopFirst(node => {
       node.decorator.startListening();
     });
   }

@@ -39,7 +39,7 @@ describe("wed save:", () => {
 
   it("saves using the keyboard", () => {
     const prom =  editor.saver.events
-      .pipe(filter((ev) => ev.name === "Saved"), first()).toPromise()
+      .pipe(filter(ev => ev.name === "Saved"), first()).toPromise()
       .then(() => {
         assert.deepEqual(server.lastSaveRequest, {
           command: "save",
@@ -58,7 +58,7 @@ describe("wed save:", () => {
   it("saves using the toolbar", () => {
     // We just check the event happened.
     const prom =  editor.saver.events
-      .pipe(filter((ev) => ev.name === "Saved"), first()).toPromise();
+      .pipe(filter(ev => ev.name === "Saved"), first()).toPromise();
     const button = editor.widget
       .querySelector("[data-original-title='Save']") as HTMLElement;
     button.click();
@@ -67,7 +67,7 @@ describe("wed save:", () => {
 
   it("serializes properly", () =>  {
     const prom = editor.saver.events
-      .pipe(filter((ev) => ev.name === "Saved"), first()).toPromise()
+      .pipe(filter(ev => ev.name === "Saved"), first()).toPromise()
       .then(() => {
         assert.deepEqual(server.lastSaveRequest, {
           command: "save",
@@ -88,11 +88,11 @@ describe("wed save:", () => {
     return prom;
   });
 
-  it("does not autosave if not modified", (done) => {
+  it("does not autosave if not modified", done => {
     // tslint:disable-next-line:no-floating-promises
     editor.save().then(() => {
       const sub = editor.saver.events
-        .pipe(filter((ev) => ev.name === "Autosaved")).subscribe(() => {
+        .pipe(filter(ev => ev.name === "Autosaved")).subscribe(() => {
           throw new Error("autosaved!");
         });
       editor.saver.setAutosaveInterval(50);
@@ -103,10 +103,10 @@ describe("wed save:", () => {
     });
   });
 
-  it("autosaves when the document is modified", (done) => {
+  it("autosaves when the document is modified", done => {
     // We're testing that autosave is not called again after the first time.
     let autosaved = false;
-    const sub = editor.saver.events.pipe(filter((x) => x.name === "Autosaved"))
+    const sub = editor.saver.events.pipe(filter(x => x.name === "Autosaved"))
       .subscribe(() => {
         if (autosaved) {
           throw new Error("autosaved more than once");
@@ -131,7 +131,7 @@ describe("wed save:", () => {
   });
 
   it("autosaves when the document is modified after a first autosave timeout " +
-     "that did nothing", (done) => {
+     "that did nothing", done => {
        // tslint:disable-next-line:no-floating-promises
        editor.save().then(() => {
          // We're testing that autosave is not called again after the first
@@ -139,7 +139,7 @@ describe("wed save:", () => {
          let autosaved = false;
          const interval = 50;
          const sub = editor.saver.events
-           .pipe(filter((x) => x.name === "Autosaved"))
+           .pipe(filter(x => x.name === "Autosaved"))
            .subscribe(() => {
              if (autosaved) {
                throw new Error("autosaved more than once");

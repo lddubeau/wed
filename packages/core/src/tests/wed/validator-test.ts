@@ -16,8 +16,8 @@ const assert = chai.assert;
 
 function sameEvents(evs: EventSet, expected: Event[]): void {
   assert.sameMembers(
-    Array.from(evs).map((x) => x.toString()),
-    expected.map((x) => x.toString()));
+    Array.from(evs).map(x => x.toString()),
+    expected.map(x => x.toString()));
 }
 
 describe("validator", () => {
@@ -34,12 +34,12 @@ describe("validator", () => {
 
     const provider = new DataProvider("/base/build/");
     return Promise.all([
-      provider.getText("schemas/simplified-rng.js").then((schema) => {
+      provider.getText("schemas/simplified-rng.js").then(schema => {
         grammar = readTreeFromJSON(schema);
       }),
       provider.getDoc(
         "dist/dev/lib/tests/validator_test_data/to_parse_converted.xml")
-        .then((doc) => {
+        .then(doc => {
           genericTree = doc;
         }),
     ]);
@@ -115,7 +115,7 @@ describe("validator", () => {
     });
 
     function onCompletion(cb: () => void): void {
-      p.events.addEventListener("state-update", (state) => {
+      p.events.addEventListener("state-update", state => {
         if (!(state.state === validator.VALID ||
               state.state === validator.INVALID)) {
           return;
@@ -124,7 +124,7 @@ describe("validator", () => {
       });
     }
 
-    it("records additional errors", (done) => {
+    it("records additional errors", done => {
       onCompletion(() => {
         assert.deepEqual(p.errors, [{ error: validationError, node: tree,
                                       index: 0 }]);
@@ -133,9 +133,9 @@ describe("validator", () => {
       p.start();
     });
 
-    it("emits additional error events", (done) => {
+    it("emits additional error events", done => {
       let seen = 0;
-      p.events.addEventListener("error", (error) => {
+      p.events.addEventListener("error", error => {
         assert.deepEqual(error, { error: validationError, node: tree,
                                   index: 0 });
         seen++;

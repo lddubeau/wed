@@ -21,7 +21,7 @@ describe("key", () => {
 
   // We load the module into a frame so that we can give it a fake ``browsers``
   // module.
-  before((done) => {
+  before(done => {
     frame = document.createElement("iframe");
     document.body.appendChild(frame);
     frameWindow = frame.contentWindow!;

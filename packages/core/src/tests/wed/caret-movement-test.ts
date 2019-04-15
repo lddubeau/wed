@@ -75,12 +75,12 @@ describe("caret-movement", () => {
     const makeTest = makeTestFactory(nextCaretPosition,
                                      nextCaretPositionNoText);
 
-    makeTest("in text", (data) => {
+    makeTest("in text", data => {
       data.textContent = "test";
       return [[data.firstChild!, 2], [data, 0], [data.firstChild!, 3], domroot];
     });
 
-    makeTest("move into child from text", (data) => {
+    makeTest("move into child from text", data => {
       data.innerHTML = "test <b>test</b>";
       const child = data.firstChild!;
       return [
@@ -92,7 +92,7 @@ describe("caret-movement", () => {
       ];
     });
 
-    makeTest("move to parent", (data) => {
+    makeTest("move to parent", data => {
       data.innerHTML = "test <b>test</b><b>test2</b>";
       const child = data.firstElementChild!.firstChild!;
       return [
@@ -105,7 +105,7 @@ describe("caret-movement", () => {
       ];
     });
 
-    makeTest("enter empty elements", (data) => {
+    makeTest("enter empty elements", data => {
       data.innerHTML = "<i>a</i><i></i><i>b</i>";
       return [
         // Just after the first <i>.
@@ -117,7 +117,7 @@ describe("caret-movement", () => {
     });
 
     // The case is designed so that it skips over the white space.
-    makeTest("white-space: normal", (data) => {
+    makeTest("white-space: normal", data => {
       data.innerHTML = "<s>test    </s><s>test  </s>";
       return [
         // This is just after the "test" string in the first s element.
@@ -130,7 +130,7 @@ describe("caret-movement", () => {
     });
 
     // The case is designed so that it does not skip over the whitespace.
-    makeTest("white-space: normal, not at end of parent node", (data) => {
+    makeTest("white-space: normal, not at end of parent node", data => {
       data.innerHTML = "test <s>test</s>";
       return [
         // This is just after the "test" string in the top element, before the
@@ -143,14 +143,14 @@ describe("caret-movement", () => {
     });
 
     // The case is designed so that it does not skip over the whitespace.
-    makeTest("white-space: pre", (data) => {
+    makeTest("white-space: pre", data => {
       data.innerHTML = "<s>test    </s><s style='white-space: pre'>test  </s>";
       const s = data.getElementsByTagName("s")[1];
 
       return [[s.firstChild!, 4], [s, 0], [s.firstChild!, 5], domroot];
     });
 
-    makeTest("skips over nodes that are not element or text", (data) => {
+    makeTest("skips over nodes that are not element or text", data => {
       // The case is designed so that it does not skip over the whitespace.
       data.innerHTML = "te<!-- comment --><?pi foo?>st";
       return [
@@ -162,7 +162,7 @@ describe("caret-movement", () => {
       ];
     });
 
-    makeTest("moves out of nodes that are not element or text", (data) => {
+    makeTest("moves out of nodes that are not element or text", data => {
       // The case is designed so that it does not skip over the whitespace.
       data.innerHTML = "te<!-- comment --><?pi foo?>st";
       return [
@@ -174,12 +174,12 @@ describe("caret-movement", () => {
       ];
     });
 
-    makeTest("does not move out of text container", (data) => {
+    makeTest("does not move out of text container", data => {
       data.innerHTML = "test";
       return [[data.firstChild!, 4], null, null, data.firstChild!];
     });
 
-    makeTest("does not move out of element container", (data) => {
+    makeTest("does not move out of element container", data => {
       data.innerHTML = "test";
       return [[data, 1], null, null, data];
     });
@@ -192,13 +192,13 @@ describe("caret-movement", () => {
     const makeTest = makeTestFactory(prevCaretPosition,
                                      prevCaretPositionNoText);
 
-    makeTest("in text", (data) => {
+    makeTest("in text", data => {
       data.textContent = "test";
       return [[data.firstChild!, 2], [data, 0], [data.firstChild!, 1],
               domroot];
     });
 
-    makeTest("move into child", (data) => {
+    makeTest("move into child", data => {
       data.innerHTML = "<b>test</b> test";
       return [
         // This puts the caret at the start of the last text node.
@@ -209,7 +209,7 @@ describe("caret-movement", () => {
       ];
     });
 
-    makeTest("move into child", (data) => {
+    makeTest("move into child", data => {
       data.innerHTML = "test <b>test</b>";
       return [
         // This puts the caret at the start of the text node in <b>
@@ -220,7 +220,7 @@ describe("caret-movement", () => {
       ];
     });
 
-    makeTest("enter empty elements", (data) => {
+    makeTest("enter empty elements", data => {
       data.innerHTML = "<i>a</i><i></i><i>b</i>";
       return [
         // This puts the caret after the 2nd <i>.
@@ -231,7 +231,7 @@ describe("caret-movement", () => {
       ];
     });
 
-    makeTest("white-space: normal", (data) => {
+    makeTest("white-space: normal", data => {
       // The case is designed so that it skips over the whitespace
       data.innerHTML = "<s>test</s><s>   test</s>";
       return [
@@ -242,7 +242,7 @@ describe("caret-movement", () => {
       ];
     });
 
-    makeTest("white-space: normal, not at start of parent node", (data) => {
+    makeTest("white-space: normal, not at start of parent node", data => {
       // The case is designed so that it does not skip over the whitespace
       data.innerHTML = "<s>test</s>   test";
       return [
@@ -253,7 +253,7 @@ describe("caret-movement", () => {
       ];
     });
 
-    makeTest("white-space: pre", (data) => {
+    makeTest("white-space: pre", data => {
       // The case is designed so that it does not skip over the whitespace.
       data.innerHTML = "<s>test</s><s style='white-space: pre'>   test</s>";
       const s = data.lastElementChild!;
@@ -265,7 +265,7 @@ describe("caret-movement", () => {
       ];
     });
 
-    makeTest("skips over nodes that are not element or text", (data) => {
+    makeTest("skips over nodes that are not element or text", data => {
       // The case is designed so that it does not skip over the whitespace.
       data.innerHTML = "te<!-- comment --><?pi foo?>st";
       return [
@@ -277,7 +277,7 @@ describe("caret-movement", () => {
       ];
     });
 
-    makeTest("moves out of nodes that are not element or text", (data) => {
+    makeTest("moves out of nodes that are not element or text", data => {
       // The case is designed so that it does not skip over the whitespace.
       data.innerHTML = "te<!-- comment --><?pi foo?>st";
       return [
@@ -289,7 +289,7 @@ describe("caret-movement", () => {
       ];
     });
 
-    makeTest("does not move out of text container", (data) => {
+    makeTest("does not move out of text container", data => {
       data.innerHTML = "test";
       return [
         [data.firstChild!, 0],
@@ -298,7 +298,7 @@ describe("caret-movement", () => {
       ];
     });
 
-    makeTest("does not move out of element container", (data) => {
+    makeTest("does not move out of element container", data => {
       data.innerHTML = "test";
       return [
         [data, 0],

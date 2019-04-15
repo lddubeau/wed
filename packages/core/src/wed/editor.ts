@@ -363,12 +363,12 @@ export class Editor implements EditorAPI {
               @inject(SAVER) readonly saver: Saver,
               @inject(GRAMMAR_LOADER) readonly grammarLoader: GrammarLoader) {
     // tslint:disable-next-line:promise-must-complete
-    this.firstValidationComplete = new Promise((resolve) => {
+    this.firstValidationComplete = new Promise(resolve => {
       this.firstValidationCompleteResolve = resolve;
     });
 
     // tslint:disable-next-line:promise-must-complete
-    this.initialized = new Promise((resolve) => {
+    this.initialized = new Promise(resolve => {
       this.initializedResolve = resolve;
     });
 
@@ -577,7 +577,7 @@ export class Editor implements EditorAPI {
                        this.setSelectionModeToUnit.makeButton()]);
 
     // Setup the cleanup code.
-    $(this.window).on("unload.wed", { editor: this }, (e) => {
+    $(this.window).on("unload.wed", { editor: this }, e => {
       e.data.editor.destroy();
     });
 
@@ -1295,7 +1295,7 @@ export class Editor implements EditorAPI {
     this.guiUpdater = new GUIUpdater(this.guiRoot, this.dataUpdater);
     this.undoRecorder = new UndoRecorder(this, this.dataUpdater);
 
-    this.guiUpdater.events.subscribe((ev) => {
+    this.guiUpdater.events.subscribe(ev => {
       switch (ev.name) {
       case "BeforeInsertNodeAt":
         if (isElement(ev.node)) {
@@ -1315,7 +1315,7 @@ export class Editor implements EditorAPI {
     // associated with it is deleted from the DOM. This does not cause a crash
     // but must be dealt with to avoid leaving orphan tooltips around.
     //
-    this.guiUpdater.events.subscribe((ev) => {
+    this.guiUpdater.events.subscribe(ev => {
       if (ev.name !== "BeforeDeleteNode") {
         return;
       }
@@ -1626,7 +1626,7 @@ export class Editor implements EditorAPI {
     this.$inputField.on("cut", log.wrap(this.cutHandler.bind(this)));
     $(this.window).on("resize.wed", this.resizeHandler.bind(this));
 
-    $guiRoot.on("click", "a", (ev) => {
+    $guiRoot.on("click", "a", ev => {
       if (ev.ctrlKey) {
         window.location.href = (ev.currentTarget as HTMLAnchorElement).href;
       }
@@ -1640,14 +1640,14 @@ export class Editor implements EditorAPI {
       this.$guiRoot.off("mousemove.wed mouseup");
     });
 
-    $body.on("contextmenu.wed", (ev) => {
+    $body.on("contextmenu.wed", ev => {
       // It may happen that contextmenu can escape to the body even if the
       // target is an element in guiRoot. This notably happens on IE for some
       // reason. So trap such cases here and dispose of them.
       return !this.guiRoot.contains(ev.target);
     });
 
-    $body.on("click.wed", (ev) => {
+    $body.on("click.wed", ev => {
       // If the click is triggered programmatically ``pageX`` and ``pageY``
       // won't be defined. If the click is triggered due to an ENTER key
       // converted by the browser, one or both will be negative. Or screenX,
@@ -1718,7 +1718,7 @@ wed's generic help. The link by default will open in a new tab.</p>`);
 
     const saver = this.saver;
     await saver.init(version, this.dataRoot);
-    this.dataUpdater.events.subscribe((ev) => {
+    this.dataUpdater.events.subscribe(ev => {
       if (ev.name !== "Changed") {
         return;
       }
@@ -1784,7 +1784,7 @@ wed's generic help. The link by default will open in a new tab.</p>`);
       // The document is empty: create a child node with the absolute namespace
       // mappings.
       const attrs = Object.create(null);
-      this.validator.getSchemaNamespaces().forEach((ns) => {
+      this.validator.getSchemaNamespaces().forEach(ns => {
         if (ns === "*" || ns === "::except") {
           return;
         }
@@ -1840,7 +1840,7 @@ started with incorrect options.`;
       const namespaces = this.validator.getDocumentNamespaces();
       // Yeah, we won't stop as early as possible if there's a failure.  So
       // what?
-      Object.keys(namespaces).forEach((prefix) => {
+      Object.keys(namespaces).forEach(prefix => {
         const uri = namespaces[prefix];
         if (uri.length > 1) {
           failure = "The document you are trying to edit uses namespaces \
@@ -1987,7 +1987,7 @@ in a way not supported by this version of wed.";
     const mode = this.modeTree.getMode(treeCaret.node);
     const resolver = mode.getAbsoluteResolver();
     const ret: { tr: UnspecifiedAction; name?: string }[] = [];
-    this.validator.possibleAt(treeCaret).forEach((ev) => {
+    this.validator.possibleAt(treeCaret).forEach(ev => {
       if (ev.name !== "enterStartTag") {
         return;
       }

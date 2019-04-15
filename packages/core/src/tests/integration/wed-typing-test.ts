@@ -454,7 +454,7 @@ describe("wed typing:", () => {
     assert.equal(parent.childNodes.length, 3);
   });
 
-  it("typing a control character in a placeholder", (done) => {
+  it("typing a control character in a placeholder", done => {
     const ph = guiRoot.getElementsByClassName("_placeholder")[0];
     caretManager.setCaret(ph, 0);
     const ctrlSomething = key.makeCtrlEqKey("A");
@@ -466,7 +466,7 @@ describe("wed typing:", () => {
     editor.type(ctrlSomething);
   });
 
-  it("clicking a gui element after typing text", (done) => {
+  it("clicking a gui element after typing text", done => {
     // Text node inside paragraph.
     const initial = editor.dataRoot.querySelector("body>p")!;
     caretManager.setCaret(initial.firstChild, 1);
@@ -507,7 +507,7 @@ describe("wed typing:", () => {
     }, 1);
   });
 
-  it("clicking a phantom element after typing text works", (done) => {
+  it("clicking a phantom element after typing text works", done => {
     // We create a special phantom element because the generic mode does not
     // create any.
     const title = editor.guiRoot.getElementsByClassName("title")[0];
