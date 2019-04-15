@@ -53,7 +53,7 @@
     "generate-ts": "./tasks/generate-ts",
     "clean-package": "mkdir -p build/dist && ../../tasks/clean-package package.json build/dist/package.json",
     "tsc": "npm run generate-ts && tsc -p src/tsconfig.json --outDir build/dist/dev/lib && tsc -p src/wed/cli/tsconfig.json --outDir build/dist/dev/lib",
-    "copy-src": "mkdir -p build/dist/dev/lib && (cd src; cp --parents `find . -regex '.*\\.\\(js\\|json\\|d.ts\\|xml\\|html\\|xsl\\)$' \\! -regex '.*/\\(\\(tsconfig\\|tslint\\).json\\|.*_flymake.*\\|.*/flycheck.*\\)$'` ../build/dist/dev/lib/)",
+    "copy-src": "mkdir -p build/dist/dev/lib && (cd src; cp --parents `find . -regex '.*\\.\\(js\\|json\\|d.ts\\|scss\\|xml\\|html\\|xsl\\)$' \\! -regex '.*/\\(\\(tsconfig\\|tslint\\).json\\|.*_flymake.*\\|.*/flycheck.*\\)$'` ../build/dist/dev/lib/)",
     "copy-web": "mkdir -p build/dist/dev/lib && cp web/*.html build/dist/dev/ && cp web/*.js build/dist/dev/lib",
     "copy-schemas": "mkdir -p build/schemas && cp schemas/*.js build/schemas/ && (cd schemas; cp --parents `find . -name '*.rng'` ../build/schemas)",
     "bin": "mkdir -p build/dist/bin && sed -e's;../build/dist;..;g' bin/wed-metadata > build/dist/bin/wed-metadata && chmod +x build/dist/bin/wed-metadata",
