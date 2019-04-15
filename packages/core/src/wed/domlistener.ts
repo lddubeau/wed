@@ -213,7 +213,8 @@ export type TextChangedHandler = (root: Node, node: Text,
  * @param oldValue The value of the attribute before this change.
  */
 export type AttributeChangedHandler = (root: Node, element: Element, ns: string,
-                                       name: string, oldValue: string) => void;
+                                       name: string,
+                                       oldValue: string | null) => void;
 
 /**
  * A ``trigger`` event with name ``[name]`` is fired when ``trigger([name])`` is
@@ -253,8 +254,7 @@ type IncludeExcludeEvents = "included-element" | "excluded-element" |
 
 interface CallSpec<T extends Events> {
   fn: EventHandlers[T];
-  // tslint:disable-next-line:no-any
-  params: any[];
+  params: Readonly<Parameters<EventHandlers[T]>>;
 }
 
 /**
@@ -509,7 +509,7 @@ export class DOMListener {
         const handlers = triggerMap[key];
         if (handlers !== undefined) {
           for (const handler of handlers) {
-            this._callHandler(handler);
+            handler(this.root);
           }
         }
       }
@@ -517,19 +517,6 @@ export class DOMListener {
       // See whether there is more to trigger.
       keys = Object.keys(this.triggersToFire);
     }
-  }
-
-  /**
-   * Utility function for calling event handlers.
-   *
-   * @param handler The handler.
-   *
-   * @param rest The arguments to pass to the handler.
-   */
-  // tslint:disable-next-line:no-any ban-types
-  protected _callHandler(handler: Function, ...rest: any[]): void {
-    rest.unshift(this.root);
-    handler.apply(undefined, rest);
   }
 
   /**
@@ -544,20 +531,31 @@ export class DOMListener {
 
     const parent = ev.parent as Element;
     const node = ev.node;
+
+    // The semantics of DOMListener are such that we must gather *all* the calls
+    // to call prior to calling them.
+
     const ccCalls = this._childrenCalls(
       "children-changed",
       parent, [node], [], node.previousSibling, node.nextSibling);
 
-    let arCalls: CallSpec<"added-element">[] = [];
+    let aeCalls: CallSpec<"added-element">[] = [];
     let ieCalls: CallSpec<"included-element">[] = [];
     if (isElement(node)) {
-      arCalls = this._addRemCalls("added-element", node, parent);
+      aeCalls = this._addRemCalls("added-element", node, parent);
       ieCalls = this._incExcCalls("included-element", node, parent);
     }
 
-    const toCall = (ccCalls as CallSpec<Events>[]).concat(arCalls, ieCalls);
-    for (const call of toCall) {
-      this._callHandler(call.fn, ...call.params);
+    for (const { fn, params } of ccCalls) {
+      fn(...params);
+    }
+
+    for (const { fn, params } of aeCalls) {
+      fn(...params);
+    }
+
+    for (const { fn, params } of ieCalls) {
+      fn(...params);
     }
 
     this._scheduleProcessTriggers();
@@ -579,16 +577,23 @@ export class DOMListener {
       "children-changing",
       parent, [], [node], node.previousSibling, node.nextSibling);
 
-    let arCalls: CallSpec<"removing-element">[] = [];
-    let ieCalls: CallSpec<"excluding-element">[] = [];
+    let reCalls: CallSpec<"removing-element">[] = [];
+    let eeCalls: CallSpec<"excluding-element">[] = [];
     if (isElement(node)) {
-      arCalls = this._addRemCalls("removing-element", node, parent);
-      ieCalls = this._incExcCalls("excluding-element", node, parent);
+      reCalls = this._addRemCalls("removing-element", node, parent);
+      eeCalls = this._incExcCalls("excluding-element", node, parent);
     }
 
-    const toCall = (ccCalls as CallSpec<Events>[]).concat(arCalls, ieCalls);
-    for (const call of toCall) {
-      this._callHandler(call.fn, ...call.params);
+    for (const { fn, params } of ccCalls) {
+      fn(...params);
+    }
+
+    for (const { fn, params } of reCalls) {
+      fn(...params);
+    }
+
+    for (const { fn, params } of eeCalls) {
+      fn(...params);
     }
 
     this._scheduleProcessTriggers();
@@ -609,16 +614,23 @@ export class DOMListener {
     const ccCalls = this._childrenCalls(
       "children-changed", parent, [], [node], null, null);
 
-    let arCalls: CallSpec<"removed-element">[] = [];
-    let ieCalls: CallSpec<"excluded-element">[] = [];
+    let reCalls: CallSpec<"removed-element">[] = [];
+    let eeCalls: CallSpec<"excluded-element">[] = [];
     if (isElement(node)) {
-      arCalls = this._addRemCalls("removed-element", node, parent);
-      ieCalls = this._incExcCalls("excluded-element", node, parent);
+      reCalls = this._addRemCalls("removed-element", node, parent);
+      eeCalls = this._incExcCalls("excluded-element", node, parent);
     }
 
-    const toCall = (ccCalls as CallSpec<Events>[]).concat(arCalls, ieCalls);
-    for (const call of toCall) {
-      this._callHandler.call(this, call.fn, ...call.params);
+    for (const { fn, params } of ccCalls) {
+      fn(...params);
+    }
+
+    for (const { fn, params } of reCalls) {
+      fn(...params);
+    }
+
+    for (const { fn, params } of eeCalls) {
+      fn(...params);
     }
 
     this._scheduleProcessTriggers();
@@ -653,12 +665,15 @@ export class DOMListener {
     }
 
     const pairs = this.eventHandlers[call];
-    const ret = [];
+    const ret: CallSpec<T>[] = [];
 
     // Go over all the elements for which we have handlers
     for (const [sel, fn] of pairs) {
       if (parent.matches(sel)) {
-        ret.push({ fn, params: [added, removed, prev, next, parent] });
+        ret.push({
+          fn,
+          params: [this.root, added, removed, prev, next, parent],
+        } as unknown as CallSpec<T>);
       }
     }
 
@@ -678,12 +693,11 @@ export class DOMListener {
     const pairs = this.eventHandlers["text-changed"];
     const node = ev.node;
 
-    // Go over all the elements for which we have
-    // handlers
+    // Go over all the elements for which we have handlers
     const parent = node.parentNode as Element;
     for (const [sel, fn] of pairs) {
       if (parent.matches(sel)) {
-        this._callHandler(fn, node, ev.oldValue);
+        fn(this.root, node, ev.oldValue);
       }
     }
 
@@ -706,7 +720,7 @@ export class DOMListener {
     const pairs = this.eventHandlers["attribute-changed"];
     for (const [sel, fn] of pairs) {
       if (target.matches(sel)) {
-        this._callHandler(fn, target, ev.ns, ev.attribute, ev.oldValue);
+        fn(this.root, target, ev.ns, ev.attribute, ev.oldValue);
       }
     }
 
@@ -741,14 +755,17 @@ export class DOMListener {
   private _addRemCalls<T extends AddRemEvents>(name: T, node: Element,
                                                target: Element): CallSpec<T>[] {
     const pairs = this.eventHandlers[name];
-    const ret = [];
+    const ret: CallSpec<T>[] = [];
 
     const prev = node.previousSibling;
     const next = node.nextSibling;
     // Go over all the elements for which we have handlers
     for (const [sel, fn] of pairs) {
       if (node.matches(sel)) {
-        ret.push({ fn, params: [target, prev, next, node] });
+        ret.push({
+          fn,
+          params: [this.root, target, prev, next, node] as const,
+        } as unknown as CallSpec<T>);
       }
     }
 
@@ -773,17 +790,23 @@ export class DOMListener {
     const pairs = this.eventHandlers[name];
     const prev = node.previousSibling;
     const next = node.nextSibling;
-    const ret = [];
+    const ret: CallSpec<T>[] = [];
 
     // Go over all the elements for which we have handlers
     for (const [sel, fn] of pairs) {
       if (node.matches(sel)) {
-        ret.push({ fn, params: [node, target, prev, next, node] });
+        ret.push({
+          fn,
+          params: [this.root, node, target, prev, next, node] as const,
+        } as unknown as CallSpec<T>);
       }
 
       const targets = node.querySelectorAll(sel);
       for (const subtarget of Array.prototype.slice.call(targets)) {
-        ret.push({ fn, params: [node, target, prev, next, subtarget] });
+        ret.push({
+          fn,
+          params: [this.root, node, target, prev, next, subtarget] as const,
+        } as unknown as CallSpec<T>);
       }
     }
     return ret;
