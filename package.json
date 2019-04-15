@@ -83,6 +83,7 @@
     "log4javascript": "^1.4.15",
     "merge-options": "^1.0.1",
     "mocha": "^6.1.2",
+    "monist": "^1.0.0",
     "morgan": "^1.9.1",
     "node-sass": "^4.11.0",
     "npm-package-json-lint": "^3.6.0",
