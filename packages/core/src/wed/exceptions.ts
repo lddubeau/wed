@@ -10,7 +10,9 @@ import { fixPrototype } from "./util";
 /**
  * This exception is thrown when **voluntarily** aborting a transformation, like
  * if the user is trying to do something which is not allowed in this
- * context. Only transformations can throw this.
+ * context. **Only transformation handlers can throw this.** If you want to
+ * abort a transformation from an subscription to transformation events you need
+ * to call ``abort()`` on the event.
  */
 export class AbortTransformationException extends Error {
   constructor(message: string) {
