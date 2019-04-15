@@ -56,7 +56,7 @@ export class GenericDecorator extends Decorator {
     this.domlistener.addHandler(
       "children-changed",
       util.classFromOriginalName("*", {}),
-      (root: Node, added: Node[], removed: Node[],
+      (root: Node, added: readonly Node[], removed: readonly Node[],
        _previousSibling: Node | null, _nextSibling: Node | null,
        el: Element) => {
          for (const child of added.concat(removed)) {

@@ -91,6 +91,14 @@ Miscelaneous changes
 
   * ``domutil.{prev,next}CaretPosition*`` have been moved to ``caret-movement``.
 
+* The signature the event handlers of ``DOMListener`` have changed. They were
+  actually buggy. For instance ``previousSibling`` and ``nextSibling`` were
+  sometimes not allowing ``null`` but ``null`` is always possible.
+
+  Some also had ``parent: null`` when in fact a value was passed.
+
+  And the ``added``, ``removed`` arrays were changed to be ``readonly``.
+
 
 Notable Bootstrap Changes
 =========================

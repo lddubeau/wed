@@ -1412,8 +1412,8 @@ export class Editor implements EditorAPI {
     this.domlistener.addHandler(
       "children-changed",
       "._real, ._phantom_wrap, .wed-document",
-      (_root: Node, added: Node[], removed: Node[], _prev: Node | null,
-       _next: Node | null, target: Element) => {
+      (_root: Node, added: readonly Node[], removed: readonly Node[],
+       _prev: Node | null, _next: Node | null, target: Element) => {
         for (const child of added.concat(removed)) {
           if (isText(child) ||
               (isElement(child) &&
@@ -1476,8 +1476,8 @@ export class Editor implements EditorAPI {
       "children-changed",
       "._real, ._phantom_wrap, .wed-document",
       // tslint:disable-next-line:cyclomatic-complexity
-      (_root: Node, _added: Node[], removed: Node[], _prev: Node | null,
-       _next: Node | null, target: Element) => {
+      (_root: Node, _added: readonly Node[], removed: readonly Node[],
+       _prev: Node | null, _next: Node | null, target: Element) => {
          if (this.updatingPlaceholder !== 0) {
            return;
          }
@@ -1565,8 +1565,8 @@ export class Editor implements EditorAPI {
     this.domlistener.addHandler(
       "children-changed",
       "._attribute_value",
-      (_root: Node, _added: Node[], _removed: Node[], _prev: Node | null,
-       _next: Node | null, target: Element) => {
+      (_root: Node, _added: readonly Node[], _removed: readonly Node[],
+       _prev: Node | null, _next: Node | null, target: Element) => {
         attributePlaceholderHandler(target);
       });
 

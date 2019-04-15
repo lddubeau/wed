@@ -45,7 +45,7 @@ export type IncludedElementHandler = (root: Node, tree: Node, parent: Node,
  * @param tree The node which is at the root of the tree *fragment* that was
  * removed to trigger the event.
  *
- * @param parent ``null`` because the tree no longer has a parent.
+ * @param parent The former parent of the tree.
  *
  * @param previousSibling ``null`` because the tree no longer has siblings.
  *
@@ -53,7 +53,7 @@ export type IncludedElementHandler = (root: Node, tree: Node, parent: Node,
  *
  * @param element The element that was matched.
  */
-export type ExcludedElementHandler = (root: Node, tree: Node, parent: null,
+export type ExcludedElementHandler = (root: Node, tree: Node, parent: Node,
                                       previousSibling: null,
                                       nextSibling: null,
                                       element: Element) => void;
@@ -76,9 +76,9 @@ export type ExcludedElementHandler = (root: Node, tree: Node, parent: null,
  *
  * @param element The element that was matched.
  */
-export type ExcludingElementHandler = (root: Node, tree: Node, parent: null,
-                                       previousSibling: null,
-                                       nextSibling: null,
+export type ExcludingElementHandler = (root: Node, tree: Node, parent: Node,
+                                       previousSibling: Node | null,
+                                       nextSibling: Node | null,
                                        element: Element) => void;
 
 /**
@@ -98,7 +98,8 @@ export type ExcludingElementHandler = (root: Node, tree: Node, parent: null,
  * @param element The element that was matched.
  */
 export type AddedElementHandler = (root: Node, parent: Node,
-                                   previousSibling: Node, nextSibling: Node,
+                                   previousSibling: Node | null,
+                                   nextSibling: Node | null,
                                    element: Element) => void;
 
 /**
@@ -115,7 +116,8 @@ export type AddedElementHandler = (root: Node, parent: Node,
  * @param element The element that was matched.
  */
 export type RemovingElementHandler = (root: Node, parent: Node,
-                                      previousSibling: Node, nextSibling: Node,
+                                      previousSibling: Node | null,
+                                      nextSibling: Node | null,
                                       element: Element) => void;
 
 /**
@@ -123,7 +125,7 @@ export type RemovingElementHandler = (root: Node, parent: Node,
  *
  * @param root The root of the tree being listened on.
  *
- * @param parent ``null`` because the element is no longer in the tree.
+ * @param parent The former parent of ``element``.
  *
  * @param previousSibling ``null`` because the element is no longer in the tree.
  *
@@ -131,7 +133,7 @@ export type RemovingElementHandler = (root: Node, parent: Node,
  *
  * @param element The element that was matched.
  */
-export type RemovedElementHandler = (root: Node, parent: null,
+export type RemovedElementHandler = (root: Node, parent: Node,
                                      previousSibling: null, nextSibling: null,
                                      element: Element) => void;
 
@@ -152,8 +154,8 @@ export type RemovedElementHandler = (root: Node, parent: null,
  *
  * @param element: The element whose children are being removed.
  */
-export type ChildrenChangingHandler = (root: Node, added: Node[],
-                                       removed: Node[],
+export type ChildrenChangingHandler = (root: Node, added: readonly Node[],
+                                       removed: readonly Node[],
                                        previousSibling: Node | null,
                                        nextSibling: Node | null,
                                        element: Element) => void;
@@ -179,8 +181,8 @@ export type ChildrenChangingHandler = (root: Node, added: Node[],
  *
  * @param element: The element whose children were modified.
  */
-export type ChildrenChangedHandler = (root: Node, added: Node[],
-                                      removed: Node[],
+export type ChildrenChangedHandler = (root: Node, added: readonly Node[],
+                                      removed: readonly Node[],
                                       previousSibling: Node | null,
                                       nextSibling: Node | null,
                                       element: Element) => void;
@@ -254,7 +256,7 @@ type IncludeExcludeEvents = "included-element" | "excluded-element" |
 
 interface CallSpec<T extends Events> {
   fn: EventHandlers[T];
-  params: Readonly<Parameters<EventHandlers[T]>>;
+  subtarget: Element;
 }
 
 /**
@@ -532,30 +534,40 @@ export class DOMListener {
     const parent = ev.parent as Element;
     const node = ev.node;
 
-    // The semantics of DOMListener are such that we must gather *all* the calls
-    // to call prior to calling them.
+    //
+    // The semantics of DOMListener are such that we must:
+    //
+    // 1. Record the parameters that will be used to call the handlers prior to
+    // calling any handler.
+    //
+    // 2. Gather *all* the calls to call prior to calling any handler.
+    //
+    // 1 and 2 can be done in any order relative to one another.
+    //
 
-    const ccCalls = this._childrenCalls(
-      "children-changed",
-      parent, [node], [], node.previousSibling, node.nextSibling);
+    const ccCalls = this._childrenCalls("children-changed", parent);
 
-    let aeCalls: CallSpec<"added-element">[] = [];
+    let aeCalls: AddedElementHandler[] = [];
     let ieCalls: CallSpec<"included-element">[] = [];
     if (isElement(node)) {
-      aeCalls = this._addRemCalls("added-element", node, parent);
-      ieCalls = this._incExcCalls("included-element", node, parent);
+      aeCalls = this._addRemCalls("added-element", node);
+      ieCalls = this._incExcCalls("included-element", node);
     }
 
-    for (const { fn, params } of ccCalls) {
-      fn(...params);
+    const { root } = this;
+    const added = [node];
+    const removed: Node[] = [];
+    const { previousSibling, nextSibling } = node;
+    for (const fn of ccCalls) {
+      fn(root, added, removed, previousSibling, nextSibling, parent);
     }
 
-    for (const { fn, params } of aeCalls) {
-      fn(...params);
+    for (const fn of aeCalls) {
+      fn(root, parent, previousSibling, nextSibling, node as Element);
     }
 
-    for (const { fn, params } of ieCalls) {
-      fn(...params);
+    for (const { fn, subtarget } of ieCalls) {
+      fn(root, node, parent, previousSibling, nextSibling, subtarget);
     }
 
     this._scheduleProcessTriggers();
@@ -573,27 +585,41 @@ export class DOMListener {
 
     const node = ev.node;
     const parent = node.parentNode as Element;
-    const ccCalls = this._childrenCalls(
-      "children-changing",
-      parent, [], [node], node.previousSibling, node.nextSibling);
 
-    let reCalls: CallSpec<"removing-element">[] = [];
+    //
+    // The semantics of DOMListener are such that we must:
+    //
+    // 1. Record the parameters that will be used to call the handlers prior to
+    // calling any handler.
+    //
+    // 2. Gather *all* the calls to call prior to calling any handler.
+    //
+    // 1 and 2 can be done in any order relative to one another.
+    //
+
+    const ccCalls = this._childrenCalls("children-changing", parent);
+
+    let reCalls: RemovingElementHandler[] = [];
     let eeCalls: CallSpec<"excluding-element">[] = [];
     if (isElement(node)) {
-      reCalls = this._addRemCalls("removing-element", node, parent);
-      eeCalls = this._incExcCalls("excluding-element", node, parent);
+      reCalls = this._addRemCalls("removing-element", node);
+      eeCalls = this._incExcCalls("excluding-element", node);
     }
 
-    for (const { fn, params } of ccCalls) {
-      fn(...params);
+    const { root } = this;
+    const added: Node[] = [];
+    const removed = [node];
+    const { previousSibling, nextSibling } = node;
+    for (const fn of ccCalls) {
+      fn(root, added, removed, previousSibling, nextSibling, parent);
     }
 
-    for (const { fn, params } of reCalls) {
-      fn(...params);
+    for (const fn of reCalls) {
+      fn(root, parent, previousSibling, nextSibling, node as Element);
     }
 
-    for (const { fn, params } of eeCalls) {
-      fn(...params);
+    for (const { fn, subtarget } of eeCalls) {
+      fn(root, node, parent, previousSibling, nextSibling, subtarget);
     }
 
     this._scheduleProcessTriggers();
@@ -611,26 +637,40 @@ export class DOMListener {
 
     const node = ev.node;
     const parent = ev.formerParent as Element;
-    const ccCalls = this._childrenCalls(
-      "children-changed", parent, [], [node], null, null);
 
-    let reCalls: CallSpec<"removed-element">[] = [];
+    //
+    // The semantics of DOMListener are such that we must:
+    //
+    // 1. Record the parameters that will be used to call the handlers prior to
+    // calling any handler.
+    //
+    // 2. Gather *all* the calls to call prior to calling any handler.
+    //
+    // 1 and 2 can be done in any order relative to one another.
+    //
+
+    const ccCalls = this._childrenCalls("children-changed", parent);
+
+    let reCalls: RemovedElementHandler[] = [];
     let eeCalls: CallSpec<"excluded-element">[] = [];
     if (isElement(node)) {
-      reCalls = this._addRemCalls("removed-element", node, parent);
-      eeCalls = this._incExcCalls("excluded-element", node, parent);
+      reCalls = this._addRemCalls("removed-element", node);
+      eeCalls = this._incExcCalls("excluded-element", node);
     }
 
-    for (const { fn, params } of ccCalls) {
-      fn(...params);
+    const { root } = this;
+    const added: Node[] = [];
+    const removed = [node];
+    for (const fn of ccCalls) {
+      fn(root, added, removed, null, null, parent);
     }
 
-    for (const { fn, params } of reCalls) {
-      fn(...params);
+    for (const fn of reCalls) {
+      fn(root, parent, null, null, node as Element);
     }
 
-    for (const { fn, params } of eeCalls) {
-      fn(...params);
+    for (const { fn, subtarget } of eeCalls) {
+      fn(root, node, parent, null, null, subtarget);
     }
 
     this._scheduleProcessTriggers();
@@ -643,37 +683,17 @@ export class DOMListener {
    *
    * @param parent The parent of the children that have changed.
    *
-   * @param added The children that were added.
-   *
-   * @param removed The children that were removed.
-   *
-   * @param prev Node preceding the children.
-   *
-   * @param next Node following the children.
-   *
    * @returns A list of call specs.
    */
   private _childrenCalls<T extends ChildEvents>(call: T,
-                                                parent: Element,
-                                                added: Node[], removed: Node[],
-                                                prev: Node | null,
-                                                next: Node | null):
-  CallSpec<T>[] {
-    if (added.length !== 0 && removed.length !== 0) {
-      throw new Error("we do not support having nodes added " +
-                      "and removed in the same event");
-    }
-
-    const pairs = this.eventHandlers[call];
-    const ret: CallSpec<T>[] = [];
+                                                parent: Element):
+  EventHandlers[T][] {
+    const ret: EventHandlers[T][] = [];
 
     // Go over all the elements for which we have handlers
-    for (const [sel, fn] of pairs) {
+    for (const [sel, fn] of this.eventHandlers[call]) {
       if (parent.matches(sel)) {
-        ret.push({
-          fn,
-          params: [this.root, added, removed, prev, next, parent],
-        } as unknown as CallSpec<T>);
+        ret.push(fn);
       }
     }
 
@@ -690,14 +710,13 @@ export class DOMListener {
       return;
     }
 
-    const pairs = this.eventHandlers["text-changed"];
-    const node = ev.node;
+    const { node, oldValue } = ev;
 
     // Go over all the elements for which we have handlers
     const parent = node.parentNode as Element;
-    for (const [sel, fn] of pairs) {
+    for (const [sel, fn] of this.eventHandlers["text-changed"]) {
       if (parent.matches(sel)) {
-        fn(this.root, node, ev.oldValue);
+        fn(this.root, node, oldValue);
       }
     }
 
@@ -714,13 +733,12 @@ export class DOMListener {
       return;
     }
 
-    const target = ev.node;
+    const { ns, attribute, oldValue, node: target } = ev;
 
     // Go over all the elements for which we have handlers
-    const pairs = this.eventHandlers["attribute-changed"];
-    for (const [sel, fn] of pairs) {
+    for (const [sel, fn] of this.eventHandlers["attribute-changed"]) {
       if (target.matches(sel)) {
-        fn(this.root, target, ev.ns, ev.attribute, ev.oldValue);
+        fn(this.root, target, ns, attribute, oldValue);
       }
     }
 
@@ -742,30 +760,22 @@ export class DOMListener {
   }
 
   /**
-   * Produces the calls for the added/removed family of events.
+   * Get the calls for the added/removed family of events.
    *
    * @param name The event name.
    *
    * @param node The node added or removed.
    *
-   * @param target The parent of this node.
-   *
-   * @returns A list of call specs.
+   * @returns A list of calls.
    */
-  private _addRemCalls<T extends AddRemEvents>(name: T, node: Element,
-                                               target: Element): CallSpec<T>[] {
-    const pairs = this.eventHandlers[name];
-    const ret: CallSpec<T>[] = [];
+  private _addRemCalls<T extends AddRemEvents>(name: T, node: Element):
+  EventHandlers[T][] {
+    const ret: EventHandlers[T][] = [];
 
-    const prev = node.previousSibling;
-    const next = node.nextSibling;
     // Go over all the elements for which we have handlers
-    for (const [sel, fn] of pairs) {
+    for (const [sel, fn] of this.eventHandlers[name]) {
       if (node.matches(sel)) {
-        ret.push({
-          fn,
-          params: [this.root, target, prev, next, node] as const,
-        } as unknown as CallSpec<T>);
+        ret.push(fn);
       }
     }
 
@@ -780,35 +790,24 @@ export class DOMListener {
    * @param node The node which was included or excluded and for which we must
    * issue the events.
    *
-   * @param target The parent of this node.
-   *
    * @returns A list of call specs.
    */
-  private _incExcCalls<T extends IncludeExcludeEvents>(name: T, node: Element,
-                                                       target: Element):
+  private _incExcCalls<T extends IncludeExcludeEvents>(name: T, node: Element):
   CallSpec<T>[] {
-    const pairs = this.eventHandlers[name];
-    const prev = node.previousSibling;
-    const next = node.nextSibling;
     const ret: CallSpec<T>[] = [];
 
     // Go over all the elements for which we have handlers
-    for (const [sel, fn] of pairs) {
+    for (const [sel, fn] of this.eventHandlers[name]) {
       if (node.matches(sel)) {
-        ret.push({
-          fn,
-          params: [this.root, node, target, prev, next, node] as const,
-        } as unknown as CallSpec<T>);
+        ret.push({ fn, subtarget: node });
       }
 
       const targets = node.querySelectorAll(sel);
       for (const subtarget of Array.prototype.slice.call(targets)) {
-        ret.push({
-          fn,
-          params: [this.root, node, target, prev, next, subtarget] as const,
-        } as unknown as CallSpec<T>);
+        ret.push({ fn, subtarget });
       }
     }
+
     return ret;
   }
 
