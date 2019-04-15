@@ -34,7 +34,7 @@
     "@types/node": "^10.14.4",
     "@types/sinon": "^7.0.11",
     "@types/sinon-chai": "^3.2.2",
-    "ajv": "^6.6.2",
+    "ajv": "^6.10.0",
     "amd-loader": "0.0.8",
     "argparse": "^1.0.3",
     "blueimp-md5": "^2.10.0",
