@@ -11,7 +11,6 @@ import { BeforeDeleteNodeEvent, DeleteNodeEvent, InsertNodeAtEvent,
          SetAttributeNSEvent, SetTextNodeValueEvent,
          TreeUpdater } from "./tree-updater";
 
-export type Handler = () => void;
 export type SelectorHandlerPair<H> = [string, H];
 
 /**
