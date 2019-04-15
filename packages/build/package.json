@@ -25,9 +25,9 @@
   },
   "dependencies": {
     "argparse": "^1.0.3",
-    "copy-webpack-plugin": "^4.6.0",
+    "copy-webpack-plugin": "^5.0.2",
     "source-map-loader": "^0.2.4",
-    "webpack": "^4.27.1"
+    "webpack": "^4.29.6"
   },
   "scripts": {
     "copy": "mkdir -p build/dist && cp -rp bin build/dist/",
