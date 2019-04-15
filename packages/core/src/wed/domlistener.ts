@@ -712,10 +712,15 @@ export class DOMListener {
 
     // Go over all the elements for which we have handlers
     const parent = node.parentNode as Element;
+    const fns: TextChangedHandler[] = [];
     for (const [sel, fn] of this.eventHandlers["text-changed"]) {
       if (parent.matches(sel)) {
-        fn(this.root, node, oldValue);
+        fns.push(fn);
       }
+    }
+
+    for (const fn of fns) {
+      fn(this.root, node, oldValue);
     }
 
     this._scheduleProcessTriggers();
@@ -734,10 +739,15 @@ export class DOMListener {
     const { ns, attribute, oldValue, node: target } = ev;
 
     // Go over all the elements for which we have handlers
+    const fns: AttributeChangedHandler[] = [];
     for (const [sel, fn] of this.eventHandlers["attribute-changed"]) {
       if (target.matches(sel)) {
-        fn(this.root, target, ns, attribute, oldValue);
+        fns.push(fn);
       }
+    }
+
+    for (const fn of fns) {
+      fn(this.root, target, ns, attribute, oldValue);
     }
 
     this._scheduleProcessTriggers();
