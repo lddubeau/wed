@@ -74,7 +74,7 @@ const externals = {};
 const config = {
   mode: "production",
   resolve: {
-    modules: [wedBuildDir, nodeModules, siblings],
+    modules: [wedBuildDir, nodeModules, siblings, "node_modules"],
     alias: {
       "rangy-textrange": "rangy/lib/rangy-textrange",
     },
