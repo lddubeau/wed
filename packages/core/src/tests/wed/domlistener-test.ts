@@ -93,31 +93,43 @@ describe("domlistener", () => {
     listener.stopListening();
   });
 
-  function makeIncludedHandler(name: string): IncludedElementHandler {
-    return ((thisRoot, _tree, _parent, _previousSibling, _nextSibling,
+  function makeIncludedHandler(name: string, expectedTree: Element,
+                               expectedParent: Element):
+  IncludedElementHandler {
+    return ((thisRoot, tree, parent, _previousSibling, _nextSibling,
              element) => {
-      assert.equal(thisRoot, root);
-      assert.equal(element.className, `_real ${name}`);
-      mark.mark(`included ${name}`);
-    }) as IncludedElementHandler;
+               assert.equal(thisRoot, root);
+               assert.equal(element.className, `_real ${name}`);
+               assert.equal(tree, expectedTree);
+               assert.equal(parent, expectedParent);
+               mark.mark(`included ${name}`);
+             }) as IncludedElementHandler;
   }
 
-  function makeExcludedHandler(name: string): ExcludedElementHandler {
-    return ((thisRoot, _tree, _parent, _previousSibling, _nextSibling,
+  function makeExcludedHandler(name: string, expectedTree: Element,
+                               expectedParent: Element):
+  ExcludedElementHandler {
+    return ((thisRoot, tree, parent, _previousSibling, _nextSibling,
              element) => {
-      assert.equal(thisRoot, root);
-      assert.equal(element.className, `_real ${name}`);
-      mark.mark(`excluded ${name}`);
-    }) as ExcludedElementHandler;
+               assert.equal(thisRoot, root);
+               assert.equal(element.className, `_real ${name}`);
+               assert.equal(tree, expectedTree);
+               assert.equal(parent, expectedParent);
+               mark.mark(`excluded ${name}`);
+             }) as ExcludedElementHandler;
   }
 
-  function makeExcludingHandler(name: string): ExcludingElementHandler {
-    return ((thisRoot, _tree, _parent, _previousSibling, _nextSibling,
+  function makeExcludingHandler(name: string, expectedTree: Element,
+                                expectedParent: Element):
+  ExcludingElementHandler {
+    return ((thisRoot, tree, parent, _previousSibling, _nextSibling,
              element) => {
-      assert.equal(thisRoot, root);
-      assert.equal(element.className, `_real ${name}`);
-      mark.mark(`excluding ${name}`);
-    }) as ExcludingElementHandler;
+               assert.equal(thisRoot, root);
+               assert.equal(element.className, `_real ${name}`);
+               assert.equal(tree, expectedTree);
+               assert.equal(parent, expectedParent);
+               mark.mark(`excluding ${name}`);
+             }) as ExcludingElementHandler;
   }
 
   it("fires included-element, added-element and children-changed when " +
@@ -129,9 +141,9 @@ describe("domlistener", () => {
          "included li": 2,
        }, listener, done);
        listener.addHandler("included-element", "._real.ul",
-                           makeIncludedHandler("ul"));
+                           makeIncludedHandler("ul", fragmentToAdd, root));
        listener.addHandler("included-element", "._real.li",
-                           makeIncludedHandler("li"));
+                           makeIncludedHandler("li", fragmentToAdd, root));
        listener.addHandler("added-element", "._real.ul",
                            ((thisRoot, parent, _previousSibling, _nextSibling,
                              element) => {
@@ -238,13 +250,13 @@ describe("domlistener", () => {
          "excluded li": 2,
        }, listener, done);
        listener.addHandler("excluding-element", "._real.ul",
-                           makeExcludingHandler("ul"));
+                           makeExcludingHandler("ul", fragmentToAdd, root));
        listener.addHandler("excluded-element", "._real.ul",
-                           makeExcludedHandler("ul"));
+                           makeExcludedHandler("ul", fragmentToAdd, root));
        listener.addHandler("excluding-element", "._real.li",
-                           makeExcludingHandler("li"));
+                           makeExcludingHandler("li", fragmentToAdd, root));
        listener.addHandler("excluded-element", "._real.li",
-                           makeExcludedHandler("li"));
+                           makeExcludedHandler("li", fragmentToAdd, root));
 
        listener.addHandler(
          "removing-element", "._real.ul",
