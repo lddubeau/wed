@@ -11,7 +11,7 @@ import { BeforeDeleteNodeEvent, DeleteNodeEvent, InsertNodeAtEvent,
          SetAttributeNSEvent, SetTextNodeValueEvent,
          TreeUpdater } from "./tree-updater";
 
-export type SelectorHandlerPair<H> = [string, H];
+export type SelectorHandlerPair<H> = readonly [string, H];
 
 /**
  * Called when a **tree fragment** is added which contains the element matched
@@ -475,7 +475,7 @@ export class DOMListener {
       handlers.push(handler as TriggerHandler);
     }
     else {
-      // As of TS 2.2.2, we need to the type annotation in the next line.
+      // As of TS 2.2.2, we need the type annotation in the next line.
       const pairs: SelectorHandlerPair<EventHandlers[T]>[] =
         this.eventHandlers[eventType];
       if (pairs === undefined) {
@@ -501,8 +501,8 @@ export class DOMListener {
   protected _processTriggers(): void {
     let keys = Object.keys(this.triggersToFire);
     while (keys.length > 0) {
-      // We flush the map because the triggers could trigger
-      // more triggers. This also explains why we are in a loop.
+      // We flush the map because the triggers could trigger more triggers. This
+      // also explains why we are in a loop.
       this.triggersToFire = Object.create(null);
 
       const triggerMap = this.triggerHandlers;
@@ -684,8 +684,7 @@ export class DOMListener {
    *
    * @returns A list of call specs.
    */
-  private _childrenCalls<T extends ChildEvents>(call: T,
-                                                parent: Element):
+  private _childrenCalls<T extends ChildEvents>(call: T, parent: Element):
   EventHandlers[T][] {
     const ret: EventHandlers[T][] = [];
 
@@ -801,8 +800,7 @@ export class DOMListener {
         ret.push({ fn, subtarget: node });
       }
 
-      const targets = node.querySelectorAll(sel);
-      for (const subtarget of Array.prototype.slice.call(targets)) {
+      for (const subtarget of Array.from(node.querySelectorAll(sel))) {
         ret.push({ fn, subtarget });
       }
     }
