@@ -1,6 +1,6 @@
 {
   "name": "@wedxml/trivial-grammar-loader",
-  "version": "5.0.0-alpha.20",
+  "version": "5.0.0-alpha.21",
   "private": true,
   "description": "A trivial grammar loader that just loads grammars.",
   "keywords": [
@@ -23,8 +23,8 @@
   "main": "build/dist/trivial-grammar-loader.js",
   "versionedSources": "src/trivial-grammar-loader.ts",
   "dependencies": {
-    "@wedxml/client-api": "5.0.0-alpha.20",
-    "@wedxml/common": "5.0.0-alpha.20"
+    "@wedxml/client-api": "5.0.0-alpha.21",
+    "@wedxml/common": "5.0.0-alpha.21"
   },
   "scripts": {
     "tsc": "tsc -p tsconfig.json",

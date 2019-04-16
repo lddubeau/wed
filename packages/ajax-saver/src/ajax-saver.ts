@@ -17,7 +17,7 @@ import { RUNTIME } from "@wedxml/common/tokens";
 // We reexport it as a convenience.
 export { SAVER_OPTIONS };
 
-export const version = "5.0.0-alpha.20";
+export const version = "5.0.0-alpha.21";
 
 interface Message {
   command: string;
