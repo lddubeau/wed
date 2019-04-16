@@ -160,7 +160,7 @@ export class Key {
    * @returns True if the key object matches the event, false
    * otherwise.
    */
-  matchesEvent(ev: KeyboardEvent | JQueryKeyEventObject): boolean {
+  matchesEvent(ev: KeyboardEvent | JQuery.KeyboardEventBase): boolean {
     return ev.which === this.which &&
       ev.keyCode === this.keyCode &&
       ev.charCode === this.charCode &&
@@ -181,7 +181,7 @@ export class Key {
    * @param ev A jQuery or DOM event object. This object is modified by the
    * method.
    */
-  setEventToMatch(ev: KeyboardEvent | JQueryKeyEventObject): void {
+  setEventToMatch(ev: KeyboardEvent | JQuery.KeyboardEventBase): void {
     // tslint:disable-next-line:no-any
     const asAny = ev as any;
     asAny.which = this.which;

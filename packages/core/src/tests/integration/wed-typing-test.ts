@@ -482,7 +482,7 @@ describe("wed typing:", () => {
     // We're simulating how Chrome would handle it. When a mousedown event
     // occurs, Chrome moves the caret *after* the mousedown event is
     // processed.
-    const event = new $.Event("mousedown");
+    const event = new $.Event("mousedown") as JQuery.TriggeredEvent;
     event.target = lastGUISpan;
     caretManager.setCaret(caret);
 
@@ -497,7 +497,7 @@ describe("wed typing:", () => {
     $(lastGUISpan).trigger(event);
 
     window.setTimeout(() => {
-      const clickEvent = new $.Event("click");
+      const clickEvent = new $.Event("click") as JQuery.TriggeredEvent;
       const offset = $(lastGUISpan).offset()!;
       clickEvent.pageX = offset.left;
       clickEvent.pageY = offset.top;
@@ -527,7 +527,7 @@ describe("wed typing:", () => {
 
     // We're simulating how Chrome would handle it. When a mousedown event
     // occurs, Chrome moves the caret *after* the mousedown event is processed.
-    const event = new $.Event("mousedown");
+    const event = new $.Event("mousedown") as JQuery.TriggeredEvent;
     event.target = phantom;
     caretManager.setCaret(caret);
 
@@ -542,7 +542,7 @@ describe("wed typing:", () => {
     $(phantom).trigger(event);
 
     window.setTimeout(() => {
-      const clickEvent = new $.Event("click");
+      const clickEvent = new $.Event("click") as JQuery.TriggeredEvent;
       clickEvent.target = phantom;
       $(phantom).trigger(clickEvent);
       done();

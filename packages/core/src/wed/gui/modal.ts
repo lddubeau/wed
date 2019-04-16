@@ -196,7 +196,7 @@ export class Modal {
    * user did, and potentially clean up after itself. The callback is left out
    * if the modal is merely for informational purposes.
    */
-  modal(callback?: (ev: JQueryEventObject) => void): void {
+  modal(callback?: (ev: JQuery.TriggeredEvent) => void): void {
     this._$clicked = undefined;
     if (callback !== undefined) {
       this._$dom.one("hidden.bs.modal.modal", callback);

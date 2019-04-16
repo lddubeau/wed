@@ -58,7 +58,7 @@ class CustomMenu extends ContextMenu<ActionSpec> {
     const menuItem = this.makeMenuItemElement();
     // tslint:disable-next-line:no-inner-html
     menuItem.innerHTML = `${action.getLabelFor(data)} before this one`;
-    $(menuItem).click(data, action.boundTerminalHandler);
+    $(menuItem).click(data, action.boundTerminalHandler as any);
 
     return menuItem;
   }
@@ -184,7 +184,7 @@ export class TestDecorator extends GenericDecorator {
     }
   }
 
-  private _navigationContextMenuHandler(wedEv: JQueryEventObject,
+  private _navigationContextMenuHandler(wedEv: JQuery.TriggeredEvent,
                                         ev: JQueryEventObject): boolean {
     // node is the node in the GUI tree which corresponds to the navigation item
     // for which a context menu handler was required by the user.

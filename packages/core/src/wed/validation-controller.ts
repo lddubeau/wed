@@ -121,7 +121,7 @@ function convertNames(error: ValidationError,
 /**
  * The click event handler to use on list items created by the controller.
  */
-export type ErrorItemHandler = (ev: JQueryMouseEventObject) => boolean;
+export type ErrorItemHandler = (ev: JQuery.MouseEventBase) => boolean;
 
 /**
  * Controls the validator and the tasks that pertain to error processing and

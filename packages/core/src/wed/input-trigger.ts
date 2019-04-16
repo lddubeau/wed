@@ -24,7 +24,7 @@ import { EditorAPI } from "./mode-api";
  */
 export type KeyHandler = (eventType: "keypress" | "keydown" | "paste",
                           el: Element,
-                          event: JQueryKeyEventObject) => void;
+                          event: JQuery.TriggeredEvent) => void;
 
 /**
  * An InputTrigger listens to keyboard events and to DOM changes that insert
@@ -162,7 +162,7 @@ export class InputTrigger {
    *
    * @param e The original DOM event that wed received.
    */
-  private keydownHandler(_wedEvent: Event, e: JQueryKeyEventObject): void {
+  private keydownHandler(_wedEvent: Event, e: JQuery.KeyDownEvent): void {
     const nodeOfInterest = this.getNodeOfInterest();
     if (nodeOfInterest === null) {
       return;
@@ -185,7 +185,7 @@ export class InputTrigger {
    *
    * @param e The original DOM event that wed received.
    */
-  private keypressHandler(_wedEvent: Event, e: JQueryKeyEventObject): void {
+  private keypressHandler(_wedEvent: Event, e: JQuery.KeyPressEvent): void {
     const nodeOfInterest = this.getNodeOfInterest();
     if (nodeOfInterest === null) {
       return;
@@ -212,7 +212,7 @@ export class InputTrigger {
    *
    * @param data The data that the user wants to insert.
    */
-  private pasteHandler(_wedEvent: Event, e: JQueryKeyEventObject, caret: DLoc,
+  private pasteHandler(_wedEvent: Event, e: JQuery.TriggeredEvent, caret: DLoc,
                        data: Element): void {
     if (this.editor.undoingOrRedoing()) {
       return;

@@ -8,9 +8,7 @@
 import { Button } from "./gui/button";
 import { EditorAPI } from "./mode-api";
 
-export interface EventWithData<Data> extends Event {
-  data: Data;
-}
+export type EventWithData<Data> =  (JQuery.Event | Event) & { data: Data };
 
 /**
  * Actions model "things the user can do." These can be contextual menu items,

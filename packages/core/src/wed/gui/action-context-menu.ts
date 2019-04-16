@@ -193,7 +193,7 @@ export class ActionContextMenu extends ContextMenu<Item> {
                                            atStartToTxt[String(atStart)]);
       el.appendChild(text);
       el.normalize();
-      $(el).click(data, action.boundTerminalHandler);
+      $(el).click(data, action.boundTerminalHandler as any);
 
       return {
         action,
@@ -341,7 +341,7 @@ export class ActionContextMenu extends ContextMenu<Item> {
     this.actionFilterInput.focus();
   }
 
-  private actionKeydownHandler(ev: JQueryKeyEventObject): boolean {
+  private actionKeydownHandler(ev: JQuery.KeyDownEvent): boolean {
     if (keyConstants.ESCAPE.matchesEvent(ev) &&
         (this.filters.kind !== null ||
          this.filters.type !== null ||
@@ -369,7 +369,7 @@ export class ActionContextMenu extends ContextMenu<Item> {
     return true;
   }
 
-  private actionKeypressHandler(ev: JQueryKeyEventObject): boolean {
+  private actionKeypressHandler(ev: JQuery.KeyPressEvent): boolean {
     // If the user has started filtering on text, we don't interpret
     // the key as setting a kind or type filter.
     if (this.actionTextFilter !== "") {
@@ -407,7 +407,7 @@ export class ActionContextMenu extends ContextMenu<Item> {
     }
   }
 
-  private inputKeydownHandler(ev: JQueryKeyEventObject): boolean {
+  private inputKeydownHandler(ev: JQuery.KeyDownEvent): boolean {
     if (keyConstants.ENTER.matchesEvent(ev)) {
       this.$menu.find("a").first().focus().click();
       ev.stopPropagation();
@@ -432,7 +432,7 @@ export class ActionContextMenu extends ContextMenu<Item> {
     }
 
     if (matches !== undefined) {
-      const fakeEv = new $.Event("keydown");
+      const fakeEv = new $.Event("keydown") as JQuery.KeyDownEvent;
       matches.setEventToMatch(fakeEv);
       // We have to pass the event to ``actionKeypressHandler`` so that it can
       // act in the same way as if the event had been directly on the menu. If

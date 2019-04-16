@@ -209,7 +209,7 @@ actualWidth))}px`;
    * Event handler for keydown events on the popup. The default implementation
    * is to dismiss the popup if escape is pressed.
    */
-  private _keydownHandler(ev: JQueryEventObject): boolean | undefined {
+  private _keydownHandler(ev: JQuery.KeyDownEvent): boolean | undefined {
     if (keyConstants.ESCAPE.matchesEvent(ev)) {
       this.dismiss();
       return false;

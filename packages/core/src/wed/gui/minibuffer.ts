@@ -14,7 +14,7 @@ export interface ChangeEvent {
   value: string;
 }
 
-export type KeydownHandler = (ev: JQueryKeyEventObject) => boolean | undefined;
+export type KeydownHandler = (ev: JQuery.KeyDownEvent) => boolean | undefined;
 
 export interface MinibufferClient {
   onUninstall(): void;
@@ -119,16 +119,16 @@ export class Minibuffer {
     this.promptEl.textContent = value;
   }
 
-  public forwardEvent(ev: JQueryEventObject): void {
+  public forwardEvent(ev: JQuery.Event): void {
     // For keypress events, we have to fill the input ourselves.
     if (ev.type === "keypress") {
-      this.input.value += String.fromCharCode(ev.which);
+      this.input.value += String.fromCharCode(ev.which!);
     }
 
     this.$input.trigger(ev);
   }
 
-  private onKeydown(ev: JQueryKeyEventObject): undefined | boolean {
+  private onKeydown(ev: JQuery.KeyDownEvent): undefined | boolean {
     if (ESCAPE.matchesEvent(ev)) {
       this.uninstallClient();
       return false;
@@ -141,7 +141,7 @@ export class Minibuffer {
     return undefined;
   }
 
-  protected onKeypress(_ev: JQueryKeyEventObject): void {
+  protected onKeypress(_ev: JQuery.KeyPressEvent): void {
     const value = this.input.value;
     if (value !== this.previous) {
       this.previous = value;
@@ -149,7 +149,7 @@ export class Minibuffer {
     }
   }
 
-  protected onInput(_ev: JQueryKeyEventObject): void {
+  protected onInput(_ev: JQuery.TriggeredEvent): void {
     const value = this.input.value;
     if (value !== this.previous) {
       this.previous = value;

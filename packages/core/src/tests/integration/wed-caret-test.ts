@@ -641,7 +641,7 @@ AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
 necessary precondition");
 
     hi.scrollIntoView(true);
-    const event = new $.Event("mousedown");
+    const event = new $.Event("mousedown") as JQuery.TriggeredEvent;
     event.target = textLoc.node.parentNode as Element;
     const { range } = textLoc.makeRange(textLoc.make(textLoc.node, 3))!;
     const { top, bottom, left } = range.getBoundingClientRect();

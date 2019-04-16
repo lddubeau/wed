@@ -49,7 +49,7 @@ export class DataProvider {
 
 // tslint:disable-next-line:no-any
 export function makeFakePasteEvent(clipboardData: any): any {
-  const event = new $.Event("paste");
+  const event = new $.Event("paste") as JQuery.TriggeredEvent;
   event.originalEvent = {
     clipboardData,
     // tslint:disable-next-line:no-empty

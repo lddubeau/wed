@@ -99,6 +99,17 @@ Miscelaneous changes
 
   And the ``added``, ``removed`` arrays were changed to be ``readonly``.
 
+* We now use the jQuery 3 typings for compilation. Wed should still work if
+  jQuery 2 is loaded at runtime. However, when compiling modes or packages to be
+  used with wed, you should use the jQuery 3 typings. You may get compilation
+  errors next time you compile.
+
+  (The jQuery 2 typings make a mess of the Event type hierarchy. It was
+  aggravating to deal with. Or would have required custom type guards and extra
+  runtime code. We decided to go with the jQuery 3 typings.)
+
+* ``util.anySpecialKeyHeld`` has been moved to ``domutil.anySpecialKeyHeld``.
+
 
 Notable Bootstrap Changes
 =========================

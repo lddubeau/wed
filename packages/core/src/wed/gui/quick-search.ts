@@ -50,7 +50,7 @@ export class QuickSearch {
    *
    * @returns ``false`` if the key was handled, ``undefined`` otherwise.
    */
-  onMinibufferKeydown(ev: JQueryKeyEventObject): boolean | undefined {
+  onMinibufferKeydown(ev: JQuery.KeyDownEvent): boolean | undefined {
     if (QUICKSEARCH_FORWARD.matchesEvent(ev)) {
       this.direction = Direction.FORWARD;
       this.next();

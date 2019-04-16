@@ -84,8 +84,8 @@ export class CompletionMenu extends ContextMenu<string> {
     return this._focused;
   }
 
-  private globalKeydownHandler(_wedEv: JQueryEventObject,
-                               ev: JQueryKeyEventObject): boolean {
+  private globalKeydownHandler(_wedEv: JQuery.Event, ev: JQuery.KeyDownEvent):
+  boolean {
     if (keyConstants.ENTER.matchesEvent(ev)) {
       this.$menu.find("a").first().click();
       return false;
@@ -93,7 +93,7 @@ export class CompletionMenu extends ContextMenu<string> {
     else if (keyConstants.DOWN_ARROW.matchesEvent(ev)) {
       this._focused = true;
       this.$menu.find("a").first().focus();
-      this.$menu.trigger(ev as JQueryEventObject);
+      this.$menu.trigger(ev);
       return false;
     }
     else if (keyConstants.ESCAPE.matchesEvent(ev)) {

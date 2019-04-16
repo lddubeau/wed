@@ -80,8 +80,8 @@ import * as wundo from "./wundo";
 
 export const version = "5.0.0-alpha.19";
 
-export type KeydownHandler = (wedEv: JQueryEventObject,
-                              ev: JQueryKeyEventObject) => boolean;
+export type KeydownHandler = (wedEv: JQuery.Event,
+                              ev: JQuery.KeyDownEvent) => boolean;
 
 // We don't put this in keyConstants because ESCAPE_KEYPRESS should never be
 // seen elsewhere.
@@ -335,7 +335,7 @@ export class Editor implements EditorAPI {
     this._selectionModeChanges.asObservable();
   readonly toolbar: Toolbar;
   dataRoot!: Document;
-  $dataRoot!: JQuery;
+  $dataRoot!: JQuery<Document>;
   maxLabelLevel: number = 0;
   guiDLocRoot!: DLocRoot;
   dataDLocRoot!: DLocRoot;
@@ -1674,8 +1674,8 @@ export class Editor implements EditorAPI {
       const y = ev.pageY - offset.top;
 
       if (!((x >= 0) && (y >= 0) &&
-            (x < this.$guiRoot.outerWidth()) &&
-            (y < this.$guiRoot.outerHeight()))) {
+            (x < this.$guiRoot.outerWidth()!) &&
+            (y < this.$guiRoot.outerHeight()!))) {
         this.caretManager.onBlur();
       }
       // We don't need to do anything special to focus the editor.
@@ -1940,8 +1940,8 @@ in a way not supported by this version of wed.";
     for (let i = 0; i < headings.length; ++i) {
       const heading = headings[i];
       const $parent = $(heading.parentNode as Node);
-      hheight += $parent.outerHeight(true) - $parent.innerHeight();
-      hheight += $(heading).outerHeight(true);
+      hheight += $parent.outerHeight(true)! - $parent.innerHeight()!;
+      hheight += $(heading).outerHeight(true)!;
     }
 
     const maxCardHeight = pheight - hheight;
@@ -1950,7 +1950,7 @@ in a way not supported by this version of wed.";
     for (let i = 0; i < cards.length; ++i) {
       card = cards[i] as HTMLElement;
       card.style.maxHeight = `${maxCardHeight +
-        $(domutil.childByClass(card, "card-header")).outerHeight(true)}px`;
+        $(domutil.childByClass(card, "card-header")).outerHeight(true)!}px`;
       const body = card.getElementsByClassName("card-body")[0] as HTMLElement;
       body.style.height = `${maxCardHeight}px`;
     }
@@ -2529,8 +2529,8 @@ cannot be cut.`, { type: "danger" });
   }
 
   // tslint:disable-next-line:cyclomatic-complexity max-func-body-length
-  private globalKeydownHandler(wedEvent: JQueryEventObject,
-                               e: JQueryEventObject): boolean {
+  private globalKeydownHandler(wedEvent: JQuery.Event,
+                               e: JQuery.KeyDownEvent): boolean {
     let caret; // damn hoisting
 
     // These are things like the user hitting Ctrl, Alt, Shift, or
@@ -2748,7 +2748,7 @@ cannot be cut.`, { type: "danger" });
 
       // A place holder could be in a place that does not allow text. If so,
       // then do not allow entering regular text in this location.
-      if (!util.anySpecialKeyHeld(e)) {
+      if (!domutil.anySpecialKeyHeld(e)) {
         let textPossible = false;
 
         if ((placeholder.parentNode as HTMLElement)
@@ -2869,7 +2869,7 @@ cannot be cut.`, { type: "danger" });
     return true;
   }
 
-  private keypressHandler(e: JQueryEventObject): boolean | undefined {
+  private keypressHandler(e: JQuery.KeyPressEvent): boolean | undefined {
     // IE is the odd browser that allows ESCAPE to show up as a keypress so
     // we have to prevent it from going any further.
     if (ESCAPE_KEYPRESS.matchesEvent(e)) {
@@ -2912,7 +2912,7 @@ cannot be cut.`, { type: "danger" });
         k = (k === " ") ? keyConstants.SPACE : makeKey(k);
       }
 
-      const event = new $.Event("keydown");
+      const event = new $.Event("keydown") as JQuery.KeyDownEvent;
       k.setEventToMatch(event);
 
       switch (where) {
@@ -2930,7 +2930,7 @@ cannot be cut.`, { type: "danger" });
   }
 
   private globalKeypressHandler(_wedEvent: JQueryEventObject,
-                                e: JQueryKeyEventObject): boolean {
+                                e: JQuery.KeyPressEvent): boolean {
     if (this.caretManager.caret === undefined) {
       return true;
     }
@@ -3000,7 +3000,8 @@ cannot be cut.`, { type: "danger" });
     this.caretManager.setCaret(cutRet, { textEdit: true });
   }
 
-  private handleKeyInsertingText(e: JQueryKeyEventObject): boolean | undefined {
+  private handleKeyInsertingText(e: JQuery.KeyboardEventBase):
+  boolean | undefined {
     const text = String.fromCharCode(e.which);
 
     if (text === "") {
@@ -3044,10 +3045,11 @@ cannot be cut.`, { type: "danger" });
     if (this.composing) {
       return;
     }
-    if (this.$inputField.val() === "") {
+    const val = this.$inputField.val();
+    if (val === undefined || val === "") {
       return;
     }
-    this.insertText(this.$inputField.val());
+    this.insertText(val as string);
     this.$inputField.val("");
     this.caretManager.focusInputField();
   }
@@ -3179,7 +3181,8 @@ cannot be cut.`, { type: "danger" });
   // menus events. On IE in particular the mouseup that would occur when a
   // context menu is brought up would happen on the newly brought up menu and
   // would cause focus problems.
-  private mouseupHandler(ev: JQueryEventObject): boolean {
+  private mouseupHandler(ev: JQuery.MouseUpEvent | JQuery.ContextMenuEvent):
+  boolean {
     // Make sure the mouse is not on a scroll bar.
     if (!this.scroller.isPointInside(ev.pageX, ev.pageY)) {
       return false;
@@ -3380,7 +3383,7 @@ cannot be cut.`, { type: "danger" });
     }
   }
 
-  private errorItemHandler(ev: JQueryMouseEventObject): boolean {
+  private errorItemHandler(ev: JQuery.MouseEventBase): boolean {
     const err = ev.data as GUIValidationError;
     const marker =
       document.querySelector(ev.target.getAttribute("href")!) as HTMLElement;

@@ -52,7 +52,8 @@ export class EditingMenuManager {
    * The menu handler which is invoked when a user right-clicks on an element
    * start or end label is defined by the decorator that the mode is using.
    */
-  contextMenuHandler(e: JQueryEventObject): boolean {
+  contextMenuHandler(e: JQuery.KeyboardEventBase | JQuery.MouseEventBase):
+  boolean {
     const sel = this.caretManager.sel;
     if (sel === undefined || (!sel.collapsed && !sel.wellFormed)) {
       return false;
@@ -133,7 +134,8 @@ export class EditingMenuManager {
   setupContextMenu(cmClass: typeof ActionContextMenu,
                    items: Item[],
                    readonly: boolean,
-                   e: JQueryEventObject | undefined,
+                   e: JQuery.KeyboardEventBase | JQuery.MouseEventBase |
+                   undefined,
                    bottom?: boolean): void {
     const pos = this.computeMenuPosition(e, bottom);
     this.displayContextMenu(ActionContextMenu, pos.left, pos.top, items,
@@ -460,7 +462,8 @@ export class EditingMenuManager {
                       options: any,
                       // tslint:disable-next-line:no-any
                       dismissCallback: (obj?: any) => void,
-                      e: JQueryEventObject | undefined,
+                      e: JQuery.KeyboardEventBase | JQuery.MouseEventBase |
+                      undefined,
                       bottom?: boolean): TypeaheadPopup {
     const pos = this.computeMenuPosition(e, bottom);
     return this.displayTypeaheadPopup(pos.left, pos.top, width, placeholder,
@@ -519,17 +522,21 @@ export class EditingMenuManager {
    *
    * @returns The top and left coordinates where the menu should appear.
    */
-  computeMenuPosition(e: JQueryEventObject | undefined,
+  computeMenuPosition(e: JQuery.KeyboardEventBase | JQuery.MouseEventBase |
+                      undefined,
                       bottom: boolean = false): { top: number; left: number } {
     if (e === undefined) {
       // tslint:disable-next-line:no-object-literal-type-assertion
-      e = {} as JQueryEventObject;
+      e = {} as JQuery.KeyboardEventBase;
     }
 
     // Take care of cases where the user is using the mouse.
     if (e.type === "mousedown" || e.type === "mouseup" || e.type === "click" ||
         e.type === "contextmenu") {
-      return { left: e.clientX, top: e.clientY };
+      return {
+        left: (e as JQuery.MouseEventBase).clientX,
+        top: (e as JQuery.MouseEventBase).clientY,
+      };
     }
 
     // The next conditions happen only if the user is using the keyboard

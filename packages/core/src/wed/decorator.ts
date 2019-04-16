@@ -16,7 +16,7 @@ import * as  domutil from "./domutil";
 import { GUIUpdater } from "./gui-updater";
 import { ActionContextMenu, Item } from "./gui/action-context-menu";
 import { Mode } from "./mode";
-import { DecoratorAPI, EditorAPI } from "./mode-api";
+import { ContextMenuHandler, DecoratorAPI, EditorAPI } from "./mode-api";
 import { NamedTransformationData, TransformationData } from "./transformation";
 import * as  util from "./util";
 
@@ -144,13 +144,8 @@ export abstract class Decorator implements DecoratorAPI {
 
   // tslint:disable-next-line:max-func-body-length
   elementDecorator(_root: Element, el: Element, level: number,
-                   preContextHandler: (((wedEv: JQueryMouseEventObject,
-                                         ev: JQueryEventObject) => boolean) |
-                                       undefined),
-                   postContextHandler: (((wedEv: JQueryMouseEventObject,
-                                          ev: JQueryEventObject) => boolean) |
-                                        undefined)):
-  void {
+                   preContextHandler: ContextMenuHandler | undefined,
+                   postContextHandler: ContextMenuHandler | undefined): void {
     if (this.editor.modeTree.getMode(el) !== this.mode) {
       // The element is not governed by this mode.
       return;
@@ -343,8 +338,8 @@ ${domutil.textToHTML(attributes[name])}</span>"</span>`;
    * @returns To be interpreted the same way as for all DOM event handlers.
    */
   // tslint:disable-next-line:max-func-body-length
-  protected contextMenuHandler(atStart: boolean, wedEv: JQueryMouseEventObject,
-                               ev: JQueryEventObject): boolean {
+  protected contextMenuHandler(atStart: boolean, wedEv: JQuery.TriggeredEvent,
+                               ev: JQuery.MouseEventBase): boolean {
     const editor = this.editor;
     const editingMenuManager = editor.editingMenuManager;
     let node = wedEv.target;

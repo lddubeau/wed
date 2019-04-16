@@ -483,17 +483,6 @@ export function newGenericID(): string {
 }
 
 /**
- * @param ev A DOM event.
- *
- * @returns ``true`` if Control, Alt or Meta were held when the event was
- * created. Otherwise, ``false``.
- */
-export function anySpecialKeyHeld(ev: Event): boolean {
-  const anyEv = ev as KeyboardEvent;
-  return anyEv.altKey || anyEv.ctrlKey || anyEv.metaKey;
-}
-
-/**
  * **This function is meant to be used in debugging.** It creates a
  * ``selenium_log`` object on ``window`` which is an array that contains the
  * series of ``obj`` passed to this function. Remember that ultimately

@@ -54,6 +54,9 @@ export interface DocumentationActionData {
   docURL: string;
 }
 
+export type ContextMenuHandler = (wedEv: JQuery.TriggeredEvent,
+                                  ev: JQuery.MouseEventBase) => boolean;
+
 export interface DecoratorAPI {
   /**
    * This function adds a separator between each child element of the element
@@ -81,10 +84,8 @@ export interface DecoratorAPI {
    * context menu on the end label.
    */
   elementDecorator(root: Element, el: Element, level: number,
-                   preContextHandler: ((wedEv: JQueryMouseEventObject,
-                                        ev: Event) => boolean) | undefined,
-                   postContextHandler: ((wedEv: JQueryMouseEventObject,
-                                         ev: Event) => boolean) | undefined):
+                   preContextHandler: ContextMenuHandler | undefined,
+                   postContextHandler: ContextMenuHandler | undefined):
   void;
 }
 
@@ -252,7 +253,7 @@ export interface EditorAPI extends EditorInstance {
   dataRoot: Document;
 
   /** Same as [[dataRoot]] but as a jQuery object. */
-  $dataRoot: JQuery;
+  $dataRoot: JQuery<Document>;
 
   /** The maximum label level that labels may have. */
   maxLabelLevel: number;

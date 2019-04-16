@@ -1548,6 +1548,17 @@ export function contains(container: Node, contained: Node): boolean {
 // Re-export, for historical reasons.
 export { isAttr };
 
+/**
+ * @param ev A DOM event.
+ *
+ * @returns ``true`` if Control, Alt or Meta were held when the event was
+ * created. Otherwise, ``false``.
+ */
+export function anySpecialKeyHeld(ev: Event | JQuery.Event): boolean {
+  const anyEv = ev as KeyboardEvent;
+  return anyEv.altKey || anyEv.ctrlKey || anyEv.metaKey;
+}
+
 //  LocalWords:  wed's URIs rect clientTop jquery util whitespace clientLeft cd
 //  LocalWords:  contenteditable abcd abfoocd insertIntoText Prepend scrollbars
 //  LocalWords:  deleteText jQuery getSelectionRange prev lastChild nodeType zA
