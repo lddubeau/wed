@@ -15,8 +15,8 @@ import * as salve from "salve";
 import { ParsingError, safeParse, WorkingState,
          WorkingStateData } from "salve-dom";
 
-import { FailedEvent, GrammarLoader, Options, Runtime, SaveEvents, SaveKind,
-         Saver } from "@wedxml/client-api";
+import { ActionCtor, FailedEvent, GrammarLoader, Options, Runtime, SaveEvents,
+         SaveKind, Saver } from "@wedxml/client-api";
 import * as optionsSchema from "@wedxml/client-api/options-schema.json";
 import { EDITOR_OPTIONS, EDITOR_WIDGET, GRAMMAR_LOADER,
          RUNTIME, SAVER } from "@wedxml/common/tokens";
@@ -1850,7 +1850,7 @@ in a way not supported by this version of wed.";
     return failure;
   }
 
-  addToolbarAction(actionClass: editorActions.ActionCtor,
+  addToolbarAction(actionClass: ActionCtor,
                    options: AddOptions): void {
     this.toolbar.addButton(new actionClass(this).makeButton(), options);
   }

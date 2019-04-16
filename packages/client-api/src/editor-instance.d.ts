@@ -6,6 +6,8 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 
+import { Action } from "./action";
+
 export interface AddToolbarActionOptions {
   /**
    * If true, push the options at the right end of the toolbar. Note that this
@@ -20,7 +22,11 @@ export interface AddToolbarActionOptions {
   prepend?: boolean;
 }
 
-export type ActionCtor = { new (editor: EditorInstance): Action<{}> };
+// We set the type of editor to ``any`` on purpose. At the place where
+// addToolbarAction is called, the editor is of type EditorInstance but the type
+// of the editor in an actual action class is EditorAPI. So the code calling
+// addToolbarAction would have to be forced to do a type assertion.
+export type ActionCtor = new (editor: any) => Action<{}>;
 
 /**
  * The interface through which clients access the editor.
