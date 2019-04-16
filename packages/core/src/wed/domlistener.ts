@@ -245,8 +245,17 @@ export type Events = keyof EventHandlers;
 
 export type EventsOrTrigger = keyof Handlers;
 
+//
+// Work around a bug in TS.
+//
+// See
+// https://github.com/Microsoft/TypeScript/issues/30889#issuecomment-482767931
+//
+type FixFn<T extends (...args: any[]) => any> =
+  (...v: Parameters<T>) => ReturnType<T>;
+
 export type EventHandlerMap =
-  { [name in Events]: SelectorHandlerPair<EventHandlers[name]>[] };
+  { [name in Events]: SelectorHandlerPair<FixFn<EventHandlers[name]>>[] };
 
 type ChildEvents = "children-changing" | "children-changed";
 type AddRemEvents = "added-element" | "removed-element" | "removing-element";
@@ -462,9 +471,10 @@ export class DOMListener {
   addHandler(eventType: "trigger", selector: string,
              handler: TriggerHandler): void;
   addHandler<T extends Events>(eventType: T, selector: string,
-                               handler: EventHandlers[T]): void;
+                               handler: FixFn<EventHandlers[T]>): void;
   addHandler<T extends Events>(eventType: T | "trigger", selector: string,
-                               handler: EventHandlers[T] | TriggerHandler):
+                               handler: FixFn<EventHandlers[T]> |
+                               TriggerHandler):
   void {
     if (eventType === "trigger") {
       let handlers = this.triggerHandlers[selector];
@@ -476,13 +486,13 @@ export class DOMListener {
     }
     else {
       // As of TS 2.2.2, we need the type annotation in the next line.
-      const pairs: SelectorHandlerPair<EventHandlers[T]>[] =
-        this.eventHandlers[eventType];
+      const pairs = this.eventHandlers[eventType] as
+      SelectorHandlerPair<FixFn<EventHandlers[T]>>[];
       if (pairs === undefined) {
         throw new Error(`invalid eventType: ${eventType}`);
       }
 
-      pairs.push([selector, handler]);
+      pairs.push([selector, handler as FixFn<EventHandlers[T]>]);
     }
   }
 

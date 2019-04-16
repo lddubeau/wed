@@ -1412,8 +1412,7 @@ export class Editor implements EditorAPI {
     this.domlistener.addHandler(
       "children-changed",
       "._real, ._phantom_wrap, .wed-document",
-      (_root: Node, added: readonly Node[], removed: readonly Node[],
-       _prev: Node | null, _next: Node | null, target: Element) => {
+      (_root, added, removed, _prev, _next, target) => {
         for (const child of added.concat(removed)) {
           if (isText(child) ||
               (isElement(child) &&
@@ -1429,7 +1428,7 @@ export class Editor implements EditorAPI {
     this.domlistener.addHandler(
       "attribute-changed",
       "._real",
-      (_root: Node, el: Element, namespace: string, name: string) => {
+      (_root, el, namespace, name) => {
         if (namespace === "" && name.indexOf("data-wed", 0) === 0) {
           // Doing the restart immediately messes up the editing. So schedule it
           // for ASAP.
@@ -1444,7 +1443,7 @@ export class Editor implements EditorAPI {
 
     // Revalidate on text change.
     this.domlistener.addHandler("text-changed", "._real",
-                                (_root: Node, text: Node) => {
+                                (_root, text) => {
                                   this.validator.resetTo(text);
                                 });
 
@@ -1453,8 +1452,7 @@ export class Editor implements EditorAPI {
     this.domlistener.addHandler(
       "included-element",
       "._label",
-      (_root: Node, _tree: Node, _parent: Node, _prev: Node | null,
-       _next: Node | null, target: Element) => {
+      (_root, _tree, _parent, _prev, _next, target) => {
          const cl = target.classList;
          let found: number | undefined;
          for (let i = 0; i < cl.length && found === undefined; ++i) {
@@ -1476,8 +1474,7 @@ export class Editor implements EditorAPI {
       "children-changed",
       "._real, ._phantom_wrap, .wed-document",
       // tslint:disable-next-line:cyclomatic-complexity
-      (_root: Node, _added: readonly Node[], removed: readonly Node[],
-       _prev: Node | null, _next: Node | null, target: Element) => {
+      (_root, _added, removed, _prev, _next, target) => {
          if (this.updatingPlaceholder !== 0) {
            return;
          }
