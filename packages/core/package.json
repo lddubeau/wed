@@ -27,6 +27,7 @@
   "browser": "dev/lib/wed.js",
   "dependencies": {
     "ajv": "^6.10.0",
+    "amd-loader": "0.0.8",
     "argparse": "^1.0.3",
     "bootprompt": "^6.0.0",
     "bootstrap-notify": "^3.1.3",
