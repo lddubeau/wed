@@ -110,6 +110,8 @@ Miscelaneous changes
 
 * ``util.anySpecialKeyHeld`` has been moved to ``domutil.anySpecialKeyHeld``.
 
+* The ``Handlers`` interface is no longer exported from ``domlistener``.
+
 
 Notable Bootstrap Changes
 =========================

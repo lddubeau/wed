@@ -11,8 +11,6 @@ import { BeforeDeleteNodeEvent, DeleteNodeEvent, InsertNodeAtEvent,
          SetAttributeNSEvent, SetTextNodeValueEvent,
          TreeUpdater } from "./tree-updater";
 
-export type SelectorHandlerPair<H> = readonly [string, H];
-
 /**
  * Called when a **tree fragment** is added which contains the element matched
  * by the selector that was passed to [[DOMListener.addHandler]].
@@ -237,13 +235,9 @@ export interface EventHandlers {
   "attribute-changed": AttributeChangedHandler;
 }
 
-export interface Handlers extends EventHandlers {
-  "trigger": TriggerHandler;
-}
-
 export type Events = keyof EventHandlers;
 
-export type EventsOrTrigger = keyof Handlers;
+export type EventsOrTrigger = "trigger" | Events;
 
 //
 // Work around a bug in TS.
@@ -253,6 +247,8 @@ export type EventsOrTrigger = keyof Handlers;
 //
 type FixFn<T extends (...args: any[]) => any> =
   (...v: Parameters<T>) => ReturnType<T>;
+
+export type SelectorHandlerPair<H> = readonly [string, H];
 
 export type EventHandlerMap =
   { [name in Events]: SelectorHandlerPair<FixFn<EventHandlers[name]>>[] };
