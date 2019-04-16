@@ -72,6 +72,7 @@ export { UndoMarker } from "./wed/undo";
 export { ModeValidator, Validator } from "./wed/validator";
 export { WedOptions } from "./wed/wed-options";
 
+import * as actionContextMenu_ from "./wed/gui/action-context-menu";
 import * as button_ from "./wed/gui/button";
 import * as contextMenu_ from "./wed/gui/context-menu";
 import * as modal_ from "./wed/gui/modal";
@@ -79,6 +80,7 @@ import * as tooltip_ from "./wed/gui/tooltip";
 import * as typeaheadPopup_ from "./wed/gui/typeahead-popup";
 // tslint:disable-next-line:no-namespace
 export namespace gui {
+  export import actionContextMenu = actionContextMenu_;
   export import button = button_;
   export import contextMenu = contextMenu_;
   export import modal = modal_;
