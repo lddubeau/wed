@@ -1,6 +1,6 @@
 {
   "name": "@wedxml/wed-monorepo",
-  "version": "5.0.0-alpha.22",
+  "version": "5.0.0-alpha.23",
   "private": true,
   "description": "Wed is a schema-aware editor for XML documents.",
   "keywords": [

@@ -1,6 +1,6 @@
 {
   "name": "@wedxml/core",
-  "version": "5.0.0-alpha.22",
+  "version": "5.0.0-alpha.23",
   "private": true,
   "description": "Wed is a schema-aware editor for XML documents.",
   "keywords": [
@@ -42,12 +42,12 @@
     "salve": "^9.1.1"
   },
   "devDependencies": {
-    "@wedxml/ajax-saver": "5.0.0-alpha.22",
-    "@wedxml/base-saver": "5.0.0-alpha.22",
-    "@wedxml/client-api": "5.0.0-alpha.22",
-    "@wedxml/common": "5.0.0-alpha.22",
-    "@wedxml/default-runtime": "5.0.0-alpha.22",
-    "@wedxml/trivial-grammar-loader": "5.0.0-alpha.22"
+    "@wedxml/ajax-saver": "5.0.0-alpha.23",
+    "@wedxml/base-saver": "5.0.0-alpha.23",
+    "@wedxml/client-api": "5.0.0-alpha.23",
+    "@wedxml/common": "5.0.0-alpha.23",
+    "@wedxml/default-runtime": "5.0.0-alpha.23",
+    "@wedxml/trivial-grammar-loader": "5.0.0-alpha.23"
   },
   "scripts": {
     "config": "mkdir -p build/config && cp -rp ../../config/* build/config && cp -rp ../../local_config/* build/config",
