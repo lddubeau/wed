@@ -128,7 +128,7 @@ export interface ModeTreeAPI {
    * the data tree to selectors appropriate for the GUI tree. ``null`` is
    * returned if there are no specs.
    */
-  getAttributeHidingSpecs(node: Node):  AttributeHidingSpecs | null;
+  getAttributeHidingSpecs(node: Node): AttributeHidingSpecs | null;
 
   /**
    * Get the stylesheets that the modes define. It is up to the mode to use
