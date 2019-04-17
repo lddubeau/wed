@@ -5,9 +5,8 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-export interface EventWithData<Data> extends Event {
-  data: Data;
-}
+
+export type EventWithData<Data> =  (JQuery.Event | Event) & { data: Data };
 
 /**
  * Actions model "things the user can do." These can be contextual menu items,
@@ -16,8 +15,25 @@ export interface EventWithData<Data> extends Event {
  * conditions they choose.
  */
 export interface Action<Data> {
-  readonly boundHandler: (this: Action<Data>, ev: Event) => void;
-  readonly boundTerminalHandler: (this: Action<Data>, ev: Event) => boolean;
+  /**
+   * This is [[eventHandler]] but with ``this`` bound to the object implementing
+   * this interface.
+   *
+   * It is a convenience field that allows us to avoid rebinding
+   * [[eventHandler]] every time we want to add it to the list of handlers for
+   * an event.
+   */
+  readonly boundHandler: (ev: EventWithData<Data>) => void;
+
+  /**
+   * This is [[terminalEventHandler]] but with ``this`` bound to the object
+   * implementing this interface.
+   *
+   * It is a convenience field that allows us to avoid rebinding
+   * [[terminalEventHandler]] every time we want to add it to the list of
+   * handlers for an event.
+   */
+  readonly boundTerminalHandler: (ev: EventWithData<Data>) => boolean;
 
   /**
    * @param data Arbitrary data. What data must be passed is

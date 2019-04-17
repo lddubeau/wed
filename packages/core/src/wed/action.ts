@@ -5,10 +5,10 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 
+import { Action as ActionInterface,
+         EventWithData } from "@wedxml/client-api/action";
 import { Button } from "./gui/button";
 import { EditorAPI } from "./mode-api";
-
-export type EventWithData<Data> =  (JQuery.Event | Event) & { data: Data };
 
 /**
  * Actions model "things the user can do." These can be contextual menu items,
@@ -16,10 +16,10 @@ export type EventWithData<Data> =  (JQuery.Event | Event) & { data: Data };
  * derived classes can set their own enabled state depending on whatever
  * conditions they choose.
  */
-export abstract class Action<Data extends {} | void = void> {
-  readonly boundHandler: (this: Action<Data>, ev: EventWithData<Data>) => void;
-  readonly boundTerminalHandler: (this: Action<Data>,
-                                  ev: EventWithData<Data>) => boolean;
+export abstract class Action<Data extends {} | void = void>
+  implements ActionInterface<Data> {
+  readonly boundHandler: (ev: EventWithData<Data>) => void;
+  readonly boundTerminalHandler: (ev: EventWithData<Data>) => boolean;
 
   /**
    * @param editor The editor to which this action belongs.
