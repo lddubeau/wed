@@ -39,7 +39,7 @@
     "log4javascript": "^1.4.15",
     "merge-options": "^1.0.1",
     "rangy": "git+https://github.com/lddubeau/rangy.git#feature/custom-is-collapsed-node",
-    "salve": "^9.1.1"
+    "salve": "^9.1.2"
   },
   "devDependencies": {
     "@wedxml/ajax-saver": "5.0.0-alpha.23",
