@@ -112,6 +112,12 @@ Miscelaneous changes
 
 * The ``Handlers`` interface is no longer exported from ``domlistener``.
 
+* The signature of the ``Action`` constructor has changed. The optional
+  arguments are now being passed through an options object. This affects you if
+  you wrote custom code.
+
+* The ``iconHTML`` option in ``TransformationOptions`` is renamed to ``icon``
+  for consistency with ``ActionOptions``.
 
 Notable Bootstrap Changes
 =========================

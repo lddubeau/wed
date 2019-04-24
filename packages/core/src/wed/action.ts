@@ -10,6 +10,29 @@ import { Action as ActionInterface,
 import { Button } from "./gui/button";
 import { EditorAPI } from "./mode-api";
 
+export interface ActionOptions {
+  /**  An abbreviated description of this action. */
+  abbreviatedDesc?: string;
+
+  /** An HTML representation of the icon associated with this action. */
+  icon?: string;
+
+  /**
+   * Indicates whether this action needs input from the user. For instance, an
+   * action which brings up a modal dialog to ask something of the user must
+   * have this parameter set to ``true``. It is important to record whether an
+   * action needs input because, to take one example, the ``autoinsert`` logic
+   * will try to insert automatically any element it can. However, doing this
+   * for elements that need user input will just confuse the user (or could
+   * cause a crash). Therefore, it is important that the insertion operations
+   * for such elements be marked with ``needsInput`` set to ``true`` so that the
+   * ``autoinsert`` logic backs off from trying to insert these elements.
+   *
+   * Defaults to ``false`` if not specified.
+   */
+  needsInput?: boolean;
+}
+
 /**
  * Actions model "things the user can do." These can be contextual menu items,
  * menu items, buttons, keybindings, etc. The base class is always enabled but
@@ -18,6 +41,9 @@ import { EditorAPI } from "./mode-api";
  */
 export abstract class Action<Data extends {} | void = void>
   implements ActionInterface<Data> {
+  protected readonly abbreviatedDesc?: string;
+  protected readonly icon: string;
+  readonly needsInput: boolean = false;
   readonly boundHandler: (ev: EventWithData<Data>) => void;
   readonly boundTerminalHandler: (ev: EventWithData<Data>) => boolean;
 
@@ -26,28 +52,14 @@ export abstract class Action<Data extends {} | void = void>
    *
    * @param desc A simple string description of the action.
    *
-   * @param abbreviatedDesc An abbreviated description, suitable to put into a
-   * button, for instance.
-   *
-   * @param icon HTML code that represents an icon for this action. This can be
-   * a simple string or something more complex.
-   *
-   * @param needsInput Indicates whether this action needs input from the
-   * user. For instance, an action which brings up a modal dialog to ask
-   * something of the user must have this parameter set to ``true``. It is
-   * important to record whether an action needs input because, to take one
-   * example, the ``autoinsert`` logic will try to insert automatically any
-   * element it can. However, doing this for elements that need user input will
-   * just confuse the user (or could cause a crash). Therefore, it is important
-   * that the insertion operations for such elements be marked with
-   * ``needsInput`` set to ``true`` so that the ``autoinsert`` logic backs off
-   * from trying to insert these elements.
+   * @param options Options that can be set for the action.
    */
   constructor(readonly editor: EditorAPI, protected readonly desc: string,
-              protected readonly abbreviatedDesc: string | undefined,
-              protected readonly icon: string = "",
-              readonly needsInput: boolean = false) {
-    this.needsInput = !!needsInput; // normalize value
+              options?: ActionOptions) {
+    options = options || {};
+    this.needsInput = !!options.needsInput; // normalize value
+    this.abbreviatedDesc = options.abbreviatedDesc;
+    this.icon = options.icon || "";
     this.boundHandler = this.eventHandler.bind(this);
     this.boundTerminalHandler = this.terminalEventHandler.bind(this);
   }

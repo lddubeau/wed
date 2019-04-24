@@ -7,7 +7,7 @@
 
 import { ObjectUnsubscribedError, Subject } from "rxjs";
 
-import { Action, UnspecifiedAction } from "./action";
+import { Action, ActionOptions, UnspecifiedAction } from "./action";
 import { DLoc } from "./dloc";
 import { isDocument, isText } from "./domtypeguards";
 import { Caret, firstDescendantOrSelf, indexOf,
@@ -143,35 +143,10 @@ function computeIconHtml(iconHtml: string | undefined,
   }
 
   const kind = TYPE_TO_KIND[transformationType];
-  if (kind !== undefined) {
-    return icon.makeHTML(kind);
-  }
-
-  return undefined;
+  return kind !== undefined ? icon.makeHTML(kind) : undefined;
 }
 
-export interface TransformationOptions {
-  /**  An abbreviated description of this transformation. */
-  abbreviatedDesc?: string;
-
-  /** An HTML representation of the icon associated with this transformation. */
-  iconHtml?: string;
-
-  /**
-   * Indicates whether this action needs input from the user. For instance, an
-   * action which brings up a modal dialog to ask something of the user must
-   * have this parameter set to ``true``. It is important to record whether an
-   * action needs input because, to take one example, the ``autoinsert`` logic
-   * will try to insert automatically any element it can. However, doing this
-   * for elements that need user input will just confuse the user (or could
-   * cause a crash). Therefore, it is important that the insertion operations
-   * for such elements be marked with ``needsInput`` set to ``true`` so that the
-   * ``autoinsert`` logic backs off from trying to insert these elements.
-   *
-   * Defaults to ``false`` if not specified.
-   */
-  needsInput?: boolean;
-
+export interface TransformationOptions extends ActionOptions {
   /**
    * Indicates whether this transformation needs to be treated as a kind of text
    * input.
@@ -220,9 +195,11 @@ export class Transformation<Data extends TransformationData =
               handler: TransformationHandler<Data>,
               options?: TransformationOptions) {
     const actualOpts = options !== undefined ? options : {};
-    super(editor, desc, actualOpts.abbreviatedDesc,
-          computeIconHtml(actualOpts.iconHtml, transformationType),
-          actualOpts.needsInput);
+    super(editor, desc, {
+      abbreviatedDesc: actualOpts.abbreviatedDesc,
+      icon: computeIconHtml(actualOpts.icon, transformationType),
+      needsInput: actualOpts.needsInput,
+    });
 
     if (handler === undefined) {
       throw new Error("did not specify a handler");

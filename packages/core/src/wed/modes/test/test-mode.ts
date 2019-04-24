@@ -402,15 +402,18 @@ export class TestMode extends GenericMode<TestModeOptions> {
     }
 
     this.typeaheadAction = new TypeaheadAction(
-      editor, "Test typeahead", undefined,
-      "<i class='fa fa-plus fa-fw'></i>", true);
+      editor, "Test typeahead", {
+        icon: "<i class='fa fa-plus fa-fw'></i>",
+        needsInput: true,
+      });
 
-    this.draggableAction = new DraggableModalAction(
-      editor, "Test draggable", undefined, undefined, true);
-    this.resizableAction = new ResizableModalAction(
-      editor, "Test resizable", undefined, undefined, true);
-    this.draggableResizableAction = new DraggableResizableModalAction(
-      editor, "Test draggable resizable", undefined, undefined, true);
+    this.draggableAction =
+      new DraggableModalAction(editor, "Test draggable", { needsInput: true });
+    this.resizableAction =
+      new ResizableModalAction(editor, "Test resizable", { needsInput: true });
+    this.draggableResizableAction =
+      new DraggableResizableModalAction(editor, "Test draggable resizable",
+                                        { needsInput: true });
   }
 
   getStylesheets(): string[] {

@@ -100,6 +100,13 @@ ev is Filter<SaveEvents, { name: T }> {
 class ComplexPatternAction extends Action {
   private _modal: Modal | undefined;
 
+  constructor(editor: EditorAPI) {
+    super(editor, "Complex name pattern", {
+        icon: icon.makeHTML("exclamation"),
+        needsInput: true,
+    });
+  }
+
   get modal(): Modal {
     if (this._modal === undefined) {
       const modal = this._modal = this.editor.makeModal();
@@ -507,9 +514,7 @@ export class Editor implements EditorAPI {
     this.errorItemHandlerBound = this.errorItemHandler.bind(this);
     this._undo = new UndoList();
 
-    this.complexPatternAction = new ComplexPatternAction(
-      this, "Complex name pattern", undefined, icon.makeHTML("exclamation"),
-      true);
+    this.complexPatternAction = new ComplexPatternAction(this);
     this.documentationAction = new editorActions.DocumentationAction(this);
 
     this.pasteTr = new Transformation(this, "add", "Paste",
@@ -562,7 +567,7 @@ export class Editor implements EditorAPI {
       new Transformation(this, "delete", "Remove mixed-content markup",
                          removeMarkup, {
                            abbreviatedDesc: "Remove mixed-content markup",
-                           iconHtml: "<i class='fa fa-eraser'></i>",
+                           icon: "<i class='fa fa-eraser'></i>",
                            needsInput: true,
                          });
 

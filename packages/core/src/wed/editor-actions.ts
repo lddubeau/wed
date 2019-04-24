@@ -49,7 +49,11 @@ export function makeAction(desc: string,
 
   return class extends Action {
     constructor(editor: EditorAPI) {
-      super(editor, desc, actualAbbreviatedDesc, actualIcon, actualNeedsInput);
+      super(editor, desc, {
+        abbreviatedDesc: actualAbbreviatedDesc,
+        icon: actualIcon,
+        needsInput: actualNeedsInput,
+      });
     }
 
     execute(_data: void): void {
@@ -110,7 +114,7 @@ export class ToggleAttributeHiding extends Action<boolean> {
   readonly events: Observable<PressedEvent> = this._events.asObservable();
 
   constructor(editor: EditorAPI) {
-    super(editor, "Toggle attribute hiding", "AH", undefined, false);
+    super(editor, "Toggle attribute hiding", { abbreviatedDesc: "AH" });
   }
 
   execute(data: boolean): void {
@@ -146,7 +150,10 @@ export class ToggleAttributeHiding extends Action<boolean> {
 export class SetSelectionMode extends Action<{}> {
   constructor(editor: EditorAPI, name: string, icon: string,
               private readonly desiredMode: SelectionMode) {
-    super(editor, `Set selection mode to ${name}`, name, icon, false);
+    super(editor, `Set selection mode to ${name}`, {
+      abbreviatedDesc: name,
+      icon,
+    });
   }
 
   execute(): void {
@@ -180,8 +187,9 @@ export class SetSelectionMode extends Action<{}> {
  */
 export class DocumentationAction extends Action<DocumentationActionData> {
   constructor(editor: EditorAPI) {
-    super(editor, "Element's documentation.", undefined,
-          makeHTML("documentation"), false);
+    super(editor, "Element's documentation.", {
+      icon: makeHTML("documentation")
+    });
   }
 
   execute(data: DocumentationActionData): void {
