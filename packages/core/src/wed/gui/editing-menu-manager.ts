@@ -143,23 +143,21 @@ export class EditingMenuManager {
   }
 
   /**
-   * @param cmClass The class to use to create the menu.
+   * Remove duplicate menu items from a list of items.
    *
-   * @param x The position of the menu.
+   * @param items The items to deduplicate.
    *
-   * @param y The position of the menu.
+   * @param readonly Whether the menu should provide only items that don't
+   * modify the document. This amounts to removing all items with an ``action``
+   * field that is a [[Transformation]].
    *
-   * @param items The menu items to show.
-   *
-   * @param readonly If true, don't include in the menu any operation that
-   *                 would trigger a ``Transformation``.
+   * @returns A new array with the remaining unique menu items.
    */
-  displayContextMenu(cmClass: typeof ActionContextMenu, x: number, y: number,
-                     items: Item[], readonly: boolean): void {
+  dedupItems(items: Item[], readonly: boolean): Item[] {
     // Eliminate duplicate items. We perform a check only in the description of
     // the action, and on ``data.name``.
     const seen: Record<string, boolean> = Object.create(null);
-    items = items.filter(item => {
+    return items.filter(item => {
       // "\0" not a legitimate value in descriptions.
       let actionKey = `${(item.action !== null ?
                        item.action.getDescription() : "")}\0`;
@@ -177,11 +175,26 @@ export class EditingMenuManager {
       // tree.
       return !(item.action instanceof Transformation);
     });
+  }
 
+  /**
+   * @param cmClass The class to use to create the menu.
+   *
+   * @param x The position of the menu.
+   *
+   * @param y The position of the menu.
+   *
+   * @param items The menu items to show.
+   *
+   * @param readonly If true, don't include in the menu any operation that
+   *                 would trigger a ``Transformation``.
+   */
+  displayContextMenu(cmClass: typeof ActionContextMenu, x: number, y: number,
+                     items: Item[], readonly: boolean): void {
     this.dismiss();
     this.caretManager.pushSelection();
     this.currentDropdown = new cmClass(
-      this.doc, x, y, items,
+      this.doc, x, y, this.dedupItems(items, readonly),
       () => {
         this.currentDropdown = undefined;
         this.caretManager.popSelection();
