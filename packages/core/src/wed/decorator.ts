@@ -347,9 +347,9 @@ ${domutil.textToHTML(attributes[name])}</span>"</span>`;
     const menuItems: Item[] = [];
     const mode = editor.modeTree.getMode(node);
 
-    function pushItems<D>(data: D, trs: Action<D>[], start?: boolean): void {
+    function pushItems<D>(data: D, trs: Action<D>[]): void {
       for (const tr of trs) {
-        menuItems.push({ action: tr, data, atStart: start });
+        menuItems.push({ action: tr, data });
       }
     }
 
