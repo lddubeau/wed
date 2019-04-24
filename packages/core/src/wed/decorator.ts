@@ -346,6 +346,7 @@ ${domutil.textToHTML(attributes[name])}</span>"</span>`;
     // tslint:disable-next-line:no-any
     const menuItems: Item[] = [];
     const mode = editor.modeTree.getMode(node);
+    const absoluteResolver = mode.getAbsoluteResolver();
 
     function pushItems<D>(data: D, trs: Action<D>[]): void {
       for (const tr of trs) {
@@ -359,8 +360,7 @@ ${domutil.textToHTML(attributes[name])}</span>"</span>`;
       if (namePattern.simple()) {
         // If the namePattern is simple, then toArray is necessarily not null.
         for (const name of namePattern.toArray()!) {
-          const unresolved =
-            mode.getAbsoluteResolver().unresolveName(name.ns, name.name);
+          const unresolved = absoluteResolver.unresolveName(name.ns, name.name);
           if (unresolved === undefined) {
             throw new Error("cannot unresolve attribute");
           }
