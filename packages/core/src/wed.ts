@@ -56,7 +56,8 @@ export function bindEditor(container: Container): void {
   container.bind(tokens.EDITOR_INSTANCE).to(Editor);
 }
 
-export { Action, UnspecifiedAction } from "./wed/action";
+export { Action, ActionInvocation, UnspecifiedAction,
+         UnspecifiedActionInvocation } from "./wed/action";
 export { Decorator } from "./wed/decorator";
 export { DLoc, DLocRoot } from "./wed/dloc";
 export { DOMListener } from "./wed/domlistener";
