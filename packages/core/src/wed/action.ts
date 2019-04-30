@@ -10,13 +10,35 @@ import { Action as ActionInterface,
 import { Button } from "./gui/button";
 import { EditorAPI } from "./mode-api";
 
+/**
+ * An action invocation pairs an action with its data.
+ */
 export class ActionInvocation<Data extends {} | void = void> {
+  /**
+   * @param action The action to pair.
+   *
+   * @param data The data to pair with the action.
+   */
   constructor(readonly action: Action<Data>, readonly data: Data) {}
 
+  /**
+   * Get the description of this action, taking into account [[data]].
+   *
+   * @returns The description.
+   */
   getDescription(): string {
     return this.action.getDescriptionFor(this.data);
   }
 
+  /**
+   * A unique key for this action invocation. Wed uses this to determine
+   * eliminate duplicates in arrays of action invocations.
+   *
+   * By default, the key is made of the action's origin and [[getDescription]].
+   *
+   * **NOTE** There is no guaranteed regarding the long-term stability of this
+   * key. Storing it outside wed is risky.
+   */
   get key(): string {
     return `${this.action.origin}:${this.action.getDescriptionFor(this.data)}`;
   }
