@@ -40,7 +40,8 @@ export class ActionInvocation<Data extends {} | void = void> {
    * key. Storing it outside wed is risky.
    */
   get key(): string {
-    return `${this.action.origin}:${this.getDescription()}`;
+    // \0 is not a character that is valid elsewhere.
+    return `${this.action.origin}\0${this.getDescription()}`;
   }
 }
 
