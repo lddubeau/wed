@@ -114,7 +114,7 @@ class ComplexPatternAction extends Action {
       modal.setTitle("Complex Name Pattern Encountered");
       modal.setBody(
         "<p>The schema contains here a complex name pattern modal. While wed \
-has no problem validating such cases. It does not currently have facilities to \
+has no problem validating such cases, it does not currently have facilities to \
 add elements or attributes that match such patterns. You can continue editing \
 your document but you will not be able to take advantage of the possibilities \
 provided by the complex pattern here.</p>");
