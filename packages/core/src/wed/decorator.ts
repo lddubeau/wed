@@ -370,7 +370,7 @@ ${domutil.textToHTML(attributes[name])}</span>"</span>`;
   protected contextMenuHandler(atStart: boolean, wedEv: JQuery.TriggeredEvent,
                                ev: JQuery.MouseEventBase): boolean {
     const editor = this.editor;
-    const editingMenuManager = editor.editingMenuManager;
+    const { editingMenuManager: emm } = editor;
     let node = wedEv.target;
     // tslint:disable-next-line:no-any
     const menuItems: UnspecifiedActionInvocation[] = [];
@@ -440,7 +440,7 @@ ${domutil.textToHTML(attributes[name])}</span>"</span>`;
       node = real;
 
       const dataNode = editor.toDataNode(node)! as Element;
-      menuItems.push(...editingMenuManager.makeCommonItems(dataNode));
+      menuItems.push(...emm.makeCommonItems(dataNode));
 
       // We first gather the transformations that pertain to the node to which
       // the label belongs.
@@ -477,7 +477,7 @@ ${domutil.textToHTML(attributes[name])}</span>"</span>`;
 
       if (!topNode) {
         for (const { tr, name } of
-             editor.getElementTransformationsAt(treeCaret, "insert")) {
+             emm.getElementTransformationsAt(treeCaret, "insert")) {
           menuItems.push(
             new LocalizedActionInvocation(
               tr,
@@ -490,8 +490,7 @@ ${domutil.textToHTML(attributes[name])}</span>"</span>`;
           // possibilities.
           const caretInside = treeCaret.make(dataNode, 0);
           for (const { tr, name } of
-               editor.getElementTransformationsAt(caretInside,
-                                                  "wrap-content")) {
+               emm.getElementTransformationsAt(caretInside, "wrap-content")) {
             menuItems.push(
               new ActionInvocation(tr,
                                    name !== undefined ? { name, node } : null));
@@ -505,9 +504,8 @@ ${domutil.textToHTML(attributes[name])}</span>"</span>`;
       return true;
     }
 
-    editingMenuManager.setupContextMenu(ActionContextMenu, menuItems,
-                                        real.classList.contains("_readonly"),
-                                        ev);
+    emm.setupContextMenu(ActionContextMenu, menuItems,
+                         real.classList.contains("_readonly"), ev);
     return false;
   }
 }

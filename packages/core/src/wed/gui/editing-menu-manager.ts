@@ -4,7 +4,7 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import { Action, ActionInvocation,
+import { Action, ActionInvocation, UnspecifiedAction,
          UnspecifiedActionInvocation } from "../action";
 import { CaretManager } from "../caret-manager";
 import { DLoc } from "../dloc";
@@ -241,8 +241,8 @@ export class EditingMenuManager {
 
       menuItems.push(...this.makeCommonItems(dataNode));
 
-      const trs = this.editor.getElementTransformationsAt(
-        treeCaret, wrap ? "wrap" : "insert");
+      const trs = this.getElementTransformationsAt(treeCaret,
+                                                   wrap ? "wrap" : "insert");
       for (const { name, tr } of trs) {
         // If name is not undefined we have a real transformation.
         // Otherwise, it is an action.
@@ -284,6 +284,58 @@ export class EditingMenuManager {
     }
 
     return menuItems;
+  }
+
+  /**
+   * Returns the list of element transformations for the location pointed to by
+   * the caret.
+   *
+   * @param treeCaret The location in the document. This must be a data
+   * location, not a GUI location.
+   *
+   * @param types The types of transformations to get.
+   *
+   * @return An array of objects having the fields ``tr`` which contain the
+   * actual transformation and ``name`` which is the unresolved element name for
+   * this transformation. It is exceptionally possible to have an item of the
+   * list contain ``undefined`` for ``name``.
+   */
+  getElementTransformationsAt(treeCaret: DLoc, types: string |  string[]):
+  { tr: UnspecifiedAction; name?: string }[]
+  {
+    const mode = this.modeTree.getMode(treeCaret.node);
+    const resolver = mode.getAbsoluteResolver();
+    const ret: { tr: UnspecifiedAction; name?: string }[] = [];
+    this.editor.validator.possibleAt(treeCaret).forEach(ev => {
+      if (ev.name !== "enterStartTag") {
+        return;
+      }
+
+      const pattern = ev.param;
+      const asArray = pattern.toArray();
+      if (asArray !== null) {
+        for (const name of asArray) {
+          const unresolved = resolver.unresolveName(name.ns, name.name);
+
+          const trs = mode.getContextualActions(
+            types, unresolved!, treeCaret.node, treeCaret.offset);
+          if (trs === undefined) {
+            return;
+          }
+
+          for (const tr of trs) {
+            ret.push({ tr, name: unresolved });
+          }
+        }
+      }
+      else {
+        // We push an action rather than a transformation.
+        ret.push({ tr: this.editor.complexElementPatternAction,
+                   name: undefined });
+      }
+    });
+
+    return ret;
   }
 
   /**

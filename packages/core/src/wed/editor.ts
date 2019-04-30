@@ -22,7 +22,7 @@ import { WED_ORIGIN } from "@wedxml/common";
 import { EDITOR_OPTIONS, EDITOR_WIDGET, GRAMMAR_LOADER,
          RUNTIME, SAVER } from "@wedxml/common/tokens";
 
-import { Action, UnspecifiedAction } from "./action";
+import { Action } from "./action";
 import { CaretChange, CaretManager } from "./caret-manager";
 import * as caretMovement from "./caret-movement";
 import { Clipboard, containsClipboardAttributeCollection } from "./clipboard";
@@ -1974,57 +1974,6 @@ in a way not supported by this version of wed.";
 
   openDocumentationLink(url: string): void {
     window.open(url);
-  }
-
-  /**
-   * Returns the list of element transformations for the location pointed to by
-   * the caret.
-   *
-   * @param treeCaret The location in the document. This must be a data
-   * location, not a GUI location.
-   *
-   * @param types The types of transformations to get.
-   *
-   * @return An array of objects having the fields ``tr`` which contain the
-   * actual transformation and ``name`` which is the unresolved element name for
-   * this transformation. It is exceptionally possible to have an item of the
-   * list contain ``undefined`` for ``name``.
-   */
-  getElementTransformationsAt(treeCaret: DLoc, types: string |  string[]):
-  { tr: UnspecifiedAction; name?: string }[]
-  {
-    const mode = this.modeTree.getMode(treeCaret.node);
-    const resolver = mode.getAbsoluteResolver();
-    const ret: { tr: UnspecifiedAction; name?: string }[] = [];
-    this.validator.possibleAt(treeCaret).forEach(ev => {
-      if (ev.name !== "enterStartTag") {
-        return;
-      }
-
-      const pattern = ev.param;
-      const asArray = pattern.toArray();
-      if (asArray !== null) {
-        for (const name of asArray) {
-          const unresolved = resolver.unresolveName(name.ns, name.name);
-
-          const trs = mode.getContextualActions(
-            types, unresolved!, treeCaret.node, treeCaret.offset);
-          if (trs === undefined) {
-            return;
-          }
-
-          for (const tr of trs) {
-            ret.push({ tr, name: unresolved });
-          }
-        }
-      }
-      else {
-        // We push an action rather than a transformation.
-        ret.push({ tr: this.complexElementPatternAction, name: undefined });
-      }
-    });
-
-    return ret;
   }
 
   private shouldAddToClipboard(): boolean {

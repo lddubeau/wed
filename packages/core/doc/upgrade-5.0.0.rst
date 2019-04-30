@@ -127,6 +127,9 @@ Miscelaneous changes
 * The ``iconHTML`` option in ``TransformationOptions`` is renamed to ``icon``
   for consistency with ``ActionOptions``.
 
+* ``getElementTransformationsAt`` has moved from ``Editor`` to
+  ``EditingMenuManager``.
+
 Notable Bootstrap Changes
 =========================
 

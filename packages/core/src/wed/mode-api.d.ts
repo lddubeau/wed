@@ -388,23 +388,6 @@ export interface EditorAPI extends EditorInstance {
   setModeData(key: string, value: any): void;
 
   /**
-   * Returns the list of element transformations for the location pointed to by
-   * the caret.
-   *
-   * @param treeCaret The location in the document. This must be a data
-   * location, not a GUI location.
-   *
-   * @param types The types of transformations to get.
-   *
-   * @return An array of objects having the fields ``tr`` which contain the
-   * actual transformation and ``name`` which is the unresolved element name for
-   * this transformation. It is exceptionally possible to have an item of the
-   * list contain ``undefined`` for ``name``.
-   */
-  getElementTransformationsAt(treeCaret: DLoc, types: string |  string[]):
-  { tr: UnspecifiedAction; name?: string }[];
-
-  /**
    * Sets the list of items to show in the navigation list. This will make the
    * list appear if it was not displayed previously.
    *
