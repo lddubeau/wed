@@ -101,8 +101,8 @@ ev is Filter<SaveEvents, { name: T }> {
 class ComplexPatternAction extends Action {
   private _modal: Modal | undefined;
 
-  constructor(editor: EditorAPI) {
-    super(WED_ORIGIN, editor, "Complex name pattern", {
+  constructor(editor: EditorAPI, kind: "element" | "attribute") {
+    super(WED_ORIGIN, editor, `Complex ${kind} name pattern`, {
         icon: icon.makeHTML("exclamation"),
         needsInput: true,
     });
@@ -308,7 +308,8 @@ export class Editor implements EditorAPI {
   readonly guiRoot: HTMLElement;
   readonly $guiRoot: JQuery;
   readonly $errorList: JQuery;
-  readonly complexPatternAction: Action;
+  readonly complexElementPatternAction: Action;
+  readonly complexAttributePatternAction: Action;
   readonly documentationAction: Action<DocumentationActionData>;
   readonly pasteTr: Transformation<PasteTransformationData>;
   readonly pasteUnitTr: Transformation<PasteTransformationData>;
@@ -515,7 +516,10 @@ export class Editor implements EditorAPI {
     this.errorItemHandlerBound = this.errorItemHandler.bind(this);
     this._undo = new UndoList();
 
-    this.complexPatternAction = new ComplexPatternAction(this);
+    this.complexElementPatternAction =
+      new ComplexPatternAction(this, "element");
+    this.complexAttributePatternAction =
+      new ComplexPatternAction(this, "attribute");
     this.documentationAction = new editorActions.DocumentationAction(this);
 
     this.pasteTr = new Transformation(WED_ORIGIN, this, "add", "Paste",
@@ -2016,7 +2020,7 @@ in a way not supported by this version of wed.";
       }
       else {
         // We push an action rather than a transformation.
-        ret.push({ tr: this.complexPatternAction, name: undefined });
+        ret.push({ tr: this.complexElementPatternAction, name: undefined });
       }
     });
 

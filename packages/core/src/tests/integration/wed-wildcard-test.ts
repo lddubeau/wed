@@ -120,7 +120,8 @@ describe("wed wildcard support:", () => {
         assert.isNotNull(el);
       });
       activateContextMenu(editor, el);
-      contextMenuHasOption(editor, /Complex name pattern/, 1);
+      contextMenuHasOption(editor, /Complex element name pattern/, 2);
+      contextMenuHasOption(editor, /Complex attribute name pattern/, 1);
     });
 
     it("on an attribute allowed due to a complex pattern", async () => {
@@ -130,7 +131,7 @@ describe("wed wildcard support:", () => {
         assert.isNotNull(el);
       });
       activateContextMenu(editor, el);
-      contextMenuHasOption(editor, /Complex name pattern/, 1);
+      contextMenuHasOption(editor, /Complex attribute name pattern/, 1);
     });
   });
 

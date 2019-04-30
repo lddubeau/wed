@@ -205,9 +205,15 @@ export interface EditorAPI extends EditorInstance {
 
   /**
    * The action to perform is a user is trying to do something with a complex
-   * pattern.
+   * element pattern.
    */
-  readonly complexPatternAction: Action;
+  readonly complexElementPatternAction: Action;
+
+  /**
+   * The action to perform is a user is trying to do something with a complex
+   * attribute pattern.
+   */
+  readonly complexAttributePatternAction: Action;
 
   /**
    * An action that opens a URL to documentation.

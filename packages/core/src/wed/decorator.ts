@@ -406,8 +406,9 @@ ${domutil.textToHTML(attributes[name])}</span>"</span>`;
         }
       }
       else {
-        menuItems.push(new ActionInvocation(editor.complexPatternAction,
-                                            undefined));
+        menuItems.push(
+          new ActionInvocation(editor.complexAttributePatternAction,
+                               undefined));
       }
     }
 
