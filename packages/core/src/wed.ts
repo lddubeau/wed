@@ -58,7 +58,7 @@ export function bindEditor(container: Container): void {
 
 export { Action, ActionInvocation, UnspecifiedAction,
          UnspecifiedActionInvocation } from "./wed/action";
-export { Decorator } from "./wed/decorator";
+export { Decorator, LocalizedActionInvocation } from "./wed/decorator";
 export { DLoc, DLocRoot } from "./wed/dloc";
 export { DOMListener } from "./wed/domlistener";
 export { version } from "./wed/editor";

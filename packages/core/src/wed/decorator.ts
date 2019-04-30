@@ -37,15 +37,30 @@ function attributeSelectorMatch(selector: string, name: string): boolean {
   return selector === "*" || selector === name;
 }
 
-class LocalizedActionInvocation<Data extends {} | void = void>
+/**
+ * An action invocation which dicriminates as to whether an action is performed
+ * before or after the element to which the caret belongs.
+ */
+export class LocalizedActionInvocation<Data extends {} | void = void>
   extends ActionInvocation<Data>{
   private readonly text: string;
 
-  constructor(action: Action<Data>, data: Data, readonly atStart: boolean) {
+  /**
+   * @param action The action to be invoked.
+   *
+   * @param data The data for the action.
+   *
+   * @param before Whether the action happens before or after the element to
+   * which the caret belongs.
+   */
+  constructor(action: Action<Data>, data: Data, readonly before: boolean) {
     super(action, data);
-    this.text = ` ${atStart ? "before" : "after"} this element`;
+    this.text = ` ${before ? "before" : "after"} this element`;
   }
 
+  /**
+   * Get a description which takes into account the [[before]] field.
+   */
   getDescription(): string {
     return `${super.getDescription()}${this.text}`;
   }
