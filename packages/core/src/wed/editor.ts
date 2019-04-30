@@ -2654,7 +2654,7 @@ cannot be cut.`, { type: "danger" });
         }
       }
 
-      if (this.editingMenuManager.contextMenuHandler(e) === false) {
+      if (this.editingMenuManager.contentContextMenuHandler(e) === false) {
         return terminate();
       }
     }
@@ -3186,7 +3186,7 @@ cannot be cut.`, { type: "danger" });
           $(target).trigger("wed-context-menu", [ev]);
         }
         else {
-          this.editingMenuManager.contextMenuHandler(ev);
+          this.editingMenuManager.contentContextMenuHandler(ev);
         }
       }
       break;

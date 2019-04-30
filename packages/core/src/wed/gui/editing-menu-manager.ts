@@ -19,6 +19,9 @@ import { ContextMenu } from "./context-menu";
 import { ReplacementMenu } from "./replacement-menu";
 import { TypeaheadPopup } from "./typeahead-popup";
 
+/** A context menu can be triggered by the keyboard or the mouse. */
+export type ContextMenuEvent = JQuery.KeyboardEventBase | JQuery.MouseEventBase;
+
 /**
  * Manages the editing menus for a specific editing view. An "editing menu" is a
  * menu that appears in the editing pane. The context menu and completion menu
@@ -53,8 +56,7 @@ export class EditingMenuManager {
    * The menu handler which is invoked when a user right-clicks on an element
    * start or end label is defined by the decorator that the mode is using.
    */
-  contextMenuHandler(e: JQuery.KeyboardEventBase | JQuery.MouseEventBase):
-  boolean {
+  contentContextMenuHandler(e: ContextMenuEvent): boolean {
     const sel = this.caretManager.sel;
     if (sel === undefined || (!sel.collapsed && !sel.wellFormed)) {
       return false;
@@ -81,8 +83,9 @@ export class EditingMenuManager {
     const real = closestByClass(node, "_real", this.guiRoot);
     const readonly = real !== null && real.classList.contains("_readonly");
 
-    const menuItems = this.getMenuItemsForElement(node as HTMLElement, offset,
-                                                  !sel.collapsed);
+    const menuItems = this.getMenuItemsForElementContent(node as HTMLElement,
+                                                         offset,
+                                                         !sel.collapsed);
 
     // There's no menu to display, so let the event bubble up.
     if (menuItems.length === 0) {
@@ -127,8 +130,7 @@ export class EditingMenuManager {
   setupContextMenu(cmClass: typeof ActionContextMenu,
                    items: UnspecifiedActionInvocation[],
                    readonly: boolean,
-                   e: JQuery.KeyboardEventBase | JQuery.MouseEventBase |
-                   undefined,
+                   e: ContextMenuEvent | undefined,
                    bottom?: boolean): void {
     const pos = this.computeMenuPosition(e, bottom);
     this.displayContextMenu(ActionContextMenu, pos.left, pos.top, items,
@@ -187,8 +189,9 @@ export class EditingMenuManager {
       });
   }
 
-  private getMenuItemsForElement(node: HTMLElement, offset: number,
-                                 wrap: boolean): UnspecifiedActionInvocation[] {
+  private getMenuItemsForElementContent(node: HTMLElement, offset: number,
+                                        wrap: boolean):
+  UnspecifiedActionInvocation[] {
     let actualNode: HTMLElement | null = node;
     // If we are in a phantom, we want to get to the first parent which is not
     // phantom.
@@ -505,8 +508,7 @@ export class EditingMenuManager {
                       options: any,
                       // tslint:disable-next-line:no-any
                       dismissCallback: (obj?: any) => void,
-                      e: JQuery.KeyboardEventBase | JQuery.MouseEventBase |
-                      undefined,
+                      e: ContextMenuEvent | undefined,
                       bottom?: boolean): TypeaheadPopup {
     const pos = this.computeMenuPosition(e, bottom);
     return this.displayTypeaheadPopup(pos.left, pos.top, width, placeholder,
@@ -565,8 +567,7 @@ export class EditingMenuManager {
    *
    * @returns The top and left coordinates where the menu should appear.
    */
-  computeMenuPosition(e: JQuery.KeyboardEventBase | JQuery.MouseEventBase |
-                      undefined,
+  computeMenuPosition(e: ContextMenuEvent | undefined,
                       bottom: boolean = false): { top: number; left: number } {
     if (e === undefined) {
       // tslint:disable-next-line:no-object-literal-type-assertion

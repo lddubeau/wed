@@ -130,6 +130,9 @@ Miscelaneous changes
 * ``getElementTransformationsAt`` has moved from ``Editor`` to
   ``EditingMenuManager``.
 
+* ``EditingMenuManager.contextMenuHandler`` was renamed to
+  ``contentContextMenuHandler``.
+
 Notable Bootstrap Changes
 =========================
 
