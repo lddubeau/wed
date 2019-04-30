@@ -205,12 +205,12 @@ export class EditingMenuManager {
       return [];
     }
 
+    const { caretManager } = this;
     if (lastPhantomChild !== undefined) {
       // The actualNode exists and is in our GUI tree. If the offset is outside
       // editable contents, move it into editable contents.
-      ({ offset } = this.caretManager
-       .normalizeToEditableRange(DLoc.mustMakeDLoc(this.guiRoot,
-                                                   lastPhantomChild)));
+      ({ offset } = caretManager.normalizeToEditableRange(
+        DLoc.mustMakeDLoc(this.guiRoot, lastPhantomChild)));
     }
 
     // tslint:disable-next-line:no-any
@@ -218,7 +218,7 @@ export class EditingMenuManager {
     if (// Should not be part of a gui element.
       !(actualNode.parentNode as Element).classList.contains("_gui")) {
       // We want the data node, not the gui node.
-      const treeCaret = this.caretManager.toDataLocation(actualNode, offset);
+      const treeCaret = caretManager.toDataLocation(actualNode, offset);
       if (treeCaret === undefined) {
         throw new Error("cannot find tree caret");
       }
