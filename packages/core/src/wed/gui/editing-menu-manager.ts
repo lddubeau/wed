@@ -4,12 +4,12 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import { Action, ActionInvocation, UnspecifiedAction,
+import { ActionInvocation, UnspecifiedAction,
          UnspecifiedActionInvocation } from "../action";
 import { CaretManager } from "../caret-manager";
 import { DLoc } from "../dloc";
 import { isElement } from "../domtypeguards";
-import { closestByClass, indexOf, isNotDisplayed } from "../domutil";
+import { closestByClass, isNotDisplayed } from "../domutil";
 import { Editor } from "../editor";
 import { ModeTree } from "../mode-tree";
 import { Transformation } from "../transformation";
@@ -60,37 +60,29 @@ export class EditingMenuManager {
       return false;
     }
 
-    let node = sel.focus.node;
-    let offset = sel.focus.offset;
-    if (!isElement(node)) {
-      const parent = node.parentNode;
-      if (parent === null) {
-        throw new Error("contextMenuHandler invoked on detached node");
-      }
-      offset = indexOf(parent.childNodes, node);
-      node = parent;
+    let loc = sel.focus;
+    if (!isElement(loc.node)) {
+      loc = loc.getLocationInParent();
     }
 
     // Move out of any placeholder
-    const ph = closestByClass(node, "_placeholder", this.guiRoot);
+    const ph = closestByClass(loc.node, "_placeholder", this.guiRoot);
     if (ph !== null) {
-      const parent = ph.parentNode;
-      if (parent === null) {
-        throw new Error("contextMenuHandler invoked on detached node");
-      }
-      offset = indexOf(parent.childNodes, ph);
-      node = parent;
+      loc = loc.make(ph);
+    }
+
+    const { node, offset } = loc;
+    // If this happens to be called inside an attribute value, we let the
+    // event bubble.
+    if (closestByClass(node, "_attribute_value", this.guiRoot) !== null) {
+      return true;
     }
 
     const real = closestByClass(node, "_real", this.guiRoot);
     const readonly = real !== null && real.classList.contains("_readonly");
-    const method =
-      closestByClass(node, "_attribute_value", this.guiRoot) !== null ?
-      this.getMenuItemsForAttribute :
-      this.getMenuItemsForElement;
 
-    // tslint:disable-next-line:no-any
-    const menuItems = (method as any).call(this, node, offset, !sel.collapsed);
+    const menuItems = this.getMenuItemsForElement(node as HTMLElement, offset,
+                                                  !sel.collapsed);
 
     // There's no menu to display, so let the event bubble up.
     if (menuItems.length === 0) {
@@ -193,10 +185,6 @@ export class EditingMenuManager {
         this.currentDropdown = undefined;
         this.caretManager.popSelection();
       });
-  }
-
-  private getMenuItemsForAttribute(): Action<{}>[] {
-    return [];
   }
 
   private getMenuItemsForElement(node: HTMLElement, offset: number,
