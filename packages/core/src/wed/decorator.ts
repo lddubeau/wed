@@ -21,7 +21,6 @@ import { ContextMenuHandler, DecoratorAPI, EditorAPI } from "./mode-api";
 import { NamedTransformationData, TransformationData } from "./transformation";
 import * as  util from "./util";
 
-const indexOf = domutil.indexOf;
 const closestByClass = domutil.closestByClass;
 
 function tryToSetDataCaret(editor: EditorAPI, dataCaret: DLoc): void {
@@ -413,19 +412,20 @@ ${domutil.textToHTML(attributes[name])}</span>"</span>`;
     }
 
     const real = closestByClass(node, "_real", editor.guiRoot);
-    const readonly = real !== null && real.classList.contains("_readonly");
+    if (real === null) {
+      throw new Error("cannot find real parent");
+    }
 
     const attrVal = closestByClass(node, "_attribute_value", editor.guiRoot);
     if (attrVal !== null) {
       const dataNode = editor.toDataNode(attrVal) as Attr;
       const treeCaret =
         DLoc.mustMakeDLoc(editor.dataRoot, dataNode.ownerElement);
-      const toAddTo = treeCaret.node.childNodes[treeCaret.offset];
       editor.validator.possibleAt(treeCaret, true).forEach(event => {
         if (event.name !== "attributeName") {
           return;
         }
-        processAttributeNameEvent(event, toAddTo as Element);
+        processAttributeNameEvent(event, dataNode.ownerElement!);
       });
 
       const name = dataNode.name;
@@ -437,22 +437,16 @@ ${domutil.textToHTML(attributes[name])}</span>"</span>`;
       }
     }
     else {
-      // We want the first real parent.
-      const candidate = closestByClass(node, "_real", editor.guiRoot);
-      if (candidate === null) {
-        throw new Error("cannot find real parent");
-      }
+      node = real;
 
-      node = candidate;
-      const topNode = (node.parentNode === editor.guiRoot);
-
-      menuItems.push(
-        ...editingMenuManager.makeCommonItems(editor.toDataNode(node)!));
+      const dataNode = editor.toDataNode(node)! as Element;
+      menuItems.push(...editingMenuManager.makeCommonItems(dataNode));
 
       // We first gather the transformations that pertain to the node to which
       // the label belongs.
-      const orig = util.getOriginalName(node);
+      const orig = dataNode.tagName;
 
+      const topNode = (node.parentNode === editor.guiRoot);
       if (!topNode) {
         pushItems({ node, name: orig },
                   mode.getContextualActions(
@@ -464,29 +458,21 @@ ${domutil.textToHTML(attributes[name])}</span>"</span>`;
       // Then we check what could be done before the node (if the
       // user clicked on an start element label) or after the node
       // (if the user clicked on an end element label).
-      const parent = node.parentNode!;
-      let index = indexOf(parent.childNodes, node);
-
-      // If we're on the end label, we want the events *after* the node.
-      if (!atStart) {
-        index++;
-      }
-      const treeCaret = editor.caretManager.toDataLocation(parent, index);
-      if (treeCaret === undefined) {
-        throw new Error("cannot get caret");
-      }
-
+      let treeCaret = DLoc.mustMakeDLoc(editor.dataRoot, dataNode);
       if (atStart) {
-        const toAddTo = treeCaret.node.childNodes[treeCaret.offset];
-        const attributeHandling = editor.modeTree.getAttributeHandling(toAddTo);
+        const attributeHandling =
+          editor.modeTree.getAttributeHandling(dataNode);
         if (attributeHandling === "edit") {
           editor.validator.possibleAt(treeCaret, true).forEach(event => {
             if (event.name !== "attributeName") {
               return;
             }
-            processAttributeNameEvent(event, toAddTo as Element);
+            processAttributeNameEvent(event, dataNode);
           });
         }
+      }
+      else {
+        treeCaret = treeCaret.makeWithOffset(treeCaret.offset + 1);
       }
 
       if (!topNode) {
@@ -502,8 +488,7 @@ ${domutil.textToHTML(attributes[name])}</span>"</span>`;
         if (atStart) {
           // Move to inside the element and get the get the wrap-content
           // possibilities.
-          const caretInside =
-            treeCaret.make(treeCaret.node.childNodes[treeCaret.offset], 0);
+          const caretInside = treeCaret.make(dataNode, 0);
           for (const { tr, name } of
                editor.getElementTransformationsAt(caretInside,
                                                   "wrap-content")) {
@@ -520,7 +505,8 @@ ${domutil.textToHTML(attributes[name])}</span>"</span>`;
       return true;
     }
 
-    editingMenuManager.setupContextMenu(ActionContextMenu, menuItems, readonly,
+    editingMenuManager.setupContextMenu(ActionContextMenu, menuItems,
+                                        real.classList.contains("_readonly"),
                                         ev);
     return false;
   }
