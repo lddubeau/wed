@@ -4,15 +4,16 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import { Action } from "../action";
+import { Action, ActionInvocation,
+         UnspecifiedActionInvocation } from "../action";
 import { CaretManager } from "../caret-manager";
 import { DLoc } from "../dloc";
 import { isElement } from "../domtypeguards";
 import { closestByClass, indexOf, isNotDisplayed } from "../domutil";
 import { Editor } from "../editor";
 import { ModeTree } from "../mode-tree";
-import { NamedTransformationData, Transformation } from "../transformation";
-import { ActionContextMenu, Item } from "./action-context-menu";
+import { Transformation } from "../transformation";
+import { ActionContextMenu } from "./action-context-menu";
 import { CompletionMenu } from "./completion-menu";
 import { ContextMenu } from "./context-menu";
 import { ReplacementMenu } from "./replacement-menu";
@@ -132,7 +133,7 @@ export class EditingMenuManager {
    */
   // @ts-ignore
   setupContextMenu(cmClass: typeof ActionContextMenu,
-                   items: Item[],
+                   items: UnspecifiedActionInvocation[],
                    readonly: boolean,
                    e: JQuery.KeyboardEventBase | JQuery.MouseEventBase |
                    undefined,
@@ -153,27 +154,19 @@ export class EditingMenuManager {
    *
    * @returns A new array with the remaining unique menu items.
    */
-  dedupItems(items: Item[], readonly: boolean): Item[] {
+  dedupItems(items: UnspecifiedActionInvocation[],
+             readonly: boolean): UnspecifiedActionInvocation[] {
     // Eliminate duplicate items. We perform a check only in the description of
     // the action, and on ``data.name``.
     const seen: Record<string, boolean> = Object.create(null);
-    return items.filter(item => {
-      // "\0" not a legitimate value in descriptions.
-      let actionKey = `${(item.action !== null ?
-                       item.action.getDescription() : "")}\0`;
-      if (item.data != null) {
-        actionKey += (item.data as NamedTransformationData).name;
-      }
-      const keep = !seen[actionKey];
-      seen[actionKey] = true;
+    return items.filter(({ action, key }) => {
+      const keep = !seen[key];
+      seen[key] = true;
 
-      if (!keep || !readonly) {
-        return keep;
-      }
-
-      // If we get here, then we need to filter out anything that transforms the
-      // tree.
-      return !(item.action instanceof Transformation);
+      return (!keep || !readonly) ? keep :
+        // If we get here, then we need to filter out anything that transforms
+        // the tree.
+        !(action instanceof Transformation);
     });
   }
 
@@ -190,7 +183,8 @@ export class EditingMenuManager {
    *                 would trigger a ``Transformation``.
    */
   displayContextMenu(cmClass: typeof ActionContextMenu, x: number, y: number,
-                     items: Item[], readonly: boolean): void {
+                     items: UnspecifiedActionInvocation[],
+                     readonly: boolean): void {
     this.dismiss();
     this.caretManager.pushSelection();
     this.currentDropdown = new cmClass(
@@ -206,7 +200,7 @@ export class EditingMenuManager {
   }
 
   private getMenuItemsForElement(node: HTMLElement, offset: number,
-                                 wrap: boolean): Item[] {
+                                 wrap: boolean): UnspecifiedActionInvocation[] {
     let actualNode: HTMLElement | null = node;
     // If we are in a phantom, we want to get to the first parent which is not
     // phantom.
@@ -229,7 +223,7 @@ export class EditingMenuManager {
     }
 
     // tslint:disable-next-line:no-any
-    const menuItems: Item[] = [];
+    const menuItems: UnspecifiedActionInvocation[] = [];
     if (// Should not be part of a gui element.
       !(actualNode.parentNode as Element).classList.contains("_gui")) {
       // We want the data node, not the gui node.
@@ -252,15 +246,16 @@ export class EditingMenuManager {
       for (const { name, tr } of trs) {
         // If name is not undefined we have a real transformation.
         // Otherwise, it is an action.
-        menuItems.push({ data: name !== undefined ? { name } : null,
-                         action: tr });
+        menuItems.push(
+          new ActionInvocation(tr, name !== undefined ? { name } : null));
       }
 
       if (dataNode !== this.dataRoot.firstChild && dataNode !== this.dataRoot) {
         const actions = mode.getContextualActions(
           ["unwrap", "delete-parent", "split"], tagName, dataNode, 0);
         for (const action of actions) {
-          menuItems.push({ data: { node: dataNode, name: tagName }, action });
+          menuItems.push(
+            new ActionInvocation(action, { node: dataNode, name: tagName }));
         }
       }
     }
@@ -282,10 +277,9 @@ export class EditingMenuManager {
         ["merge-with-next", "merge-with-previous", "append", "prepend"], sepFor,
         $.data(transformationNode, "wed_mirror_node"), 0);
       for (const action of actions) {
-        menuItems.push({
-          data: { node: transformationNode, name: sepFor },
-          action,
-        });
+        menuItems.push(
+          new ActionInvocation(action,
+                               { node: transformationNode, name: sepFor }));
       }
     }
 
@@ -299,20 +293,16 @@ export class EditingMenuManager {
    *
    * @returns Menu items.
    */
-  makeCommonItems(dataNode: Node): Item[] {
-    const menuItems: Item[] = [];
+  makeCommonItems(dataNode: Node): UnspecifiedActionInvocation[] {
+    const menuItems: UnspecifiedActionInvocation[] = [];
     if (isElement(dataNode)) {
       const tagName = dataNode.tagName;
       const mode = this.modeTree.getMode(dataNode);
       const docURL = mode.documentationLinkFor(tagName);
 
       if (docURL != null) {
-        menuItems.push({
-          action: this.editor.documentationAction,
-          data: {
-            docURL,
-          },
-        });
+        menuItems.push(new ActionInvocation(this.editor.documentationAction,
+                                            { docURL }));
       }
     }
 

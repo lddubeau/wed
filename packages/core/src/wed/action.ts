@@ -10,6 +10,18 @@ import { Action as ActionInterface,
 import { Button } from "./gui/button";
 import { EditorAPI } from "./mode-api";
 
+export class ActionInvocation<Data extends {} | void = void> {
+  constructor(readonly action: Action<Data>, readonly data: Data) {}
+
+  getDescription(): string {
+    return this.action.getDescriptionFor(this.data);
+  }
+
+  get key(): string {
+    return `${this.action.origin}:${this.action.getDescriptionFor(this.data)}`;
+  }
+}
+
 export interface ActionOptions {
   /**  An abbreviated description of this action. */
   abbreviatedDesc?: string;
@@ -213,6 +225,14 @@ export abstract class Action<Data extends {} | void = void>
  */
 // tslint:disable-next-line:no-any
 export interface UnspecifiedAction extends Action<any> {
+}
+
+/**
+ * An interface modeling action invocations for which we do not have precise
+ * information regarding what data they accept.
+ */
+// tslint:disable-next-line:no-any
+export interface UnspecifiedActionInvocation extends ActionInvocation<any> {
 }
 
 //  LocalWords:  autoinsert Dubeau MPL Mangalam html keybindings

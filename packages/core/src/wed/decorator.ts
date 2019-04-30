@@ -8,13 +8,14 @@
 import $ from "jquery";
 import * as salve from "salve";
 
-import { Action } from "./action";
+import { Action, ActionInvocation,
+         UnspecifiedActionInvocation } from "./action";
 import { DLoc } from "./dloc";
 import { DOMListener } from "./domlistener";
 import { isAttr } from "./domtypeguards";
 import * as  domutil from "./domutil";
 import { GUIUpdater } from "./gui-updater";
-import { ActionContextMenu, Item } from "./gui/action-context-menu";
+import { ActionContextMenu } from "./gui/action-context-menu";
 import { Mode } from "./mode";
 import { ContextMenuHandler, DecoratorAPI, EditorAPI } from "./mode-api";
 import { NamedTransformationData, TransformationData } from "./transformation";
@@ -34,6 +35,20 @@ function tryToSetDataCaret(editor: EditorAPI, dataCaret: DLoc): void {
 
 function attributeSelectorMatch(selector: string, name: string): boolean {
   return selector === "*" || selector === name;
+}
+
+class LocalizedActionInvocation<Data extends {} | void = void>
+  extends ActionInvocation<Data>{
+  private readonly text: string;
+
+  constructor(action: Action<Data>, data: Data, readonly atStart: boolean) {
+    super(action, data);
+    this.text = ` ${atStart ? "before" : "after"} this element`;
+  }
+
+  getDescription(): string {
+    return `${super.getDescription()}${this.text}`;
+  }
 }
 
 /**
@@ -344,13 +359,13 @@ ${domutil.textToHTML(attributes[name])}</span>"</span>`;
     const editingMenuManager = editor.editingMenuManager;
     let node = wedEv.target;
     // tslint:disable-next-line:no-any
-    const menuItems: Item[] = [];
+    const menuItems: UnspecifiedActionInvocation[] = [];
     const mode = editor.modeTree.getMode(node);
     const absoluteResolver = mode.getAbsoluteResolver();
 
     function pushItems<D>(data: D, trs: Action<D>[]): void {
       for (const tr of trs) {
-        menuItems.push({ action: tr, data });
+        menuItems.push(new ActionInvocation(tr, data));
       }
     }
 
@@ -376,7 +391,8 @@ ${domutil.textToHTML(attributes[name])}</span>"</span>`;
         }
       }
       else {
-        menuItems.push({ data: null, action: editor.complexPatternAction});
+        menuItems.push(new ActionInvocation(editor.complexPatternAction,
+                                            undefined));
       }
     }
 
@@ -460,9 +476,11 @@ ${domutil.textToHTML(attributes[name])}</span>"</span>`;
       if (!topNode) {
         for (const { tr, name } of
              editor.getElementTransformationsAt(treeCaret, "insert")) {
-          menuItems.push({ data: name !== undefined ?
-                           { name, moveCaretTo: treeCaret } : null,
-                           action: tr, atStart });
+          menuItems.push(
+            new LocalizedActionInvocation(
+              tr,
+              name !== undefined ? { name, moveCaretTo: treeCaret } : null,
+              atStart));
         }
 
         if (atStart) {
@@ -473,8 +491,9 @@ ${domutil.textToHTML(attributes[name])}</span>"</span>`;
           for (const { tr, name } of
                editor.getElementTransformationsAt(caretInside,
                                                   "wrap-content")) {
-            menuItems.push({ data: name !== undefined ? { name, node } : null,
-                             action: tr });
+            menuItems.push(
+              new ActionInvocation(tr,
+                                   name !== undefined ? { name, node } : null));
           }
         }
       }

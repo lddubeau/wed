@@ -68,6 +68,8 @@ Miscelaneous changes
   + ``ActionContextMenu``, ``CompletionMenu`` and ``ReplacementMenu`` have all
     been updated to use the refactored base class.
 
+  + ``ActionContextMenu`` now takes ``ActionInvocation`` as menu item.
+
 * ``EditorAPI`` how exposes a ``documentationAction`` which must be used for
   menu items providing links to documentation.
 

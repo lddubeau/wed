@@ -8,7 +8,7 @@ import $ from "jquery";
 
 import * as browsers from "@wedxml/common/browsers";
 
-import { UnspecifiedAction } from "../action";
+import { UnspecifiedAction, UnspecifiedActionInvocation } from "../action";
 import * as keyMod from "../key";
 import * as keyConstants from "../key-constants";
 import { NamedTransformationData, Transformation } from "../transformation";
@@ -49,19 +49,9 @@ const KEY_TO_FILTER: {
   { key: exclamation, filter: undefined, which: "type" },
 ];
 
-const atStartToTxt: Record<string, string> = {
-  undefined: "",
-  true: " before this element",
-  false: " after this element",
-};
-
-export interface Item {
+interface MadeItem {
   action: UnspecifiedAction;
   data: {} | null;
-  atStart?: boolean;
-}
-
-interface MadeItem extends Item {
   item: HTMLElement;
 }
 
@@ -145,7 +135,9 @@ interface Filters {
  * When no option is focused, typing ENTER will select the first option of the
  * menu.
  */
-export class ActionContextMenu extends ContextMenu<Item> {
+export class ActionContextMenu
+extends ContextMenu<UnspecifiedActionInvocation> {
+  private readonly actionItemsMap: Map<UnspecifiedActionInvocation, MadeItem>;
   private readonly actionItems: MadeItem[];
   private readonly actionFilterItem: Element;
   private readonly actionFilterInput: HTMLInputElement;
@@ -172,12 +164,14 @@ export class ActionContextMenu extends ContextMenu<Item> {
    *
    * @param dismissCallback Function to call when the menu is dismissed.
    */
-  constructor(document: Document, x: number, y: number, items: Item[],
+  constructor(document: Document, x: number, y: number,
+              items: UnspecifiedActionInvocation[],
               dismissCallback?: DismissCallback) {
     super(document, x, y, [], dismissCallback);
 
+    const actionItemsMap = this.actionItemsMap = new Map();
     this.actionItems = items.map(item => {
-      const { action, data, atStart } = item;
+      const { action, data } = item;
       const el = this.makeMenuItemElement();
       const icon = action.getIcon();
       // tslint:disable-next-line:no-inner-html
@@ -189,18 +183,20 @@ export class ActionContextMenu extends ContextMenu<Item> {
 
       // We do it this way so that to avoid an HTML interpretation of
       // action.getDescriptionFor()`s return value.
-      const text = this.doc.createTextNode(action.getDescriptionFor(data) +
-                                           atStartToTxt[String(atStart)]);
+      const text = this.doc.createTextNode(item.getDescription());
       el.appendChild(text);
       el.normalize();
       $(el).click(data, action.boundTerminalHandler as any);
 
-      return {
+      const made = {
         action,
         item: el,
         data,
-        atStart,
       };
+
+      actionItemsMap.set(item, made);
+
+      return made;
     });
 
     // Sort the items once and for all.
@@ -251,8 +247,8 @@ export class ActionContextMenu extends ContextMenu<Item> {
     textInput.focus();
   }
 
-  protected makeMenuItem(spec: MadeItem): HTMLElement {
-    return spec.item;
+  protected makeMenuItem(spec: UnspecifiedActionInvocation): HTMLElement {
+    return this.actionItemsMap.get(spec)!.item;
   }
 
   private makeKindGroup(document: Document): Element {
