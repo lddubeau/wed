@@ -79,6 +79,9 @@ function splitNodeOn(editor: EditorAPI, data: SplitData): void {
 /**
  * Makes an input trigger that splits and merges consecutive elements.
  *
+ * @param origin The origin of the [["transformation".Transformation]] that
+ * this factory creates.
+ *
  * @param editor The editor for which to create the input trigger.
  *
  * @param selector A CSS selector that determines which element we want to
@@ -95,7 +98,8 @@ function splitNodeOn(editor: EditorAPI, data: SplitData): void {
  *
  * @returns The input trigger.
  */
-export function makeSplitMergeInputTrigger(editor: EditorAPI,
+export function makeSplitMergeInputTrigger(origin: string,
+                                           editor: EditorAPI,
                                            mode: Mode,
                                            selector: GUISelector,
                                            splitKey: Key,
@@ -103,7 +107,7 @@ export function makeSplitMergeInputTrigger(editor: EditorAPI,
                                            mergeWithNextKey: Key):
 InputTrigger {
   const splitNodeOnTr = new transformation.Transformation<SplitData>(
-    editor, "split", "Split node on character", splitNodeOn);
+    origin, editor, "split", "Split node on character", splitNodeOn);
 
   const ret = new InputTrigger(editor, mode, selector);
   ret.addKeyHandler(splitKey, (eventType, el, ev) => {

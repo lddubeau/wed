@@ -112,9 +112,15 @@ Miscelaneous changes
 
 * The ``Handlers`` interface is no longer exported from ``domlistener``.
 
-* The signature of the ``Action`` constructor has changed. The optional
-  arguments are now being passed through an options object. This affects you if
-  you wrote custom code.
+* The signature of the ``Action`` constructor has changed. This affects you if
+    you wrote custom code that creates actions.
+
+  + The optional arguments are now being passed through an options object.
+
+  + A new ``origin`` argument is added first to the list of arguments.
+
+* The ``origin`` argument mentioned above is also required on ``Transformation``
+  objects.
 
 * The ``iconHTML`` option in ``TransformationOptions`` is renamed to ``icon``
   for consistency with ``ActionOptions``.

@@ -161,7 +161,7 @@ source_converted.xml`,
   // significant.
   it("does not try to act on undo/redo changes", () => {
     makeSplitMergeInputTrigger(
-      editor, mode, pSelector, key.makeKey(";"), BACKSPACE, DELETE);
+      "test", editor, mode, pSelector, key.makeKey(";"), BACKSPACE, DELETE);
     let ps = editor.dataRoot.querySelectorAll("body p");
     assert.equal(ps.length, 1);
     editor.caretManager.setCaret(ps[0], 0);

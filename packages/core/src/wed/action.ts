@@ -48,14 +48,24 @@ export abstract class Action<Data extends {} | void = void>
   readonly boundTerminalHandler: (ev: EventWithData<Data>) => boolean;
 
   /**
+   *
+   * @param origin The action's origin. If you produce a mode with custom
+   * actions, you must select an origin that won't clash with wed and other
+   * modes. You should use a URI you have (reasonable) authority over. URLs are
+   * URIs so if you produce a wed mode hosted at ``https://github.com/foo/bar``,
+   * you could use this as the origin. The origin is used by wed to possibly
+   * distinguish actions that are otherwise indistinguishable. For instance if
+   * wed provides an "Undo" action and a mode provides an "Undo" action, the
+   * origin may be the only way to distinguish the two actions.
+   *
    * @param editor The editor to which this action belongs.
    *
    * @param desc A simple string description of the action.
    *
    * @param options Options that can be set for the action.
    */
-  constructor(readonly editor: EditorAPI, protected readonly desc: string,
-              options?: ActionOptions) {
+  constructor(readonly origin: string, readonly editor: EditorAPI,
+              protected readonly desc: string, options?: ActionOptions) {
     options = options || {};
     this.needsInput = !!options.needsInput; // normalize value
     this.abbreviatedDesc = options.abbreviatedDesc;

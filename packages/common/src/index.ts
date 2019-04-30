@@ -7,3 +7,8 @@
  */
 
 export const version = "5.0.0-alpha.24";
+
+/**
+ * The origin of the actions bundled with wed.
+ */
+export const WED_ORIGIN = "https://github.com/mangalam-research/wed";

@@ -71,6 +71,7 @@ export { UndoMarker } from "./wed/undo";
 // that can take mode validators.
 export { ModeValidator, Validator } from "./wed/validator";
 export { WedOptions } from "./wed/wed-options";
+export { WED_ORIGIN } from "@wedxml/common";
 
 import * as actionContextMenu_ from "./wed/gui/action-context-menu";
 import * as button_ from "./wed/gui/button";

@@ -79,7 +79,7 @@ describe("input_trigger_factory", () => {
     // tslint:disable:mocha-no-side-effect-code
     mit("handles a split triggered by a keypress event", () => {
       inputTriggerFactory.makeSplitMergeInputTrigger(
-        editor, mode, pSelector, key.makeKey(";"), BACKSPACE, DELETE);
+        "test", editor, mode, pSelector, key.makeKey(";"), BACKSPACE, DELETE);
 
       let ps = editor.dataRoot.querySelectorAll("p");
       editor.caretManager.setCaret(ps[ps.length - 1].firstChild, 4);
@@ -94,7 +94,7 @@ describe("input_trigger_factory", () => {
 
     mit("handles a split triggered by a keydown event", () => {
       inputTriggerFactory.makeSplitMergeInputTrigger(
-        editor, mode, pSelector, ENTER, BACKSPACE, DELETE);
+        "test", editor, mode, pSelector, ENTER, BACKSPACE, DELETE);
 
       let ps = editor.dataRoot.querySelectorAll("body p");
       editor.caretManager.setCaret(ps[ps.length - 1].firstChild, 4);
@@ -109,7 +109,7 @@ describe("input_trigger_factory", () => {
 
     mit("handles a split triggered by a paste event", () => {
       inputTriggerFactory.makeSplitMergeInputTrigger(
-        editor, mode, pSelector, key.makeKey(";"), BACKSPACE, DELETE);
+        "test", editor, mode, pSelector, key.makeKey(";"), BACKSPACE, DELETE);
 
       let ps = editor.dataRoot.querySelectorAll("body p");
       assert.equal(ps.length, 1);
@@ -142,7 +142,7 @@ describe("input_trigger_factory", () => {
 
     mit("backspaces in phantom text", () => {
       inputTriggerFactory.makeSplitMergeInputTrigger(
-        editor, mode, pSelector, ENTER, BACKSPACE, DELETE);
+        "test", editor, mode, pSelector, ENTER, BACKSPACE, DELETE);
 
       editor.caretManager.setCaret(
         editor.guiRoot.querySelector(".p>.ref")!.firstChild, 1);
@@ -153,7 +153,7 @@ describe("input_trigger_factory", () => {
 
     mit("deletes in phantom text", () => {
       inputTriggerFactory.makeSplitMergeInputTrigger(
-        editor, mode, pSelector, ENTER, BACKSPACE, DELETE);
+        "test", editor, mode, pSelector, ENTER, BACKSPACE, DELETE);
 
       editor.caretManager.setCaret(
         editor.guiRoot.querySelector(".p>.ref")!.lastChild!.previousSibling, 0);
@@ -173,7 +173,7 @@ describe("input_trigger_factory", () => {
 
     mit("merges on BACKSPACE", () => {
       inputTriggerFactory.makeSplitMergeInputTrigger(
-        editor, mode, pSelector, ENTER, BACKSPACE, DELETE);
+        "test", editor, mode, pSelector, ENTER, BACKSPACE, DELETE);
 
       let ps = editor.dataRoot.querySelectorAll("body>p");
       assert.equal(ps.length, 2,
@@ -190,7 +190,7 @@ describe("input_trigger_factory", () => {
 
     mit("merges on BACKSPACE, and can undo", () => {
       inputTriggerFactory.makeSplitMergeInputTrigger(
-        editor, mode, pSelector, ENTER, BACKSPACE, DELETE);
+        "test", editor, mode, pSelector, ENTER, BACKSPACE, DELETE);
 
       let ps = editor.dataRoot.querySelectorAll("body>p");
       assert.equal(ps.length, 2,
@@ -214,7 +214,7 @@ describe("input_trigger_factory", () => {
 
     mit("merges on DELETE", () => {
       inputTriggerFactory.makeSplitMergeInputTrigger(
-        editor, mode, pSelector, ENTER, BACKSPACE, DELETE);
+        "test", editor, mode, pSelector, ENTER, BACKSPACE, DELETE);
 
       let ps = editor.dataRoot.querySelectorAll("body>p");
       assert.equal(ps.length, 2,
@@ -232,7 +232,7 @@ describe("input_trigger_factory", () => {
 
     mit("merges on DELETE, and can undo", () => {
       inputTriggerFactory.makeSplitMergeInputTrigger(
-        editor, mode, pSelector, ENTER, BACKSPACE, DELETE);
+        "test", editor, mode, pSelector, ENTER, BACKSPACE, DELETE);
 
       let ps = editor.dataRoot.querySelectorAll("body>p");
       assert.equal(ps.length, 2,

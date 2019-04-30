@@ -11,7 +11,7 @@ import { ErrorData } from "salve-dom";
 
 import { Action, Decorator, domutil, EditorAPI, gui, GUISelector,
          inputTriggerFactory, key, keyConstants, ModeValidator, objectCheck,
-         transformation, UnspecifiedAction } from "wed";
+         transformation, UnspecifiedAction, WED_ORIGIN } from "wed";
 import { GenericModeOptions,
          Mode as GenericMode } from "wed/modes/generic/generic";
 import { GenericDecorator } from "wed/modes/generic/generic-decorator";
@@ -75,6 +75,7 @@ export class TestDecorator extends GenericDecorator {
   addHandlers(): void {
     super.addHandlers();
     inputTriggerFactory.makeSplitMergeInputTrigger(
+      WED_ORIGIN,
       this.editor,
       this.mode,
       GUISelector.fromDataSelector("hi",
@@ -402,17 +403,20 @@ export class TestMode extends GenericMode<TestModeOptions> {
     }
 
     this.typeaheadAction = new TypeaheadAction(
-      editor, "Test typeahead", {
+      WED_ORIGIN, editor, "Test typeahead", {
         icon: "<i class='fa fa-plus fa-fw'></i>",
         needsInput: true,
       });
 
     this.draggableAction =
-      new DraggableModalAction(editor, "Test draggable", { needsInput: true });
+      new DraggableModalAction(WED_ORIGIN, editor, "Test draggable",
+                               { needsInput: true });
     this.resizableAction =
-      new ResizableModalAction(editor, "Test resizable", { needsInput: true });
+      new ResizableModalAction(WED_ORIGIN, editor, "Test resizable",
+                               { needsInput: true });
     this.draggableResizableAction =
-      new DraggableResizableModalAction(editor, "Test draggable resizable",
+      new DraggableResizableModalAction(WED_ORIGIN, editor,
+                                        "Test draggable resizable",
                                         { needsInput: true });
   }
 
@@ -432,7 +436,7 @@ export class TestMode extends GenericMode<TestModeOptions> {
     if (this.options.fileDesc_insert_needs_input &&
         tag === "fileDesc" && transformationType === "insert") {
       return [new transformation.Transformation(
-        this.editor, "insert", "foo",
+        WED_ORIGIN, this.editor, "insert", "foo",
         // We don't need a real handler because it will not be called.
         // tslint:disable-next-line:no-empty
         () => {}, { needsInput: true })];

@@ -6,6 +6,8 @@
  */
 import { Observable, Subject } from "rxjs";
 
+import { WED_ORIGIN } from "@wedxml/common";
+
 import { Action } from "./action";
 import { Button, ToggleButton } from "./gui/button";
 import { makeHTML } from "./gui/icon";
@@ -49,7 +51,7 @@ export function makeAction(desc: string,
 
   return class extends Action {
     constructor(editor: EditorAPI) {
-      super(editor, desc, {
+      super(WED_ORIGIN, editor, desc, {
         abbreviatedDesc: actualAbbreviatedDesc,
         icon: actualIcon,
         needsInput: actualNeedsInput,
@@ -114,7 +116,8 @@ export class ToggleAttributeHiding extends Action<boolean> {
   readonly events: Observable<PressedEvent> = this._events.asObservable();
 
   constructor(editor: EditorAPI) {
-    super(editor, "Toggle attribute hiding", { abbreviatedDesc: "AH" });
+    super(WED_ORIGIN, editor, "Toggle attribute hiding",
+          { abbreviatedDesc: "AH" });
   }
 
   execute(data: boolean): void {
@@ -150,7 +153,7 @@ export class ToggleAttributeHiding extends Action<boolean> {
 export class SetSelectionMode extends Action<{}> {
   constructor(editor: EditorAPI, name: string, icon: string,
               private readonly desiredMode: SelectionMode) {
-    super(editor, `Set selection mode to ${name}`, {
+    super(WED_ORIGIN, editor, `Set selection mode to ${name}`, {
       abbreviatedDesc: name,
       icon,
     });
@@ -187,8 +190,8 @@ export class SetSelectionMode extends Action<{}> {
  */
 export class DocumentationAction extends Action<DocumentationActionData> {
   constructor(editor: EditorAPI) {
-    super(editor, "Element's documentation.", {
-      icon: makeHTML("documentation")
+    super(WED_ORIGIN, editor, "Element's documentation.", {
+      icon: makeHTML("documentation"),
     });
   }
 

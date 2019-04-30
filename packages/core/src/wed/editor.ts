@@ -18,6 +18,7 @@ import { ParsingError, safeParse, WorkingState,
 import { ActionCtor, FailedEvent, GrammarLoader, Options, Runtime, SaveEvents,
          SaveKind, Saver } from "@wedxml/client-api";
 import * as optionsSchema from "@wedxml/client-api/options-schema.json";
+import { WED_ORIGIN } from "@wedxml/common";
 import { EDITOR_OPTIONS, EDITOR_WIDGET, GRAMMAR_LOADER,
          RUNTIME, SAVER } from "@wedxml/common/tokens";
 
@@ -101,7 +102,7 @@ class ComplexPatternAction extends Action {
   private _modal: Modal | undefined;
 
   constructor(editor: EditorAPI) {
-    super(editor, "Complex name pattern", {
+    super(WED_ORIGIN, editor, "Complex name pattern", {
         icon: icon.makeHTML("exclamation"),
         needsInput: true,
     });
@@ -517,54 +518,56 @@ export class Editor implements EditorAPI {
     this.complexPatternAction = new ComplexPatternAction(this);
     this.documentationAction = new editorActions.DocumentationAction(this);
 
-    this.pasteTr = new Transformation(this, "add", "Paste",
+    this.pasteTr = new Transformation(WED_ORIGIN, this, "add", "Paste",
                                       this.paste.bind(this));
-    this.pasteUnitTr = new Transformation(this, "add", "Paste Unit",
+    this.pasteUnitTr = new Transformation(WED_ORIGIN, this, "add", "Paste Unit",
                                           this.pasteUnit.bind(this));
-    this.cutTr = new Transformation(this, "delete", "Cut", this.cut.bind(this));
-    this.cutUnitTr = new Transformation(this, "delete", "Cut Unit",
+    this.cutTr = new Transformation(WED_ORIGIN, this, "delete", "Cut",
+                                    this.cut.bind(this));
+    this.cutUnitTr = new Transformation(WED_ORIGIN, this, "delete", "Cut Unit",
                                         this.cutUnit.bind(this));
     this.deleteSelectionTr =
-      new Transformation(this, "delete", "Delete Selection",
+      new Transformation(WED_ORIGIN, this, "delete", "Delete Selection",
                          this._deleteSelection.bind(this));
 
     this.replaceRangeTr =
-      new Transformation(
-        this, "transform", "Replace Range", this.replaceRange.bind(this));
+      new Transformation(WED_ORIGIN, this, "transform", "Replace Range",
+                         this.replaceRange.bind(this));
 
     this.splitNodeTr =
-      new Transformation(this, "split", "Split <name>",
+      new Transformation(WED_ORIGIN, this, "split", "Split <name>",
                          (editor, data) => {
                            splitNode(editor, data.node!);
                          });
 
     this.insertTextTr = new Transformation<InsertTextTransformationData>(
-      this, "add", "Insert text", this._insertText.bind(this),
+      WED_ORIGIN, this, "add", "Insert text", this._insertText.bind(this),
       {
         treatAsTextInput: true,
       });
     this.deleteCharTr = new Transformation<DeleteCharTransformationData>(
-      this, "delete", "Insert text", this._deleteChar.bind(this),
+      WED_ORIGIN, this, "delete", "Insert text", this._deleteChar.bind(this),
       {
         treatAsTextInput: true,
       });
 
     this.mergeWithPreviousHomogeneousSiblingTr =
       new Transformation(
-        this, "merge-with-previous", "Merge <name> with previous",
+        WED_ORIGIN, this, "merge-with-previous", "Merge <name> with previous",
         (editor, data) => {
           mergeWithPreviousHomogeneousSibling(editor, data.node as Element);
         });
 
     this.mergeWithNextHomogeneousSiblingTr =
       new Transformation(
-        this, "merge-with-next", "Merge <name> with next",
+        WED_ORIGIN, this, "merge-with-next", "Merge <name> with next",
         (editor, data) => {
           mergeWithNextHomogeneousSibling(editor, data.node as Element);
         });
 
     this.removeMarkupTr =
-      new Transformation(this, "delete", "Remove mixed-content markup",
+      new Transformation(WED_ORIGIN, this, "delete",
+                         "Remove mixed-content markup",
                          removeMarkup, {
                            abbreviatedDesc: "Remove mixed-content markup",
                            icon: "<i class='fa fa-eraser'></i>",

@@ -8,7 +8,8 @@
 
 import { ErrorData } from "salve-dom";
 
-import { DLoc, domtypeguards, domutil, EditorAPI, transformation } from "wed";
+import { DLoc, domtypeguards, domutil, EditorAPI, transformation,
+         WED_ORIGIN } from "wed";
 
 const { insertElement, unwrap, wrapInElement } = transformation;
 import Transformation = transformation.Transformation;
@@ -291,35 +292,40 @@ export function makeTagTr(forEditor: EditorAPI):
 Record<string, Transformation<NamedTransformationData>> {
   const ret: Record<string, Transformation<NamedTransformationData>> =
     Object.create(null);
-  ret.insert = new Transformation(forEditor, "insert", "Create new <name>",
+  ret.insert = new Transformation(WED_ORIGIN, forEditor, "insert",
+                                  "Create new <name>",
                                   executeInsert, { abbreviatedDesc: "" });
   ret.unwrap =
     new Transformation<NamedTransformationData>(
-      forEditor, "unwrap",
+      WED_ORIGIN, forEditor, "unwrap",
       "Unwrap the content of this element",
       executeUnwrap);
-  ret.wrap = new Transformation(forEditor, "wrap", "Wrap in <name>",
+  ret.wrap = new Transformation(WED_ORIGIN, forEditor, "wrap", "Wrap in <name>",
                                 executeWrap);
-  ret["wrap-content"] = new Transformation(forEditor, "wrap-content",
+  ret["wrap-content"] = new Transformation(WED_ORIGIN, forEditor,
+                                           "wrap-content",
                                            "Wrap content in <name>",
                                            executeWrapContent);
   ret["delete-element"] =
-    new Transformation<NamedTransformationData>(forEditor, "delete-element",
+    new Transformation<NamedTransformationData>(WED_ORIGIN, forEditor,
+                                                "delete-element",
                                                 "Delete this element",
                                                 executeDeleteElement);
   ret["delete-parent"] =
-    new Transformation<NamedTransformationData>(forEditor, "delete-parent",
+    new Transformation<NamedTransformationData>(WED_ORIGIN, forEditor,
+                                                "delete-parent",
                                                 "Delete <name>",
                                                 executeDeleteParent);
-  ret["add-attribute"] = new Transformation(forEditor, "add-attribute",
-                                            "Add @<name>",
+  ret["add-attribute"] = new Transformation(WED_ORIGIN, forEditor,
+                                            "add-attribute", "Add @<name>",
                                             executeAddAttribute);
   ret["delete-attribute"] =
-    new Transformation<NamedTransformationData>(forEditor, "delete-attribute",
+    new Transformation<NamedTransformationData>(WED_ORIGIN, forEditor,
+                                                "delete-attribute",
                                                 "Delete this attribute",
                                                 executeDeleteAttribute);
   ret["insert-text"] = new Transformation(
-    forEditor, "insert-text", "Insert \"<name>\"",
+    WED_ORIGIN, forEditor, "insert-text", "Insert \"<name>\"",
     (editor: EditorAPI, data: NamedTransformationData) => {
       editor.insertText(data.name);
     });

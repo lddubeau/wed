@@ -177,6 +177,9 @@ export class Transformation<Data extends TransformationData =
   public readonly treatAsTextInput: boolean;
 
   /**
+   * @param origin The origin of the transformation. See [[Action.origin]] for
+   * details.
+   *
    * @param editor The editor for which this transformation is created.
    *
    * @param transformationType The type of transformation.
@@ -191,11 +194,12 @@ export class Transformation<Data extends TransformationData =
    *
    * @param options Additional options.
    */
-  constructor(editor: EditorAPI, transformationType: string, desc: string,
+  constructor(origin: string, editor: EditorAPI,
+              transformationType: string, desc: string,
               handler: TransformationHandler<Data>,
               options?: TransformationOptions) {
     const actualOpts = options !== undefined ? options : {};
-    super(editor, desc, {
+    super(origin, editor, desc, {
       abbreviatedDesc: actualOpts.abbreviatedDesc,
       icon: computeIconHtml(actualOpts.icon, transformationType),
       needsInput: actualOpts.needsInput,
