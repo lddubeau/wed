@@ -6,7 +6,7 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 
-export const version = "5.0.0-alpha.26";
+export const version = "5.0.0-alpha.27";
 
 /**
  * The origin of the actions bundled with wed.
