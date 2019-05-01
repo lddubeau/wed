@@ -5,8 +5,6 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 
-import { AttributeNameEvent } from "salve";
-
 import { Action, ActionInvocation, UnspecifiedAction,
          UnspecifiedActionInvocation } from "../action";
 import { CaretManager } from "../caret-manager";
@@ -16,8 +14,7 @@ import { closestByClass, isNotDisplayed } from "../domutil";
 import { Editor } from "../editor";
 import { ContextMenuHandler } from "../mode-api";
 import { ModeTree } from "../mode-tree";
-import { NamedTransformationData, Transformation,
-         TransformationData } from "../transformation";
+import { Transformation } from "../transformation";
 import { ActionContextMenu } from "./action-context-menu";
 import { CompletionMenu } from "./completion-menu";
 import { ContextMenu } from "./context-menu";
@@ -132,119 +129,70 @@ export class EditingMenuManager {
    *
    * @returns To be interpreted the same way as for all DOM event handlers.
    */
-  // tslint:disable-next-line:max-func-body-length
   private labelContextMenuHandler(atStart: boolean,
                                   wedEv: JQuery.TriggeredEvent,
                                   ev: JQuery.MouseEventBase): boolean {
     const editor = this.editor;
-    let node = wedEv.target;
-    // tslint:disable-next-line:no-any
-    const menuItems: UnspecifiedActionInvocation[] = [];
-    const mode = editor.modeTree.getMode(node);
-    const absoluteResolver = mode.getAbsoluteResolver();
+    const guiNode = wedEv.target;
+    const invocations: UnspecifiedActionInvocation[] = [];
+    const mode = editor.modeTree.getMode(guiNode);
 
-    function pushItems<D>(data: D, trs: Action<D>[]): void {
-      for (const tr of trs) {
-        menuItems.push(new ActionInvocation(tr, data));
+    function pushInvocations(transformationType: string[] | string,
+                             name: string, node: Node, offset?: number): void {
+      const data = { name, node };
+      for (const tr of mode.getContextualActions(transformationType, name, node,
+                                                 offset)) {
+        invocations.push(new ActionInvocation(tr, data));
       }
     }
 
-    function processAttributeNameEvent(event: AttributeNameEvent,
-                                       element: Element): void {
-      const namePattern = event.param;
-      if (namePattern.simple()) {
-        // If the namePattern is simple, then toArray is necessarily not null.
-        for (const name of namePattern.toArray()!) {
-          const unresolved = absoluteResolver.unresolveName(name.ns, name.name);
-          if (unresolved === undefined) {
-            throw new Error("cannot unresolve attribute");
-          }
-
-          if (editor.isAttrProtected(unresolved, element)) {
-            return;
-          }
-
-          pushItems({ name: unresolved, node: element },
-                    mode.getContextualActions("add-attribute", unresolved,
-                                              element) as
-                    Action<TransformationData>[]);
-        }
-      }
-      else {
-        menuItems.push(
-          new ActionInvocation(editor.complexAttributePatternAction,
-                               undefined));
-      }
-    }
-
-    const real = closestByClass(node, "_real", editor.guiRoot);
+    const real = closestByClass(guiNode, "_real", editor.guiRoot);
     if (real === null) {
       throw new Error("cannot find real parent");
     }
 
-    const attrVal = closestByClass(node, "_attribute_value", editor.guiRoot);
+    const attrVal = closestByClass(guiNode, "_attribute_value", editor.guiRoot);
     if (attrVal !== null) {
-      const dataNode = editor.toDataNode(attrVal) as Attr;
-      const treeCaret =
-        DLoc.mustMakeDLoc(editor.dataRoot, dataNode.ownerElement);
-      editor.validator.possibleAt(treeCaret, true).forEach(event => {
-        if (event.name !== "attributeName") {
-          return;
-        }
-        processAttributeNameEvent(event, dataNode.ownerElement!);
-      });
+      const node = editor.toDataNode(attrVal) as Attr;
+      const element = node.ownerElement!;
+      const treeCaret = DLoc.mustMakeDLoc(editor.dataRoot, element);
+      invocations.push(...this.getAddAttributeInvocationsAt(treeCaret,
+                                                            element));
 
-      const name = dataNode.name;
-      if (!editor.isAttrProtected(dataNode)) {
-        pushItems({ name, node: dataNode },
-                  mode.getContextualActions("delete-attribute", name,
-                                            dataNode) as
-                  Action<TransformationData>[]);
+      if (!editor.isAttrProtected(node)) {
+        pushInvocations("delete-attribute", node.name, node);
       }
     }
     else {
-      node = real;
-
-      const dataNode = editor.toDataNode(node)! as Element;
-      menuItems.push(...this.makeCommonItems(dataNode));
+      const node = editor.toDataNode(real)! as Element;
+      invocations.push(...this.makeCommonItems(node));
 
       // We first gather the transformations that pertain to the node to which
       // the label belongs.
-      const orig = dataNode.tagName;
-
-      const topNode = (node.parentNode === editor.guiRoot);
+      const topNode = (node.parentNode === editor.dataRoot);
       if (!topNode) {
-        pushItems({ node, name: orig },
-                  mode.getContextualActions(
-                    ["unwrap", "delete-element"],
-                    orig, $.data(node, "wed_mirror_node"), 0) as
-                  Action<NamedTransformationData>[]);
+        pushInvocations(["unwrap", "delete-element"], node.tagName, node, 0);
       }
 
-      // Then we check what could be done before the node (if the
-      // user clicked on an start element label) or after the node
-      // (if the user clicked on an end element label).
-      let treeCaret = DLoc.mustMakeDLoc(editor.dataRoot, dataNode);
+      // Then we check what could be done before the node (if the user clicked
+      // on an start label) or after the node (if the user clicked on an end \
+      // label).
+      let treeCaret = DLoc.mustMakeDLoc(editor.dataRoot, node);
       if (atStart) {
-        const attributeHandling =
-          editor.modeTree.getAttributeHandling(dataNode);
-        if (attributeHandling === "edit") {
-          editor.validator.possibleAt(treeCaret, true).forEach(event => {
-            if (event.name !== "attributeName") {
-              return;
-            }
-            processAttributeNameEvent(event, dataNode);
-          });
+        if (editor.modeTree.getAttributeHandling(node) === "edit") {
+          invocations.push(...this.getAddAttributeInvocationsAt(treeCaret,
+                                                                node));
         }
       }
       else {
+        // Move to after the element.
         treeCaret = treeCaret.makeWithOffset(treeCaret.offset + 1);
       }
 
       if (!topNode) {
         for (const { tr, name } of
              this.getElementTransformationsAt(treeCaret, "insert")) {
-          menuItems.push(
+          invocations.push(
             new LocalizedActionInvocation(
               tr,
               name !== undefined ? { name, moveCaretTo: treeCaret } : null,
@@ -252,12 +200,11 @@ export class EditingMenuManager {
         }
 
         if (atStart) {
-          // Move to inside the element and get the get the wrap-content
-          // possibilities.
-          const caretInside = treeCaret.make(dataNode, 0);
+          // Move to inside the element and get the wrap-content possibilities.
+          const caretInside = treeCaret.make(node, 0);
           for (const { tr, name } of
                this.getElementTransformationsAt(caretInside, "wrap-content")) {
-            menuItems.push(
+            invocations.push(
               new ActionInvocation(tr,
                                    name !== undefined ? { name, node } : null));
           }
@@ -266,11 +213,11 @@ export class EditingMenuManager {
     }
 
     // There's no menu to display, so let the event bubble up.
-    if (menuItems.length === 0) {
+    if (invocations.length === 0) {
       return true;
     }
 
-    this.setupContextMenu(ActionContextMenu, menuItems,
+    this.setupContextMenu(ActionContextMenu, invocations,
                           real.classList.contains("_readonly"), ev);
     return false;
   }
@@ -553,6 +500,50 @@ export class EditingMenuManager {
     });
 
     return ret;
+  }
+
+  protected getAddAttributeInvocationsAt(at: DLoc, element: Element):
+  UnspecifiedActionInvocation[] {
+    const { editor } = this;
+    const invocations: UnspecifiedActionInvocation[] = [];
+    const mode = editor.modeTree.getMode(at.node);
+    const absoluteResolver = mode.getAbsoluteResolver();
+    editor.validator.possibleAt(at, true).forEach(event => {
+      if (event.name !== "attributeName") {
+        return;
+      }
+
+      const namePattern = event.param;
+      if (namePattern.simple()) {
+        // If the namePattern is simple, then toArray is necessarily not null.
+        for (const name of namePattern.toArray()!) {
+          const unresolved = absoluteResolver.unresolveName(name.ns,
+                                                            name.name);
+          if (unresolved === undefined) {
+            throw new Error("cannot unresolve attribute");
+          }
+
+          if (editor.isAttrProtected(unresolved, element)) {
+            return;
+          }
+
+          for (const tr of mode.getContextualActions("add-attribute",
+                                                     unresolved,
+                                                     element)) {
+            invocations.push(new ActionInvocation(tr,
+                                                  { name: unresolved,
+                                                    node: element }));
+          }
+        }
+      }
+      else {
+        invocations.push(
+          new ActionInvocation(editor.complexAttributePatternAction,
+                               undefined));
+      }
+    });
+
+    return invocations;
   }
 
   /**
