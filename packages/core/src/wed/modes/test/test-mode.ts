@@ -87,6 +87,7 @@ export class TestDecorator extends GenericDecorator {
 
   // tslint:disable:no-jquery-raw-elements
   elementDecorator(root: Element, el: Element): void {
+    const { editor: { editingMenuManager } } = this;
     if (this.editor.modeTree.getMode(el) !== this.mode) {
       // The element is not governed by this mode.
       return;
@@ -110,8 +111,8 @@ export class TestDecorator extends GenericDecorator {
       // There's no super.super syntax we can use here.
       Decorator.prototype.elementDecorator.call(
         this, root, el, level,
-        this.contextMenuHandler.bind(this, true),
-        this.contextMenuHandler.bind(this, false));
+        editingMenuManager.boundStartLabelContextMenuHandler,
+        editingMenuManager.boundEndLabelContextMenuHandler);
     }
 
     if (isRef) {

@@ -133,6 +133,12 @@ Miscelaneous changes
 * ``EditingMenuManager.contextMenuHandler`` was renamed to
   ``contentContextMenuHandler``.
 
+* ``Decorator.contextMenuHandler`` is moved to
+  ``EditingMenuManager.labelContextMenuHandler``. Custom decorators must use
+  ``EditingMenuManager.boundStartLabelContextMenuHandler`` and
+  ``EditingMenuManager.boundEndLabelContextMenuHandler`` instead of
+  ``Decorator.contextMenuHandler``.
+
 Notable Bootstrap Changes
 =========================
 

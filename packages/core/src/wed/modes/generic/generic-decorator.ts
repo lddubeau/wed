@@ -82,9 +82,10 @@ export class GenericDecorator extends Decorator {
   }
 
   elementDecorator(root: Element, el: Element): void {
+    const { editor: { editingMenuManager } } = this;
     super.elementDecorator(root, el, 1,
-                           this.contextMenuHandler.bind(this, true),
-                           this.contextMenuHandler.bind(this, false));
+                           editingMenuManager.boundStartLabelContextMenuHandler,
+                           editingMenuManager.boundEndLabelContextMenuHandler);
   }
 
   /**

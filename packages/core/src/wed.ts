@@ -58,10 +58,11 @@ export function bindEditor(container: Container): void {
 
 export { Action, ActionInvocation, UnspecifiedAction,
          UnspecifiedActionInvocation } from "./wed/action";
-export { Decorator, LocalizedActionInvocation } from "./wed/decorator";
+export { Decorator } from "./wed/decorator";
 export { DLoc, DLocRoot } from "./wed/dloc";
 export { DOMListener } from "./wed/domlistener";
 export { version } from "./wed/editor";
+export { LocalizedActionInvocation } from "./wed/gui/editing-menu-manager";
 export { GUISelector } from "./wed/gui-selector";
 export { BaseMode, CommonModeOptions, Mode } from "./wed/mode";
 export * from "./wed/mode-api";

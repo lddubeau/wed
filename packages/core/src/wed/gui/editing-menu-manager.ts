@@ -4,15 +4,20 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import { ActionInvocation, UnspecifiedAction,
+
+import { AttributeNameEvent } from "salve";
+
+import { Action, ActionInvocation, UnspecifiedAction,
          UnspecifiedActionInvocation } from "../action";
 import { CaretManager } from "../caret-manager";
 import { DLoc } from "../dloc";
 import { isElement } from "../domtypeguards";
 import { closestByClass, isNotDisplayed } from "../domutil";
 import { Editor } from "../editor";
+import { ContextMenuHandler } from "../mode-api";
 import { ModeTree } from "../mode-tree";
-import { Transformation } from "../transformation";
+import { NamedTransformationData, Transformation,
+         TransformationData } from "../transformation";
 import { ActionContextMenu } from "./action-context-menu";
 import { CompletionMenu } from "./completion-menu";
 import { ContextMenu } from "./context-menu";
@@ -21,6 +26,35 @@ import { TypeaheadPopup } from "./typeahead-popup";
 
 /** A context menu can be triggered by the keyboard or the mouse. */
 export type ContextMenuEvent = JQuery.KeyboardEventBase | JQuery.MouseEventBase;
+
+/**
+ * An action invocation which dicriminates as to whether an action is performed
+ * before or after the element to which the caret belongs.
+ */
+export class LocalizedActionInvocation<Data extends {} | void = void>
+  extends ActionInvocation<Data>{
+  private readonly text: string;
+
+  /**
+   * @param action The action to be invoked.
+   *
+   * @param data The data for the action.
+   *
+   * @param before Whether the action happens before or after the element to
+   * which the caret belongs.
+   */
+  constructor(action: Action<Data>, data: Data, readonly before: boolean) {
+    super(action, data);
+    this.text = ` ${before ? "before" : "after"} this element`;
+  }
+
+  /**
+   * Get a description which takes into account the [[before]] field.
+   */
+  getDescription(): string {
+    return `${super.getDescription()}${this.text}`;
+  }
+}
 
 /**
  * Manages the editing menus for a specific editing view. An "editing menu" is a
@@ -38,6 +72,9 @@ export class EditingMenuManager {
   private readonly doc: HTMLDocument;
   private currentTypeahead: TypeaheadPopup | undefined;
 
+  readonly boundStartLabelContextMenuHandler: ContextMenuHandler;
+  readonly boundEndLabelContextMenuHandler: ContextMenuHandler;
+
   /**
    * @param editor The editor for which the manager is created.
    */
@@ -47,6 +84,195 @@ export class EditingMenuManager {
     this.guiRoot = editor.guiRoot;
     this.dataRoot = editor.dataRoot;
     this.doc = this.guiRoot.ownerDocument!;
+    this.boundStartLabelContextMenuHandler =
+      this.startLabelContextMenuHandler.bind(this);
+    this.boundEndLabelContextMenuHandler =
+      this.endLabelContextMenuHandler.bind(this);
+  }
+
+  /**
+   * Context menu handler for the start labels of elements decorated by
+   * [[Decorator.elementDecorator]].
+   *
+   * @param wedEv The DOM event that wed generated to trigger this handler.
+   *
+   * @param ev The DOM event that wed received.
+   *
+   * @returns To be interpreted the same way as for all DOM event handlers.
+   */
+  startLabelContextMenuHandler(wedEv: JQuery.TriggeredEvent,
+                               ev: JQuery.MouseEventBase): boolean {
+    return this.labelContextMenuHandler(true, wedEv, ev);
+  }
+
+  /**
+   * Context menu handler for the end labels of elements decorated by
+   * [[Decorator.elementDecorator]].
+   *
+   * @param wedEv The DOM event that wed generated to trigger this handler.
+   *
+   * @param ev The DOM event that wed received.
+   *
+   * @returns To be interpreted the same way as for all DOM event handlers.
+   */
+  endLabelContextMenuHandler(wedEv: JQuery.TriggeredEvent,
+                             ev: JQuery.MouseEventBase): boolean {
+    return this.labelContextMenuHandler(false, wedEv, ev);
+  }
+
+  /**
+   * Context menu handler for the labels of elements decorated by
+   * [[Decorator.elementDecorator]].
+   *
+   * @param atStart Whether or not this event is for the start label.
+   *
+   * @param wedEv The DOM event that wed generated to trigger this handler.
+   *
+   * @param ev The DOM event that wed received.
+   *
+   * @returns To be interpreted the same way as for all DOM event handlers.
+   */
+  // tslint:disable-next-line:max-func-body-length
+  private labelContextMenuHandler(atStart: boolean,
+                                  wedEv: JQuery.TriggeredEvent,
+                                  ev: JQuery.MouseEventBase): boolean {
+    const editor = this.editor;
+    let node = wedEv.target;
+    // tslint:disable-next-line:no-any
+    const menuItems: UnspecifiedActionInvocation[] = [];
+    const mode = editor.modeTree.getMode(node);
+    const absoluteResolver = mode.getAbsoluteResolver();
+
+    function pushItems<D>(data: D, trs: Action<D>[]): void {
+      for (const tr of trs) {
+        menuItems.push(new ActionInvocation(tr, data));
+      }
+    }
+
+    function processAttributeNameEvent(event: AttributeNameEvent,
+                                       element: Element): void {
+      const namePattern = event.param;
+      if (namePattern.simple()) {
+        // If the namePattern is simple, then toArray is necessarily not null.
+        for (const name of namePattern.toArray()!) {
+          const unresolved = absoluteResolver.unresolveName(name.ns, name.name);
+          if (unresolved === undefined) {
+            throw new Error("cannot unresolve attribute");
+          }
+
+          if (editor.isAttrProtected(unresolved, element)) {
+            return;
+          }
+
+          pushItems({ name: unresolved, node: element },
+                    mode.getContextualActions("add-attribute", unresolved,
+                                              element) as
+                    Action<TransformationData>[]);
+        }
+      }
+      else {
+        menuItems.push(
+          new ActionInvocation(editor.complexAttributePatternAction,
+                               undefined));
+      }
+    }
+
+    const real = closestByClass(node, "_real", editor.guiRoot);
+    if (real === null) {
+      throw new Error("cannot find real parent");
+    }
+
+    const attrVal = closestByClass(node, "_attribute_value", editor.guiRoot);
+    if (attrVal !== null) {
+      const dataNode = editor.toDataNode(attrVal) as Attr;
+      const treeCaret =
+        DLoc.mustMakeDLoc(editor.dataRoot, dataNode.ownerElement);
+      editor.validator.possibleAt(treeCaret, true).forEach(event => {
+        if (event.name !== "attributeName") {
+          return;
+        }
+        processAttributeNameEvent(event, dataNode.ownerElement!);
+      });
+
+      const name = dataNode.name;
+      if (!editor.isAttrProtected(dataNode)) {
+        pushItems({ name, node: dataNode },
+                  mode.getContextualActions("delete-attribute", name,
+                                            dataNode) as
+                  Action<TransformationData>[]);
+      }
+    }
+    else {
+      node = real;
+
+      const dataNode = editor.toDataNode(node)! as Element;
+      menuItems.push(...this.makeCommonItems(dataNode));
+
+      // We first gather the transformations that pertain to the node to which
+      // the label belongs.
+      const orig = dataNode.tagName;
+
+      const topNode = (node.parentNode === editor.guiRoot);
+      if (!topNode) {
+        pushItems({ node, name: orig },
+                  mode.getContextualActions(
+                    ["unwrap", "delete-element"],
+                    orig, $.data(node, "wed_mirror_node"), 0) as
+                  Action<NamedTransformationData>[]);
+      }
+
+      // Then we check what could be done before the node (if the
+      // user clicked on an start element label) or after the node
+      // (if the user clicked on an end element label).
+      let treeCaret = DLoc.mustMakeDLoc(editor.dataRoot, dataNode);
+      if (atStart) {
+        const attributeHandling =
+          editor.modeTree.getAttributeHandling(dataNode);
+        if (attributeHandling === "edit") {
+          editor.validator.possibleAt(treeCaret, true).forEach(event => {
+            if (event.name !== "attributeName") {
+              return;
+            }
+            processAttributeNameEvent(event, dataNode);
+          });
+        }
+      }
+      else {
+        treeCaret = treeCaret.makeWithOffset(treeCaret.offset + 1);
+      }
+
+      if (!topNode) {
+        for (const { tr, name } of
+             this.getElementTransformationsAt(treeCaret, "insert")) {
+          menuItems.push(
+            new LocalizedActionInvocation(
+              tr,
+              name !== undefined ? { name, moveCaretTo: treeCaret } : null,
+              atStart));
+        }
+
+        if (atStart) {
+          // Move to inside the element and get the get the wrap-content
+          // possibilities.
+          const caretInside = treeCaret.make(dataNode, 0);
+          for (const { tr, name } of
+               this.getElementTransformationsAt(caretInside, "wrap-content")) {
+            menuItems.push(
+              new ActionInvocation(tr,
+                                   name !== undefined ? { name, node } : null));
+          }
+        }
+      }
+    }
+
+    // There's no menu to display, so let the event bubble up.
+    if (menuItems.length === 0) {
+      return true;
+    }
+
+    this.setupContextMenu(ActionContextMenu, menuItems,
+                          real.classList.contains("_readonly"), ev);
+    return false;
   }
 
   /**
