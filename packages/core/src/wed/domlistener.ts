@@ -15,6 +15,12 @@ import { BeforeDeleteNodeEvent, DeleteNodeEvent, InsertNodeAtEvent,
  * Called when a **tree fragment** is added which contains the element matched
  * by the selector that was passed to [[DOMListener.addHandler]].
  *
+ * An  ``included-element``  event is  fired  when  an  element appears  in  the
+ * observed tree  whether it is directly  added or added because  its parent was
+ * added.     The    opposite     events    are     ``excluding-element``    and
+ * ``excluded-element``.  The event  ``excluding-element`` is  generated *before
+ * the tree fragment is removed, and ``excluded-element`` *after*.
+ *
  * @param root The root of the tree being listened on.
  *
  * @param tree The node which is at the root of the tree *fragment* that was
@@ -36,6 +42,10 @@ export type IncludedElementHandler = (root: Node, tree: Node, parent: Node,
 /**
  * Called when a **tree fragment** is removed which contains the element matched
  * by the selector that was passed to [[DOMListener.addHandler]].
+ *
+ * An ``excluded-element`` events is generated when an element is removed from
+ * the tree directly or because its parent was removed. It is the opposite of
+ * ``included-element``.
  *
  * @param root The root of the tree being listened on.
  *
@@ -59,6 +69,11 @@ export type ExcludedElementHandler = (root: Node, tree: Node, parent: Node,
  * Called when a **tree fragment** is about to be removed and contains the
  * element matched by the selector that was passed to
  * [[DOMListener.addHandler]].
+ *
+ * An ``excluding-element`` events is generated when an element is about to
+ * removed from the tree directly or because its parent is about to be
+ * removed. This event happens before ``excluded-element`` is emitted for the
+ * same element.
  *
  * @param root The root of the tree being listened on.
  *
@@ -84,6 +99,8 @@ export type ExcludingElementHandler = (root: Node, tree: Node, parent: Node,
  * ``added-element`` event but having the same signature for additions and
  * removals allows use of the same function for both cases.
  *
+ * The opposite events are ``removing-element`` and ``removed-element``.
+ *
  * @param root The root of the tree being listened on.
  *
  * @param parent The parent of the element that was added.
@@ -100,7 +117,10 @@ export type AddedElementHandler = (root: Node, parent: Node,
                                    element: Element) => void;
 
 /**
- * Called when an element is about to be directly removed from the tree.
+ * Called when an element is about to be directly removed from the tree but is
+ * still in the tree.
+ *
+ * The ``removing-element`` event is emitted before ``removed-element``.
  *
  * @param root The root of the tree being listened on.
  *
@@ -119,6 +139,8 @@ export type RemovingElementHandler = (root: Node, parent: Node,
 
 /**
  * Called when an element is has been directly removed from the tree.
+ *
+ * The ``removed-element`` event is the opposite of ``added-element``.
  *
  * @param root The root of the tree being listened on.
  *
@@ -199,6 +221,20 @@ export type TextChangedHandler = (root: Node, node: Text,
                                   oldValue: string) => void;
 
 /**
+ * Called when a comment node has its value changed.  A ``comment-changed``
+ * event is not generated when Node objects of type ``COMMENT_NODE`` are added
+ * or removed. They trigger ``children-changed`` events.
+ *
+ * @param root The root of the tree being listened on.
+ *
+ * @param node The comment node that was changed.
+ *
+ * @param oldValue The value the node had before this change.
+ */
+export type CommentChangedHandler = (root: Node, node: Comment,
+                                     oldValue: string) => void;
+
+/**
  * Called when an attribute value has been changed.
  *
  * @param root The root of the tree being listened on.
@@ -233,6 +269,7 @@ export interface EventHandlers {
   "children-changed": ChildrenChangedHandler;
   "text-changed": TextChangedHandler;
   "attribute-changed": AttributeChangedHandler;
+  "comment-changed": CommentChangedHandler;
 }
 
 export type Events = keyof EventHandlers;
@@ -266,23 +303,6 @@ interface CallSpec<T extends Events> {
 /**
  * This class models a listener designed to listen to changes to a DOM tree and
  * fire events on the basis of the changes that it detects.
- *
- * An  ``included-element``  event is  fired  when  an  element appears  in  the
- * observed tree  whether it is directly  added or added because  its parent was
- * added.     The    opposite     events    are     ``excluding-element``    and
- * ``excluded-element``.  The event  ``excluding-element`` is  generated *before
- * the tree fragment is removed, and ``excluded-element`` *after*.
- *
- * An ``added-element`` event is fired when an element is directly added to the
- * observed tree. The opposite events are ``removing-element`` and
- * ``removed-element``.
- *
- * A ``children-changing`` and ``children-changed`` event are fired when an
- * element's children are being changed.
- *
- * A ``text-changed`` event is fired when a text node has changed.
- *
- * An ``attribute-changed`` is fired when an attribute has changed.
  *
  * A ``trigger`` event with name ``[name]`` is fired when ``trigger([name])`` is
  * called. Trigger events are meant to be triggered by event handlers called by
@@ -379,6 +399,8 @@ export class DOMListener {
   /**
    * @param root The root of the DOM tree about which the listener should listen
    * to changes.
+   *
+   * @param updater The tree updator from which to generate events.
    */
   constructor(private readonly root: Node,
               private readonly updater: TreeUpdater) {
