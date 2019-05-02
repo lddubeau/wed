@@ -37,7 +37,7 @@ export class GenericDecorator extends Decorator {
     this.domlistener.addHandler(
       "included-element",
       util.classFromOriginalName("*", {}),
-      (root, _tree, _parent, _prev, _next, el) => {
+      ({ root, element: el }) => {
         // Skip elements which would already have been removed from the
         // tree. Unlikely but...
         if (!root.contains(el)) {
@@ -55,7 +55,7 @@ export class GenericDecorator extends Decorator {
     this.domlistener.addHandler(
       "children-changed",
       util.classFromOriginalName("*", {}),
-      (root, added, removed, _previousSibling, _nextSibling, el) => {
+      ({ root, added, removed, element: el }) => {
          for (const child of added.concat(removed)) {
            if (isText(child) || (isElement(child) &&
                                  (child.classList.contains("_real") ||
@@ -68,7 +68,7 @@ export class GenericDecorator extends Decorator {
 
     this.domlistener.addHandler("text-changed",
                                 util.classFromOriginalName("*", {}),
-                                (root, node) => {
+                                ({ root, node }) => {
                                   this.elementDecorator(
                                     root as Element,
                                     node.parentNode! as Element);
@@ -76,7 +76,7 @@ export class GenericDecorator extends Decorator {
 
     this.domlistener.addHandler("attribute-changed",
                                 util.classFromOriginalName("*", {}),
-                                (root, el) => {
+                                ({ root, element: el}) => {
                                   this.elementDecorator(root as Element, el);
                                 });
   }

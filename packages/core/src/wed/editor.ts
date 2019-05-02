@@ -1424,13 +1424,13 @@ export class Editor implements EditorAPI {
     this.domlistener.addHandler(
       "children-changed",
       "._real, ._phantom_wrap, .wed-document",
-      (_root, added, removed, _prev, _next, target) => {
+      ({ added, removed, element }) => {
         for (const child of added.concat(removed)) {
           if (isText(child) ||
               (isElement(child) &&
                (child.classList.contains("_real") ||
                 child.classList.contains("_phantom_wrap")))) {
-            this.validator.resetTo(target);
+            this.validator.resetTo(element);
             break;
           }
         }
@@ -1440,7 +1440,7 @@ export class Editor implements EditorAPI {
     this.domlistener.addHandler(
       "attribute-changed",
       "._real",
-      (_root, el, namespace, name) => {
+      ({ element: el, ns: namespace, attrName: name }) => {
         if (namespace === "" && name.indexOf("data-wed", 0) === 0) {
           // Doing the restart immediately messes up the editing. So schedule it
           // for ASAP.
@@ -1455,8 +1455,8 @@ export class Editor implements EditorAPI {
 
     // Revalidate on text change.
     this.domlistener.addHandler("text-changed", "._real",
-                                (_root, text) => {
-                                  this.validator.resetTo(text);
+                                ({ node }) => {
+                                  this.validator.resetTo(node);
                                 });
 
     this.modeTree.addDecoratorHandlers();
@@ -1464,8 +1464,8 @@ export class Editor implements EditorAPI {
     this.domlistener.addHandler(
       "included-element",
       "._label",
-      (_root, _tree, _parent, _prev, _next, target) => {
-         const cl = target.classList;
+      ({ element }) => {
+         const cl = element.classList;
          let found: number | undefined;
          for (let i = 0; i < cl.length && found === undefined; ++i) {
            if (cl[i].lastIndexOf("_label_level_", 0) === 0) {
@@ -1486,7 +1486,7 @@ export class Editor implements EditorAPI {
       "children-changed",
       "._real, ._phantom_wrap, .wed-document",
       // tslint:disable-next-line:cyclomatic-complexity
-      (_root, _added, removed, _prev, _next, target) => {
+      ({ removed, element: target }) => {
          if (this.updatingPlaceholder !== 0) {
            return;
          }
@@ -1571,21 +1571,17 @@ export class Editor implements EditorAPI {
       this.updatingPlaceholder--;
     };
 
-    this.domlistener.addHandler(
-      "children-changed",
-      "._attribute_value",
-      (_root: Node, _added: readonly Node[], _removed: readonly Node[],
-       _prev: Node | null, _next: Node | null, target: Element) => {
-        attributePlaceholderHandler(target);
-      });
+    this.domlistener.addHandler("children-changed",
+                                "._attribute_value",
+                                ({ element }) => {
+                                  attributePlaceholderHandler(element);
+                                });
 
-    this.domlistener.addHandler(
-      "included-element",
-      "._attribute_value",
-      (_root: Node, _tree: Node, _parent: Node, _prev: Node | null,
-       _next: Node | null, target: Element) => {
-        attributePlaceholderHandler(target);
-      });
+    this.domlistener.addHandler("included-element",
+                                "._attribute_value",
+                                ({ element }) => {
+                                   attributePlaceholderHandler(element);
+                                 });
 
     this.modeTree.startListening();
     if (this._dataChild !== undefined) {

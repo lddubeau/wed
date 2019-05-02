@@ -11,270 +11,319 @@ import { BeforeDeleteNodeEvent, DeleteNodeEvent, InsertNodeAtEvent,
          SetAttributeNSEvent, SetTextNodeValueEvent,
          TreeUpdater } from "./tree-updater";
 
-/**
- * Called when a **tree fragment** is added which contains the element matched
- * by the selector that was passed to [[DOMListener.addHandler]].
- *
- * An  ``included-element``  event is  fired  when  an  element appears  in  the
- * observed tree  whether it is directly  added or added because  its parent was
- * added.     The    opposite     events    are     ``excluding-element``    and
- * ``excluded-element``.  The event  ``excluding-element`` is  generated *before
- * the tree fragment is removed, and ``excluded-element`` *after*.
- *
- * @param root The root of the tree being listened on.
- *
- * @param tree The node which is at the root of the tree *fragment* that was
- * added to trigger the event.
- *
- * @param parent The parent of the tree.
- *
- * @param previousSibling The sibling that precedes ``tree``.
- *
- * @param nextSibling The sibling that follows ``tree``.
- *
- * @param element The element that was matched.
- */
-export type IncludedElementHandler = (root: Node, tree: Node, parent: Node,
-                                      previousSibling: Node | null,
-                                      nextSibling: Node | null,
-                                      element: Element) => void;
+export interface BaseDOMListenerEvent {
+  /** The name of the event. */
+  readonly name: string;
 
-/**
- * Called when a **tree fragment** is removed which contains the element matched
- * by the selector that was passed to [[DOMListener.addHandler]].
- *
- * An ``excluded-element`` events is generated when an element is removed from
- * the tree directly or because its parent was removed. It is the opposite of
- * ``included-element``.
- *
- * @param root The root of the tree being listened on.
- *
- * @param tree The node which is at the root of the tree *fragment* that was
- * removed to trigger the event.
- *
- * @param parent The former parent of the tree.
- *
- * @param previousSibling ``null`` because the tree no longer has siblings.
- *
- * @param nextSibling ``null`` because the tree no longer has siblings.
- *
- * @param element The element that was matched.
- */
-export type ExcludedElementHandler = (root: Node, tree: Node, parent: Node,
-                                      previousSibling: null,
-                                      nextSibling: null,
-                                      element: Element) => void;
-
-/**
- * Called when a **tree fragment** is about to be removed and contains the
- * element matched by the selector that was passed to
- * [[DOMListener.addHandler]].
- *
- * An ``excluding-element`` events is generated when an element is about to
- * removed from the tree directly or because its parent is about to be
- * removed. This event happens before ``excluded-element`` is emitted for the
- * same element.
- *
- * @param root The root of the tree being listened on.
- *
- * @param tree The node which is at the root of the tree *fragment* that is
- * being removed.
- *
- * @param parent The parent of the tree.
- *
- * @param previousSibling The sibling that precedes ``tree``.
- *
- * @param nextSibling The sibling that follows ``tree``.
- *
- * @param element The element that was matched.
- */
-export type ExcludingElementHandler = (root: Node, tree: Node, parent: Node,
-                                       previousSibling: Node | null,
-                                       nextSibling: Node | null,
-                                       element: Element) => void;
-
-/**
- * Called when an element has been directly added to the tree.  There is no
- * reason to provide ``parent``, ``previousSibling``, ``nextSibling`` for an
- * ``added-element`` event but having the same signature for additions and
- * removals allows use of the same function for both cases.
- *
- * The opposite events are ``removing-element`` and ``removed-element``.
- *
- * @param root The root of the tree being listened on.
- *
- * @param parent The parent of the element that was added.
- *
- * @param previousSibling The sibling that precedes the element.
- *
- * @param nextSibling The sibling that follows the element.
- *
- * @param element The element that was matched.
- */
-export type AddedElementHandler = (root: Node, parent: Node,
-                                   previousSibling: Node | null,
-                                   nextSibling: Node | null,
-                                   element: Element) => void;
-
-/**
- * Called when an element is about to be directly removed from the tree but is
- * still in the tree.
- *
- * The ``removing-element`` event is emitted before ``removed-element``.
- *
- * @param root The root of the tree being listened on.
- *
- * @param parent The parent of the element that was added.
- *
- * @param previousSibling The sibling that precedes the element.
- *
- * @param nextSibling The sibling that follows the element.
- *
- * @param element The element that was matched.
- */
-export type RemovingElementHandler = (root: Node, parent: Node,
-                                      previousSibling: Node | null,
-                                      nextSibling: Node | null,
-                                      element: Element) => void;
-
-/**
- * Called when an element is has been directly removed from the tree.
- *
- * The ``removed-element`` event is the opposite of ``added-element``.
- *
- * @param root The root of the tree being listened on.
- *
- * @param parent The former parent of ``element``.
- *
- * @param previousSibling ``null`` because the element is no longer in the tree.
- *
- * @param nextSibling ``null`` because the element is no longer in the tree.
- *
- * @param element The element that was matched.
- */
-export type RemovedElementHandler = (root: Node, parent: Node,
-                                     previousSibling: null, nextSibling: null,
-                                     element: Element) => void;
-
-/**
- * Called when children are about to be *removed* from an element. Note the
- * asymmetry: **these handlers are not called when nodes are added!!**
- *
- * @param root The root of the tree being listened on.
- *
- * @param added The nodes that are about to be added. This will always be an
- * empty list.
- *
- * @param removed The nodes that are about to be removed.
- *
- * @param previousSibling: The node before the list of nodes to be removed.
- *
- * @param nextSibling: The node after the list of nodes to be removed.
- *
- * @param element: The element whose children are being removed.
- */
-export type ChildrenChangingHandler = (root: Node, added: readonly Node[],
-                                       removed: readonly Node[],
-                                       previousSibling: Node | null,
-                                       nextSibling: Node | null,
-                                       element: Element) => void;
-
-/**
- * Called when children of an element have been added to or removed from the
- * element. Note that the listener will call handlers with at most one of
- * ``added`` or ``removed`` non-empty.
- *
- * @param root The root of the tree being listened on.
- *
- * @param added The nodes that were added.
- *
- * @param removed The nodes that were removed.
- *
- * @param previousSibling: The node before the list of nodes added or
- * removed. When the handler is called after a removal of children, this is
- * necessarily ``null``.
- *
- * @param nextSibling: The node after the list of nodes added or removed. When
- * the handler is called after a removal of children, this is necessarily
- * ``null``.
- *
- * @param element: The element whose children were modified.
- */
-export type ChildrenChangedHandler = (root: Node, added: readonly Node[],
-                                      removed: readonly Node[],
-                                      previousSibling: Node | null,
-                                      nextSibling: Node | null,
-                                      element: Element) => void;
-
-/**
- * Called when a text node has its value changed.  A ``text-changed`` event is
- * not generated when Node objects of type ``TEXT_NODE`` are added or
- * removed. They trigger ``children-changed`` events.
- *
- * @param root The root of the tree being listened on.
- *
- * @param node The text node that was changed.
- *
- * @param oldValue The value the node had before this change.
- */
-export type TextChangedHandler = (root: Node, node: Text,
-                                  oldValue: string) => void;
-
-/**
- * Called when a comment node has its value changed.  A ``comment-changed``
- * event is not generated when Node objects of type ``COMMENT_NODE`` are added
- * or removed. They trigger ``children-changed`` events.
- *
- * @param root The root of the tree being listened on.
- *
- * @param node The comment node that was changed.
- *
- * @param oldValue The value the node had before this change.
- */
-export type CommentChangedHandler = (root: Node, node: Comment,
-                                     oldValue: string) => void;
-
-/**
- * Called when an attribute value has been changed.
- *
- * @param root The root of the tree being listened on.
- *
- * @param element The element whose attribute changed.
- *
- * @param ns The URI of the namespace of the attribute.
- *
- * @param name The name of the attribute.
- *
- * @param oldValue The value of the attribute before this change.
- */
-export type AttributeChangedHandler = (root: Node, element: Element, ns: string,
-                                       name: string,
-                                       oldValue: string | null) => void;
-
-/**
- * A ``trigger`` event with name ``[name]`` is fired when ``trigger([name])`` is
- * called. Trigger events are meant to be triggered by event handlers called by
- * the listener, not by other code.
- */
-export type TriggerHandler = (root: Node) => void;
-
-export interface EventHandlers {
-  "included-element": IncludedElementHandler;
-  "excluded-element": ExcludedElementHandler;
-  "excluding-element": ExcludingElementHandler;
-  "added-element": AddedElementHandler;
-  "removing-element": RemovingElementHandler;
-  "removed-element": RemovedElementHandler;
-  "children-changing": ChildrenChangingHandler;
-  "children-changed": ChildrenChangedHandler;
-  "text-changed": TextChangedHandler;
-  "attribute-changed": AttributeChangedHandler;
-  "comment-changed": CommentChangedHandler;
+  /** The root of the tree being listened on. */
+  readonly root: Node;
 }
 
-export type Events = keyof EventHandlers;
+/**
+ * This event is fired when an element appears in the observed tree whether it
+ * is directly added or added because its parent was added.  The opposite events
+ * are [[ExcludingElementEvent]] and [[ExcludedElementEvent]].
+ */
+export interface IncludedElementEvent extends BaseDOMListenerEvent {
+  readonly name: "included-element";
 
-export type EventsOrTrigger = "trigger" | Events;
+  /**
+   * The node which is at the root of the tree *fragment* that was added to
+   * trigger the event concering [[element]].
+   */
+  readonly tree: Node;
+
+  /**
+   * The parent of the tree.
+   */
+  readonly parent: Node;
+
+  /**
+   * The sibling that precedes [[tree]].
+   */
+  readonly previousSibling: Node | null;
+
+  /**
+   * The sibling following [[tree]].
+   */
+  readonly nextSibling: Node | null;
+
+  /**
+   * The element that was matched.
+   */
+  readonly element: Element;
+}
+
+/**
+ * This event is generated when an element is removed from the tree directly or
+ * because its parent was removed. It is the opposite of
+ * [[IncludedElementEvent]].
+ */
+export interface ExcludedElementEvent extends BaseDOMListenerEvent {
+  readonly name: "excluded-element";
+
+  /**
+   * The node which is at the root of the tree *fragment* that was removed to
+   * trigger the event concering [[element]].
+   */
+  readonly tree: Node;
+
+  /**
+   * The **former** parent of the tree.
+   */
+  readonly parent: Node;
+
+  /**
+   * The sibling that precedes [[tree]], necessarily ``null``.
+   */
+  readonly previousSibling: null;
+
+  /**
+   * The sibling following [[tree]], necessarily ``null``.
+   */
+  readonly nextSibling: null;
+
+  /**
+   * The element that was matched.
+   */
+  readonly element: Element;
+}
+
+/**
+ * This event is generated when an element is **about to be removed** from the
+ * tree directly or because its ancestor is about to be removed. It is the
+ * opposite of [[IncludedElementEvent]].
+ */
+export interface ExcludingElementEvent extends BaseDOMListenerEvent {
+  readonly name: "excluding-element";
+
+  /**
+   * The node which is at the root of the tree *fragment* that is about to be
+   * removed to trigger the event concering [[element]].
+   */
+  readonly tree: Node;
+
+  /**
+   * The parent of [[tree]].
+   */
+  readonly parent: Node;
+
+  /**
+   * The sibling that precedes [[tree]].
+   */
+  readonly previousSibling: Node | null;
+
+  /**
+   * The sibling following [[tree]].
+   */
+  readonly nextSibling: Node | null;
+
+  /**
+   * The element that was matched.
+   */
+  readonly element: Element;
+}
+
+/**
+ * Generated when an element has been directly added to the tree.
+ *
+ * The fields [[parent]], [[previousSibling]] and [[nextSibling]] are not
+ * necessary but they allow handling ``AddedElementEvent`` and the events for
+ * removal in the same manner.
+ */
+export interface AddedElementEvent extends BaseDOMListenerEvent {
+  readonly name: "added-element";
+
+  /**
+   * The parent of [[element]].
+   */
+  readonly parent: Node;
+
+  /**
+   * The sibling that precedes [[element]].
+   */
+  readonly previousSibling: Node | null;
+
+  /**
+   * The sibling following [[element]].
+   */
+  readonly nextSibling: Node | null;
+
+  /**
+   * The element that was matched.
+   */
+  readonly element: Element;
+}
+
+/**
+ * Generated when an element is about to be directly removed from the tree but
+ * is still in the tree.
+ */
+export interface RemovingElementEvent extends BaseDOMListenerEvent {
+  readonly name: "removing-element";
+
+  /**
+   * The parent of [[element]].
+   */
+  readonly parent: Node;
+
+  /**
+   * The sibling that precedes [[element]].
+   */
+  readonly previousSibling: Node | null;
+
+  /**
+   * The sibling following [[element]].
+   */
+  readonly nextSibling: Node | null;
+
+  /**
+   * The element that was matched.
+   */
+  readonly element: Element;
+}
+
+/**
+ * Generated when an element has been directly removed from the tree.
+ */
+export interface RemovedElementEvent extends BaseDOMListenerEvent {
+  readonly name: "removed-element";
+
+  /**
+   * The **former** parent of [[element]].
+   */
+  readonly parent: Node;
+
+  /**
+   * The sibling that precedes [[tree]], necessarily ``null``.
+   */
+  readonly previousSibling: null;
+
+  /**
+   * The sibling following [[tree]], necessarily ``null``.
+   */
+  readonly nextSibling: null;
+
+  /**
+   * The element that was matched.
+   */
+  readonly element: Element;
+}
+
+/**
+ * Generated when children are about to be *removed* from an element. Note the
+ * asymmetry: **this event is not generated when nodes are added!!**
+ */
+export interface ChildrenChangingEvent extends BaseDOMListenerEvent {
+  readonly name: "children-changing";
+
+  /**
+   * The nodes that are about to be added. This will always be an empty list.
+   */
+  readonly added: readonly Node[];
+
+  /** The nodes that are about to be removed. */
+  readonly removed: readonly Node[];
+
+  /** The node before the list of nodes to be removed. */
+  readonly previousSibling: Node | null;
+
+  /** The node after the list of nodes to be removed. */
+  readonly nextSibling: Node | null;
+
+  /** The element whose children are being removed. */
+  readonly element: Element;
+}
+
+/**
+ * Generated when children of an element have been added to or removed from the
+ * element. Note that the listener will emit events with at most one of
+ * ``added`` or ``removed`` non-empty.
+ */
+export interface ChildrenChangedEvent extends BaseDOMListenerEvent {
+  readonly name: "children-changed";
+
+  /** The nodes that were added. */
+  readonly added: readonly Node[];
+
+  /** The nodes that were removed. */
+  readonly removed: readonly Node[];
+
+  /**
+   * The node before the list of nodes added or removed. When the handler is
+   * called after a removal of children, this is necessarily ``null``.
+   */
+  readonly previousSibling: Node | null;
+
+  /**
+   * The node after the list of nodes to be removed. When the handler is called
+   * after a removal of children, this is necessarily ``null``.
+   */
+  readonly nextSibling: Node | null;
+
+  /** The element whose children were modified. */
+  readonly element: Element;
+}
+
+/**
+ * Generated when a text node has its value changed.  A ``text-changed`` event
+ * is not generated when Node objects of type ``TEXT_NODE`` are added or
+ * removed. They trigger ``children-changed`` events.
+ */
+export interface TextChangedEvent extends BaseDOMListenerEvent {
+  readonly name: "text-changed";
+
+  /** The text node that was changed. */
+  readonly node: Text;
+
+  /** The value the node had before this change. */
+  readonly oldValue: string;
+}
+
+/**
+ * Generated when an attribute value has changed.
+ */
+export interface AttributeChangedEvent extends BaseDOMListenerEvent {
+  readonly name: "attribute-changed";
+
+  /** The element whose attribute changed. */
+  readonly element: Element;
+
+  /** The namespace of the attribute, as a URI. */
+  readonly ns: string;
+
+  /** The name of the attribute. */
+  readonly attrName: string;
+
+  /** The value the node had before this change. */
+  readonly oldValue: string | null;
+}
+
+export interface TriggerEvent extends BaseDOMListenerEvent {
+  readonly name: "trigger";
+}
+
+export type Events = IncludedElementEvent | ExcludedElementEvent |
+  ExcludingElementEvent | AddedElementEvent | RemovingElementEvent |
+  RemovedElementEvent | ChildrenChangingEvent | ChildrenChangedEvent |
+  TextChangedEvent | AttributeChangedEvent | TriggerEvent;
+
+export type EventNames = Events["name"];
+
+export type EventHandler<E extends Events> = (ev: E) => void;
+
+export type EventFor<N> = Extract<Events, { name: N }>;
+
+type EventNameToHandler =
+  { [name in EventNames]: EventHandler<EventFor<name>> };
+
+export type EventHandlerFor<N extends EventNames> = EventNameToHandler[N];
+
+export type SelectorHandlerPair<H> = readonly [string, H];
+
+export type EventHandlerMap =
+  { [name in Exclude<EventNames, "trigger">]:
+    SelectorHandlerPair<FixFn<EventHandlerFor<name>>>[] };
 
 //
 // Work around a bug in TS.
@@ -285,18 +334,13 @@ export type EventsOrTrigger = "trigger" | Events;
 type FixFn<T extends (...args: any[]) => any> =
   (...v: Parameters<T>) => ReturnType<T>;
 
-export type SelectorHandlerPair<H> = readonly [string, H];
-
-export type EventHandlerMap =
-  { [name in Events]: SelectorHandlerPair<FixFn<EventHandlers[name]>>[] };
-
 type ChildEvents = "children-changing" | "children-changed";
 type AddRemEvents = "added-element" | "removed-element" | "removing-element";
 type IncludeExcludeEvents = "included-element" | "excluded-element" |
   "excluding-element";
 
 interface CallSpec<T extends Events> {
-  fn: EventHandlers[T];
+  fn: EventHandlerFor<T["name"]>;
   subtarget: Element;
 }
 
@@ -378,19 +422,20 @@ interface CallSpec<T extends Events> {
  */
 export class DOMListener {
   private readonly eventHandlers: EventHandlerMap = {
-      "included-element": [],
-      "added-element": [],
-      "excluded-element": [],
-      "excluding-element": [],
-      "removed-element": [],
-      "removing-element": [],
-      "children-changed": [],
-      "children-changing": [],
-      "text-changed": [],
-      "attribute-changed": [],
+    "included-element": [],
+    "added-element": [],
+    "excluded-element": [],
+    "excluding-element": [],
+    "removed-element": [],
+    "removing-element": [],
+    "children-changed": [],
+    "children-changing": [],
+    "text-changed": [],
+    "attribute-changed": [],
   };
 
-  private readonly triggerHandlers: { [key: string]: TriggerHandler[] }
+  private readonly triggerHandlers: { [key: string]:
+                                      EventHandlerFor<"trigger">[] }
     = Object.create(null);
   private triggersToFire: { [key: string]: number } = Object.create(null);
   private stopped: boolean = true;
@@ -469,8 +514,7 @@ export class DOMListener {
    * 2nd argument is interpreted.
    *
    * @param eventTypes Either a string naming the event this handler will
-   * process or an array of strings if multiple types of events are to be
-   * handled.
+   * process.
    *
    * @param selector When adding an event handler, this argument is a CSS
    * selector. When adding a trigger handler, this argument is a trigger name.
@@ -486,31 +530,25 @@ export class DOMListener {
    *
    * @throws {Error} If an event is unrecognized.
    */
-  addHandler(eventType: "trigger", selector: string,
-             handler: TriggerHandler): void;
-  addHandler<T extends Events>(eventType: T, selector: string,
-                               handler: FixFn<EventHandlers[T]>): void;
-  addHandler<T extends Events>(eventType: T | "trigger", selector: string,
-                               handler: FixFn<EventHandlers[T]> |
-                               TriggerHandler):
-  void {
+  addHandler<T extends EventNames>(eventType: T, selector: string,
+                                   handler: FixFn<EventHandlerFor<T>>): void {
     if (eventType === "trigger") {
       let handlers = this.triggerHandlers[selector];
       if (handlers === undefined) {
         handlers = this.triggerHandlers[selector] = [];
       }
 
-      handlers.push(handler as TriggerHandler);
+      handlers.push(handler as unknown as EventHandler<TriggerEvent>);
     }
     else {
-      // As of TS 2.2.2, we need the type annotation in the next line.
-      const pairs = this.eventHandlers[eventType] as
-      SelectorHandlerPair<FixFn<EventHandlers[T]>>[];
+      const pairs = this.eventHandlers[eventType as
+                                       Exclude<EventNames, "trigger">] as
+      (readonly [string, FixFn<EventHandlerFor<T>>])[];
       if (pairs === undefined) {
         throw new Error(`invalid eventType: ${eventType}`);
       }
 
-      pairs.push([selector, handler as FixFn<EventHandlers[T]>]);
+      pairs.push([selector, handler]);
     }
   }
 
@@ -538,7 +576,10 @@ export class DOMListener {
         const handlers = triggerMap[key];
         if (handlers !== undefined) {
           for (const handler of handlers) {
-            handler(this.root);
+            handler({
+              name: "trigger",
+              root: this.root,
+            });
           }
         }
       }
@@ -574,8 +615,8 @@ export class DOMListener {
 
     const ccCalls = this._childrenCalls("children-changed", parent);
 
-    let aeCalls: AddedElementHandler[] = [];
-    let ieCalls: CallSpec<"included-element">[] = [];
+    let aeCalls: EventHandler<AddedElementEvent>[] = [];
+    let ieCalls: CallSpec<IncludedElementEvent>[] = [];
     if (isElement(node)) {
       aeCalls = this._addRemCalls("added-element", node);
       ieCalls = this._incExcCalls("included-element", node);
@@ -585,16 +626,23 @@ export class DOMListener {
     const added = [node];
     const removed: Node[] = [];
     const { previousSibling, nextSibling } = node;
+    const ccEvent = { name: "children-changed", root,
+                      added, removed, previousSibling, nextSibling,
+                      element: parent } as const;
     for (const fn of ccCalls) {
-      fn(root, added, removed, previousSibling, nextSibling, parent);
+      fn(ccEvent);
     }
 
+    const aeEvent = { name: "added-element", root, parent,
+                      previousSibling, nextSibling,
+                      element: node as Element} as const;
     for (const fn of aeCalls) {
-      fn(root, parent, previousSibling, nextSibling, node as Element);
+      fn(aeEvent);
     }
 
     for (const { fn, subtarget } of ieCalls) {
-      fn(root, node, parent, previousSibling, nextSibling, subtarget);
+      fn({ name: "included-element", root, tree: node, parent, previousSibling,
+           nextSibling, element: subtarget});
     }
 
     this._scheduleProcessTriggers();
@@ -626,8 +674,8 @@ export class DOMListener {
 
     const ccCalls = this._childrenCalls("children-changing", parent);
 
-    let reCalls: RemovingElementHandler[] = [];
-    let eeCalls: CallSpec<"excluding-element">[] = [];
+    let reCalls: EventHandler<RemovingElementEvent>[] = [];
+    let eeCalls: CallSpec<ExcludingElementEvent>[] = [];
     if (isElement(node)) {
       reCalls = this._addRemCalls("removing-element", node);
       eeCalls = this._incExcCalls("excluding-element", node);
@@ -637,16 +685,23 @@ export class DOMListener {
     const added: Node[] = [];
     const removed = [node];
     const { previousSibling, nextSibling } = node;
+    const ccEvent = { name: "children-changing", root,
+                      added, removed, previousSibling, nextSibling,
+                      element: parent } as const;
     for (const fn of ccCalls) {
-      fn(root, added, removed, previousSibling, nextSibling, parent);
+      fn(ccEvent);
     }
 
+    const reEvent = { name: "removing-element", root, parent,
+                      previousSibling, nextSibling,
+                      element: node as Element } as const;
     for (const fn of reCalls) {
-      fn(root, parent, previousSibling, nextSibling, node as Element);
+      fn(reEvent);
     }
 
     for (const { fn, subtarget } of eeCalls) {
-      fn(root, node, parent, previousSibling, nextSibling, subtarget);
+      fn({ name: "excluding-element", root, tree: node,
+           parent, previousSibling, nextSibling, element: subtarget });
     }
 
     this._scheduleProcessTriggers();
@@ -678,8 +733,8 @@ export class DOMListener {
 
     const ccCalls = this._childrenCalls("children-changed", parent);
 
-    let reCalls: RemovedElementHandler[] = [];
-    let eeCalls: CallSpec<"excluded-element">[] = [];
+    let reCalls: EventHandler<RemovedElementEvent>[] = [];
+    let eeCalls: CallSpec<ExcludedElementEvent>[] = [];
     if (isElement(node)) {
       reCalls = this._addRemCalls("removed-element", node);
       eeCalls = this._incExcCalls("excluded-element", node);
@@ -688,16 +743,23 @@ export class DOMListener {
     const { root } = this;
     const added: Node[] = [];
     const removed = [node];
+    const ccEvent = { name: "children-changed", root, added, removed,
+                      previousSibling: null, nextSibling: null,
+                      element: parent } as const;
     for (const fn of ccCalls) {
-      fn(root, added, removed, null, null, parent);
+      fn(ccEvent);
     }
 
+    const reEvent = { name: "removed-element", root, parent,
+                      previousSibling: null, nextSibling: null,
+                      element: node as Element } as const;
     for (const fn of reCalls) {
-      fn(root, parent, null, null, node as Element);
+      fn(reEvent);
     }
 
     for (const { fn, subtarget } of eeCalls) {
-      fn(root, node, parent, null, null, subtarget);
+      fn({ name: "excluded-element", root, tree: node, parent,
+           previousSibling: null, nextSibling: null, element: subtarget});
     }
 
     this._scheduleProcessTriggers();
@@ -713,8 +775,8 @@ export class DOMListener {
    * @returns A list of call specs.
    */
   private _childrenCalls<T extends ChildEvents>(call: T, parent: Element):
-  EventHandlers[T][] {
-    const ret: EventHandlers[T][] = [];
+  EventHandlerFor<T>[] {
+    const ret: EventHandlerFor<T>[] = [];
 
     // Go over all the elements for which we have handlers
     for (const [sel, fn] of this.eventHandlers[call]) {
@@ -740,15 +802,17 @@ export class DOMListener {
 
     // Go over all the elements for which we have handlers
     const parent = node.parentNode as Element;
-    const fns: TextChangedHandler[] = [];
+    const fns: EventHandler<TextChangedEvent>[] = [];
     for (const [sel, fn] of this.eventHandlers["text-changed"]) {
       if (parent.matches(sel)) {
         fns.push(fn);
       }
     }
 
+    const textEvent = { name: "text-changed", root: this.root, node,
+                        oldValue } as const;
     for (const fn of fns) {
-      fn(this.root, node, oldValue);
+      fn(textEvent);
     }
 
     this._scheduleProcessTriggers();
@@ -767,15 +831,18 @@ export class DOMListener {
     const { ns, attribute, oldValue, node: target } = ev;
 
     // Go over all the elements for which we have handlers
-    const fns: AttributeChangedHandler[] = [];
+    const fns: EventHandler<AttributeChangedEvent>[] = [];
     for (const [sel, fn] of this.eventHandlers["attribute-changed"]) {
       if (target.matches(sel)) {
         fns.push(fn);
       }
     }
 
+    const attributeEvent = { name: "attribute-changed",
+                             root: this.root, element: target, ns,
+                             attrName: attribute, oldValue } as const;
     for (const fn of fns) {
-      fn(this.root, target, ns, attribute, oldValue);
+      fn(attributeEvent);
     }
 
     this._scheduleProcessTriggers();
@@ -805,8 +872,8 @@ export class DOMListener {
    * @returns A list of calls.
    */
   private _addRemCalls<T extends AddRemEvents>(name: T, node: Element):
-  EventHandlers[T][] {
-    const ret: EventHandlers[T][] = [];
+  EventHandlerFor<T>[] {
+    const ret: EventHandlerFor<T>[] = [];
 
     // Go over all the elements for which we have handlers
     for (const [sel, fn] of this.eventHandlers[name]) {
@@ -829,8 +896,8 @@ export class DOMListener {
    * @returns A list of call specs.
    */
   private _incExcCalls<T extends IncludeExcludeEvents>(name: T, node: Element):
-  CallSpec<T>[] {
-    const ret: CallSpec<T>[] = [];
+  CallSpec<EventFor<T>>[] {
+    const ret: CallSpec<EventFor<T>>[] = [];
 
     // Go over all the elements for which we have handlers
     for (const [sel, fn] of this.eventHandlers[name]) {

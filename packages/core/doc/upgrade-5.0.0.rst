@@ -139,6 +139,11 @@ Miscelaneous changes
   ``EditingMenuManager.boundEndLabelContextMenuHandler`` instead of
   ``Decorator.contextMenuHandler``.
 
+* ``DOMListener`` has been revamped so that all handlers take a single event
+ object as parameter. The objects have the same fields as the old handler
+ signatures, except for the handler for ``attribute-changed`` whose old ``name``
+ parameter is now an ``attrName`` field.
+
 Notable Bootstrap Changes
 =========================
 

@@ -32,6 +32,7 @@
       "interactjs": "interact"
     }],
     "object-literal-key-quotes": [false, "Turn this off for now. We may want",
-                                  "to revisit later."]
+                                  "to revisit later."],
+    "no-object-literal-type-assertion": [false, "trips on as const"]
   }
 }
