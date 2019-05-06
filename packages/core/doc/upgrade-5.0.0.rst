@@ -144,6 +144,17 @@ Miscelaneous changes
  signatures, except for the handler for ``attribute-changed`` whose old ``name``
  parameter is now an ``attrName`` field.
 
+* ``DOMListener`` no longer passes event fields that provide redundant
+  information:
+
+  + ``included-element``, ``excluding-element``, ``added-element`` and
+    ``removing-element`` no longer have ``parent``, ``previousSibling`` and
+    ``nextSibling``. Since the element stored in the ``element`` field is in the
+    DOM, these values are obtainable from the ``element`` field.
+
+  + ``excluded-element`` and ``removed-element`` no longer have
+    ``previousSibling`` and ``nextSibling``. They were always ``null`` anyway.
+
 Notable Bootstrap Changes
 =========================
 

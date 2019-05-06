@@ -34,21 +34,6 @@ export interface IncludedElementEvent extends BaseDOMListenerEvent {
   readonly tree: Node;
 
   /**
-   * The parent of the tree.
-   */
-  readonly parent: Node;
-
-  /**
-   * The sibling that precedes [[tree]].
-   */
-  readonly previousSibling: Node | null;
-
-  /**
-   * The sibling following [[tree]].
-   */
-  readonly nextSibling: Node | null;
-
-  /**
    * The element that was matched.
    */
   readonly element: Element;
@@ -74,16 +59,6 @@ export interface ExcludedElementEvent extends BaseDOMListenerEvent {
   readonly parent: Node;
 
   /**
-   * The sibling that precedes [[tree]], necessarily ``null``.
-   */
-  readonly previousSibling: null;
-
-  /**
-   * The sibling following [[tree]], necessarily ``null``.
-   */
-  readonly nextSibling: null;
-
-  /**
    * The element that was matched.
    */
   readonly element: Element;
@@ -104,21 +79,6 @@ export interface ExcludingElementEvent extends BaseDOMListenerEvent {
   readonly tree: Node;
 
   /**
-   * The parent of [[tree]].
-   */
-  readonly parent: Node;
-
-  /**
-   * The sibling that precedes [[tree]].
-   */
-  readonly previousSibling: Node | null;
-
-  /**
-   * The sibling following [[tree]].
-   */
-  readonly nextSibling: Node | null;
-
-  /**
    * The element that was matched.
    */
   readonly element: Element;
@@ -126,28 +86,9 @@ export interface ExcludingElementEvent extends BaseDOMListenerEvent {
 
 /**
  * Generated when an element has been directly added to the tree.
- *
- * The fields [[parent]], [[previousSibling]] and [[nextSibling]] are not
- * necessary but they allow handling ``AddedElementEvent`` and the events for
- * removal in the same manner.
  */
 export interface AddedElementEvent extends BaseDOMListenerEvent {
   readonly name: "added-element";
-
-  /**
-   * The parent of [[element]].
-   */
-  readonly parent: Node;
-
-  /**
-   * The sibling that precedes [[element]].
-   */
-  readonly previousSibling: Node | null;
-
-  /**
-   * The sibling following [[element]].
-   */
-  readonly nextSibling: Node | null;
 
   /**
    * The element that was matched.
@@ -161,21 +102,6 @@ export interface AddedElementEvent extends BaseDOMListenerEvent {
  */
 export interface RemovingElementEvent extends BaseDOMListenerEvent {
   readonly name: "removing-element";
-
-  /**
-   * The parent of [[element]].
-   */
-  readonly parent: Node;
-
-  /**
-   * The sibling that precedes [[element]].
-   */
-  readonly previousSibling: Node | null;
-
-  /**
-   * The sibling following [[element]].
-   */
-  readonly nextSibling: Node | null;
 
   /**
    * The element that was matched.
@@ -193,16 +119,6 @@ export interface RemovedElementEvent extends BaseDOMListenerEvent {
    * The **former** parent of [[element]].
    */
   readonly parent: Node;
-
-  /**
-   * The sibling that precedes [[tree]], necessarily ``null``.
-   */
-  readonly previousSibling: null;
-
-  /**
-   * The sibling following [[tree]], necessarily ``null``.
-   */
-  readonly nextSibling: null;
 
   /**
    * The element that was matched.
@@ -633,16 +549,14 @@ export class DOMListener {
       fn(ccEvent);
     }
 
-    const aeEvent = { name: "added-element", root, parent,
-                      previousSibling, nextSibling,
+    const aeEvent = { name: "added-element", root,
                       element: node as Element} as const;
     for (const fn of aeCalls) {
       fn(aeEvent);
     }
 
     for (const { fn, subtarget } of ieCalls) {
-      fn({ name: "included-element", root, tree: node, parent, previousSibling,
-           nextSibling, element: subtarget});
+      fn({ name: "included-element", root, tree: node, element: subtarget});
     }
 
     this._scheduleProcessTriggers();
@@ -692,16 +606,14 @@ export class DOMListener {
       fn(ccEvent);
     }
 
-    const reEvent = { name: "removing-element", root, parent,
-                      previousSibling, nextSibling,
+    const reEvent = { name: "removing-element", root,
                       element: node as Element } as const;
     for (const fn of reCalls) {
       fn(reEvent);
     }
 
     for (const { fn, subtarget } of eeCalls) {
-      fn({ name: "excluding-element", root, tree: node,
-           parent, previousSibling, nextSibling, element: subtarget });
+      fn({ name: "excluding-element", root, tree: node, element: subtarget });
     }
 
     this._scheduleProcessTriggers();
@@ -751,7 +663,6 @@ export class DOMListener {
     }
 
     const reEvent = { name: "removed-element", root, parent,
-                      previousSibling: null, nextSibling: null,
                       element: node as Element } as const;
     for (const fn of reCalls) {
       fn(reEvent);
@@ -759,7 +670,7 @@ export class DOMListener {
 
     for (const { fn, subtarget } of eeCalls) {
       fn({ name: "excluded-element", root, tree: node, parent,
-           previousSibling: null, nextSibling: null, element: subtarget});
+           element: subtarget});
     }
 
     this._scheduleProcessTriggers();

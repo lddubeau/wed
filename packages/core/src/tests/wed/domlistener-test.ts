@@ -91,14 +91,12 @@ describe("domlistener", () => {
     listener.stopListening();
   });
 
-  function makeIncludedHandler(name: string, expectedTree: Element,
-                               expectedParent: Element):
+  function makeIncludedHandler(name: string, expectedTree: Element):
   EventHandler<IncludedElementEvent> {
-    return ({ root: thisRoot, tree, parent, element }) => {
+    return ({ root: thisRoot, tree, element }) => {
       assert.equal(thisRoot, root);
       assert.equal(element.className, `_real ${name}`);
       assert.equal(tree, expectedTree);
-      assert.equal(parent, expectedParent);
       mark.mark(`included ${name}`);
     };
   }
@@ -115,14 +113,12 @@ describe("domlistener", () => {
     };
   }
 
-  function makeExcludingHandler(name: string, expectedTree: Element,
-                                expectedParent: Element):
+  function makeExcludingHandler(name: string, expectedTree: Element):
   EventHandler<ExcludingElementEvent> {
-    return ({ root: thisRoot, tree, parent, element }) => {
+    return ({ root: thisRoot, tree, element }) => {
       assert.equal(thisRoot, root);
       assert.equal(element.className, `_real ${name}`);
       assert.equal(tree, expectedTree);
-      assert.equal(parent, expectedParent);
       mark.mark(`excluding ${name}`);
     };
   }
@@ -136,13 +132,12 @@ describe("domlistener", () => {
          "included li": 2,
        }, listener, done);
        listener.addHandler("included-element", "._real.ul",
-                           makeIncludedHandler("ul", fragmentToAdd, root));
+                           makeIncludedHandler("ul", fragmentToAdd));
        listener.addHandler("included-element", "._real.li",
-                           makeIncludedHandler("li", fragmentToAdd, root));
+                           makeIncludedHandler("li", fragmentToAdd));
        listener.addHandler("added-element", "._real.ul",
-                           ({ root: thisRoot, parent, element }) => {
+                           ({ root: thisRoot, element }) => {
                               assert.equal(thisRoot, root);
-                              assert.equal(thisRoot, parent);
                               assert.equal(element, fragmentToAdd);
                               mark.mark("added ul");
                            });
@@ -167,69 +162,6 @@ describe("domlistener", () => {
        mark.check();
      });
 
-  it("generates added-element with the right previous and next siblings",
-     done => {
-       mark = new Mark(2, { "added li": 2 }, listener, done);
-       listener.addHandler(
-         "added-element", "._real.li",
-         ({ previousSibling, nextSibling, element }) => {
-           assert.equal(previousSibling, element.previousSibling);
-           assert.equal(nextSibling, element.nextSibling);
-           mark.mark("added li");
-         });
-       root.appendChild(fragmentToAdd);
-       const $li = $root.find("._real.li");
-       $li.remove();
-       listener.startListening();
-       const parent = root.querySelector(".ul")!;
-       $li.each(function each(this: Node): void {
-         // tslint:disable-next-line:no-invalid-this
-         treeUpdater.insertNodeAt(parent, parent.childNodes.length, this);
-       });
-       mark.check();
-     });
-
-  it("generates removing-element and removed-element with " +
-     "the right previous and next siblings", done => {
-       mark = new Mark(4, {
-         "removing li": 2,
-         "removed li": 2,
-       }, listener, done);
-       root.appendChild(fragmentToAdd);
-       const $li = $root.find("._real.li");
-       listener.addHandler(
-         "removing-element", "._real.li",
-         ({ previousSibling, nextSibling, element }) => {
-           const text = element.firstChild!.nodeValue;
-           if (text === "A") {
-             assert.isNull(previousSibling, "previous sibling of A");
-             assert.equal(nextSibling, $li[1], "next sibling of A");
-           }
-           else {
-             // By the time we get here, B is alone.
-             assert.isNull(previousSibling, "previous sibling of B");
-           }
-           mark.mark("removing li");
-         });
-
-       const ul = root.querySelector("._real.ul");
-       listener.addHandler(
-         "removed-element", "._real.li",
-         ({ parent, previousSibling, nextSibling }) => {
-           assert.isNull(previousSibling, "previous sibling of A");
-           assert.isNull(nextSibling, "next sibling of B");
-           assert.equal(parent, ul);
-           mark.mark("removed li");
-         });
-
-       listener.startListening();
-       $li.each(function each(this: HTMLElement): void {
-         // tslint:disable-next-line:no-invalid-this
-         treeUpdater.deleteNode(this);
-       });
-       mark.check();
-     });
-
   it("fires excluding-element, excluded-element, removing-element, " +
      "removed-element, children-changing and children-changed when " +
      "removing a fragment", done => {
@@ -245,33 +177,28 @@ describe("domlistener", () => {
          "excluded li": 2,
        }, listener, done);
        listener.addHandler("excluding-element", "._real.ul",
-                           makeExcludingHandler("ul", fragmentToAdd, root));
+                           makeExcludingHandler("ul", fragmentToAdd));
        listener.addHandler("excluded-element", "._real.ul",
                            makeExcludedHandler("ul", fragmentToAdd, root));
        listener.addHandler("excluding-element", "._real.li",
-                           makeExcludingHandler("li", fragmentToAdd, root));
+                           makeExcludingHandler("li", fragmentToAdd));
        listener.addHandler("excluded-element", "._real.li",
                            makeExcludedHandler("li", fragmentToAdd, root));
 
        listener.addHandler("removing-element", "._real.ul",
-                           ({ root: thisRoot, parent, element }) => {
+                           ({ root: thisRoot, element }) => {
                              assert.equal(thisRoot, root);
-                             assert.equal(thisRoot, parent);
                              assert.equal(element, fragmentToAdd);
                              mark.mark("removing ul");
                            });
 
-       listener.addHandler(
-         "removed-element", "._real.ul",
-         ({ root: thisRoot, parent, previousSibling, nextSibling,
-            element }) => {
-              assert.equal(thisRoot, root);
-              assert.equal(thisRoot, parent);
-              assert.equal(element, fragmentToAdd);
-              assert.isNull(previousSibling);
-              assert.isNull(nextSibling);
-              mark.mark("removed ul");
-            });
+       listener.addHandler("removed-element", "._real.ul",
+                           ({ root: thisRoot, parent, element }) => {
+                             assert.equal(thisRoot, root);
+                             assert.equal(thisRoot, parent);
+                             assert.equal(element, fragmentToAdd);
+                             mark.mark("removed ul");
+                           });
 
        listener.addHandler(
          "children-changing", "*",
@@ -533,7 +460,7 @@ describe("domlistener", () => {
        mark.check();
      });
 
-  it("generates included-element with the right tree, previous, next siblings",
+  it("generates included-element with the right tree",
      done => {
        mark = new Mark(8, {
          "included li at root": 2,
@@ -548,28 +475,21 @@ describe("domlistener", () => {
          listener.addHandler(
            `${incex}-element` as "included-element" | "excluding-element",
            "._real.li",
-           ({ root: thisRoot, tree, parent, previousSibling, nextSibling,
-              element }) => {
-                assert.equal(thisRoot, root, "root");
-                assert.equal(element.className, "_real li", "element class");
-                // The following tests are against $fragment rather than $root
-                // or $thisRoot because by the time the handler is called, the
-                // $root could be empty!
+           ({ root: thisRoot, tree, element }) => {
+             assert.equal(thisRoot, root, "root");
+             assert.equal(element.className, "_real li", "element class");
+             // The following tests are against $fragment rather than $root
+             // or $thisRoot because by the time the handler is called, the
+             // $root could be empty!
 
-                if (tree === $fragment[0]) {
-                  mark.mark(`${incex} li at root`);
-                  assert.equal(parent, root, "parent value");
-                  assert.isNull(previousSibling, "previous sibling");
-                  assert.isNull(nextSibling, "next sibling");
-                }
-                else {
-                  assert.equal(tree, $fragment.find(".ul")[0], "tree value");
-                  assert.equal(parent, $fragment[0]);
-                  assert.equal(previousSibling, $fragment.find("p")[0]);
-                  assert.equal(nextSibling, $fragment.find("p")[1]);
-                  mark.mark(`${incex} li at ul`);
-                }
-              });
+             if (tree === $fragment[0]) {
+               mark.mark(`${incex} li at root`);
+             }
+             else {
+               assert.equal(tree, $fragment.find(".ul")[0], "tree value");
+               mark.mark(`${incex} li at ul`);
+             }
+           });
        }
        addHandler("included");
        addHandler("excluding");
