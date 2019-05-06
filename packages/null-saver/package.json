@@ -1,6 +1,6 @@
 {
   "name": "@wedxml/null-saver",
-  "version": "5.0.0-alpha.27",
+  "version": "5.0.0-alpha.28",
   "private": true,
   "description": "A saver for wed that does nothing.",
   "keywords": [
@@ -23,9 +23,9 @@
   "main": "build/dist/null-saver.js",
   "versionedSources": "src/null-saver.ts",
   "dependencies": {
-    "@wedxml/base-saver": "5.0.0-alpha.27",
-    "@wedxml/client-api": "5.0.0-alpha.27",
-    "@wedxml/common": "5.0.0-alpha.27"
+    "@wedxml/base-saver": "5.0.0-alpha.28",
+    "@wedxml/client-api": "5.0.0-alpha.28",
+    "@wedxml/common": "5.0.0-alpha.28"
   },
   "scripts": {
     "tsc": "tsc -p tsconfig.json",
