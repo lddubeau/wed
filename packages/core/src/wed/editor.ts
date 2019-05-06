@@ -1419,22 +1419,28 @@ export class Editor implements EditorAPI {
       return this;
     }
 
+    const childChange = (child: Node) => {
+      if (isText(child) ||
+          (isElement(child) &&
+           (child.classList.contains("_real") ||
+            child.classList.contains("_phantom_wrap")))) {
+        this.validator.resetTo(child);
+      }
+    };
+
     // Make the validator revalidate the structure from the point where a change
     // occurred.
-    this.domlistener.addHandler(
-      "children-changed",
-      "._real, ._phantom_wrap, .wed-document",
-      ({ added, removed, element }) => {
-        for (const child of added.concat(removed)) {
-          if (isText(child) ||
-              (isElement(child) &&
-               (child.classList.contains("_real") ||
-                child.classList.contains("_phantom_wrap")))) {
-            this.validator.resetTo(element);
-            break;
-          }
-        }
-      });
+    this.domlistener.addHandler("added-child",
+                                "._real, ._phantom_wrap, .wed-document",
+                                ({ child }) => {
+                                  childChange(child);
+                                });
+
+    this.domlistener.addHandler("removed-child",
+                                "._real, ._phantom_wrap, .wed-document",
+                                ({ child }) => {
+                                  childChange(child);
+                                });
 
     // Revalidate on attribute change.
     this.domlistener.addHandler(
@@ -1465,92 +1471,98 @@ export class Editor implements EditorAPI {
       "included-element",
       "._label",
       ({ element }) => {
-         const cl = element.classList;
-         let found: number | undefined;
-         for (let i = 0; i < cl.length && found === undefined; ++i) {
-           if (cl[i].lastIndexOf("_label_level_", 0) === 0) {
-             found = Number(cl[i].slice(13));
-           }
-         }
-         if (found === undefined) {
-           throw new Error("unable to get level");
-         }
-         if (found > this.currentLabelLevel) {
-           cl.add("_invisible");
-         }
-       });
+        const cl = element.classList;
+        let found: number | undefined;
+        for (let i = 0; i < cl.length && found === undefined; ++i) {
+          if (cl[i].lastIndexOf("_label_level_", 0) === 0) {
+            found = Number(cl[i].slice(13));
+          }
+        }
+        if (found === undefined) {
+          throw new Error("unable to get level");
+        }
+        if (found > this.currentLabelLevel) {
+          cl.add("_invisible");
+        }
+      });
 
     // If an element is edited and contains a placeholder, delete the
     // placeholder
+    const placeholderHandling =
+      (node: Node, removed: boolean, parent: Element) =>  {
+        if (this.updatingPlaceholder !== 0) {
+          return;
+        }
+
+        this.updatingPlaceholder++;
+
+        // We perform this check on the GUI tree because there's no way to know
+        // about ._phantom._text elements in the data tree.
+        const toConsider: Node[] = [];
+        let ph: Element | undefined;
+        let child: Node | null = parent.firstChild;
+        while (child !== null) {
+          if (isText(child) ||
+              (isElement(child) &&
+               (child.classList.contains("_real") ||
+                child.classList.contains("_phantom_wrap") ||
+                // For ._phantom._text but ._text is used only with ._real and
+                // ._phantom so we don't check for ._phantom.
+                child.classList.contains("_text")))) {
+            toConsider.push(child);
+          }
+          if (isElement(child) && child.classList.contains("_placeholder")) {
+            ph = child;
+          }
+          child = child.nextSibling;
+        }
+
+        const caretManager = this.caretManager;
+        if (toConsider.length === 0 ||
+            (toConsider.length === 1 && removed && toConsider[0] === node)) {
+          if (ph === undefined) {
+            const mode = this.modeTree.getMode(parent);
+            const nodes = mode.nodesAroundEditableContents(parent);
+            if (parent === this.guiRoot) {
+              const loc = caretManager.makeCaret(this.guiRoot, 0)!;
+              ph = this.insertTransientPlaceholderAt(loc);
+              caretManager.setCaret(loc, { textEdit: true });
+            }
+            else {
+              ph = mode.makePlaceholderFor(parent);
+              this.guiUpdater.insertBefore(parent, ph, nodes[1]);
+            }
+          }
+        }
+        else if (ph !== undefined && !ph.classList.contains("_transient")) {
+          const { caret } = caretManager;
+          // Move the caret out of the placeholder if needed...
+          const move = caret !== undefined && ph.contains(caret.node) ?
+            caret.make(ph) : undefined;
+          this.guiUpdater.removeNode(ph);
+          if (move !== undefined) {
+            caretManager.setCaret(move, { textEdit: true });
+          }
+        }
+
+        this.updatingPlaceholder--;
+      };
+
     this.domlistener.addHandler(
-      "children-changed",
+      "added-child",
       "._real, ._phantom_wrap, .wed-document",
       // tslint:disable-next-line:cyclomatic-complexity
-      ({ removed, element: target }) => {
-         if (this.updatingPlaceholder !== 0) {
-           return;
-         }
+      ({ child }) => {
+        placeholderHandling(child, false, child.parentNode as Element);
+      });
 
-         this.updatingPlaceholder++;
-
-         // We perform this check on the GUI tree because there's no way to know
-         // about ._phantom._text elements in the data tree.
-         const toConsider: Node[] = [];
-         let ph: Element | undefined;
-         let child: Node | null = target.firstChild;
-         while (child !== null) {
-           if (isText(child) ||
-               (isElement(child) &&
-                (child.classList.contains("_real") ||
-                 child.classList.contains("_phantom_wrap") ||
-                 // For ._phantom._text but ._text is used only with ._real and
-                 // ._phantom so we don't check for ._phantom.
-                 child.classList.contains("_text")))) {
-             toConsider.push(child);
-           }
-           if (isElement(child) && child.classList.contains("_placeholder")) {
-             ph = child;
-           }
-           child = child.nextSibling;
-         }
-
-         const caretManager = this.caretManager;
-         if (toConsider.length === 0 ||
-             (toConsider.length === 1 &&
-              removed.indexOf(toConsider[0]) !== -1)) {
-           if (ph === undefined) {
-             const mode = this.modeTree.getMode(target);
-             const nodes = mode.nodesAroundEditableContents(target);
-             if (target === this.guiRoot) {
-               const loc = caretManager.makeCaret(this.guiRoot, 0)!;
-               ph = this.insertTransientPlaceholderAt(loc);
-               caretManager.setCaret(loc, { textEdit: true });
-             }
-             else {
-               ph = mode.makePlaceholderFor(target);
-               this.guiUpdater.insertBefore(target, ph, nodes[1]);
-             }
-           }
-         }
-         else if (ph !== undefined && !ph.classList.contains("_transient")) {
-           const caret = caretManager.caret !==  undefined ?
-             caretManager.caret.node : undefined;
-           // Move the caret out of the placeholder if needed...
-           const move = caret !== undefined && ph.contains(caret);
-           let parent;
-           let offset;
-           if (move) {
-             parent = ph.parentNode!;
-             offset = indexOf(parent.childNodes, ph);
-           }
-           this.guiUpdater.removeNode(ph);
-           if (move) {
-             caretManager.setCaret(parent, offset, { textEdit: true });
-           }
-         }
-
-         this.updatingPlaceholder--;
-       });
+    this.domlistener.addHandler(
+      "removed-child",
+      "._real, ._phantom_wrap, .wed-document",
+      // tslint:disable-next-line:cyclomatic-complexity
+      ({ child, parent }) => {
+        placeholderHandling(child, true, parent);
+      });
 
     const attributePlaceholderHandler = (target: Element) => {
       if (this.updatingPlaceholder !== 0) {
@@ -1571,10 +1583,17 @@ export class Editor implements EditorAPI {
       this.updatingPlaceholder--;
     };
 
-    this.domlistener.addHandler("children-changed",
+    this.domlistener.addHandler("added-child",
                                 "._attribute_value",
-                                ({ element }) => {
-                                  attributePlaceholderHandler(element);
+                                ({ child }) => {
+                                  attributePlaceholderHandler(
+                                    child.parentNode as Element);
+                                });
+
+    this.domlistener.addHandler("removed-child",
+                                "._attribute_value",
+                                ({ parent }) => {
+                                  attributePlaceholderHandler(parent);
                                 });
 
     this.domlistener.addHandler("included-element",

@@ -155,6 +155,14 @@ Miscelaneous changes
   + ``excluded-element`` and ``removed-element`` no longer have
     ``previousSibling`` and ``nextSibling``. They were always ``null`` anyway.
 
+* ``children-changed`` and ``children-changing`` have been replaced by
+  ``added-child``, ``removing-child`` and ``removed-child``. The old API had
+  become misleading a long time ago. The events had ``added`` and ``removed``
+  array but only one of the two could be filled at a time, and it could contain
+  at most one element. (Back when we had the MutationObserver-based DOMListener
+  the arrays **could** have contained more than one element.) They also omit
+  redundant information.
+
 Notable Bootstrap Changes
 =========================
 

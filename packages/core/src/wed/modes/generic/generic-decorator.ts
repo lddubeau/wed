@@ -52,19 +52,27 @@ export class GenericDecorator extends Decorator {
         }
       });
 
+    const redecorate = (root: Element, child: Node, parent: Element) => {
+        if (isText(child) || (isElement(child) &&
+                              (child.classList.contains("_real") ||
+                               child.classList.contains("_phantom_wrap")))) {
+          this.elementDecorator(root, parent);
+        }
+    };
+
     this.domlistener.addHandler(
-      "children-changed",
+      "added-child",
       util.classFromOriginalName("*", {}),
-      ({ root, added, removed, element: el }) => {
-         for (const child of added.concat(removed)) {
-           if (isText(child) || (isElement(child) &&
-                                 (child.classList.contains("_real") ||
-                                  child.classList.contains("_phantom_wrap")))) {
-             this.elementDecorator(root as Element, el);
-             break;
-           }
-         }
-       });
+      ({ root, child }) => {
+        redecorate(root as Element, child, child.parentNode as Element);
+      });
+
+    this.domlistener.addHandler(
+      "removed-child",
+      util.classFromOriginalName("*", {}),
+      ({ root, parent, child }) => {
+        redecorate(root as Element, child, parent);
+      });
 
     this.domlistener.addHandler("text-changed",
                                 util.classFromOriginalName("*", {}),

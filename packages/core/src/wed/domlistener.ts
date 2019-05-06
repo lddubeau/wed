@@ -127,64 +127,44 @@ export interface RemovedElementEvent extends BaseDOMListenerEvent {
 }
 
 /**
- * Generated when children are about to be *removed* from an element. Note the
- * asymmetry: **this event is not generated when nodes are added!!**
+ * Generated when the child of an element has been added to the element.
  */
-export interface ChildrenChangingEvent extends BaseDOMListenerEvent {
-  readonly name: "children-changing";
+export interface AddedChildEvent extends BaseDOMListenerEvent {
+  readonly name: "added-child";
 
-  /**
-   * The nodes that are about to be added. This will always be an empty list.
-   */
-  readonly added: readonly Node[];
-
-  /** The nodes that are about to be removed. */
-  readonly removed: readonly Node[];
-
-  /** The node before the list of nodes to be removed. */
-  readonly previousSibling: Node | null;
-
-  /** The node after the list of nodes to be removed. */
-  readonly nextSibling: Node | null;
-
-  /** The element whose children are being removed. */
-  readonly element: Element;
+  /** The child that was added. */
+  readonly child: Node;
 }
 
 /**
- * Generated when children of an element have been added to or removed from the
- * element. Note that the listener will emit events with at most one of
- * ``added`` or ``removed`` non-empty.
+ * Generated when the child of an element is about to be removed from the
+ * element.
  */
-export interface ChildrenChangedEvent extends BaseDOMListenerEvent {
-  readonly name: "children-changed";
+export interface RemovingChildEvent extends BaseDOMListenerEvent {
+  readonly name: "removing-child";
 
-  /** The nodes that were added. */
-  readonly added: readonly Node[];
+  /** The child that is about to be removed. */
+  readonly child: Node;
+}
 
-  /** The nodes that were removed. */
-  readonly removed: readonly Node[];
+/**
+ * Generated when the child of an element has been removed from the
+ * element.
+ */
+export interface RemovedChildEvent extends BaseDOMListenerEvent {
+  readonly name: "removed-child";
 
-  /**
-   * The node before the list of nodes added or removed. When the handler is
-   * called after a removal of children, this is necessarily ``null``.
-   */
-  readonly previousSibling: Node | null;
+  /** The former parent. */
+  readonly parent: Element;
 
-  /**
-   * The node after the list of nodes to be removed. When the handler is called
-   * after a removal of children, this is necessarily ``null``.
-   */
-  readonly nextSibling: Node | null;
-
-  /** The element whose children were modified. */
-  readonly element: Element;
+  /** The child that has been removed. */
+  readonly child: Node;
 }
 
 /**
  * Generated when a text node has its value changed.  A ``text-changed`` event
  * is not generated when Node objects of type ``TEXT_NODE`` are added or
- * removed. They trigger ``children-changed`` events.
+ * removed. They trigger ``*-child`` events.
  */
 export interface TextChangedEvent extends BaseDOMListenerEvent {
   readonly name: "text-changed";
@@ -221,8 +201,8 @@ export interface TriggerEvent extends BaseDOMListenerEvent {
 
 export type Events = IncludedElementEvent | ExcludedElementEvent |
   ExcludingElementEvent | AddedElementEvent | RemovingElementEvent |
-  RemovedElementEvent | ChildrenChangingEvent | ChildrenChangedEvent |
-  TextChangedEvent | AttributeChangedEvent | TriggerEvent;
+  RemovedElementEvent | AddedChildEvent | RemovingChildEvent |
+  RemovedChildEvent | TextChangedEvent | AttributeChangedEvent | TriggerEvent;
 
 export type EventNames = Events["name"];
 
@@ -250,7 +230,7 @@ export type EventHandlerMap =
 type FixFn<T extends (...args: any[]) => any> =
   (...v: Parameters<T>) => ReturnType<T>;
 
-type ChildEvents = "children-changing" | "children-changed";
+type ChildEvents = "added-child" | "removing-child" | "removed-child";
 type AddRemEvents = "added-element" | "removed-element" | "removing-element";
 type IncludeExcludeEvents = "included-element" | "excluded-element" |
   "excluding-element";
@@ -278,14 +258,14 @@ interface CallSpec<T extends Events> {
  *
  * If the fragment is added to a ``<div>`` element, an ``included-element``
  * event will be generated for ``<ul>`` and ``<li>`` but an ``added-element``
- * event will be generated only for ``<ul>``. A ``changed-children`` event will
+ * event will be generated only for ``<ul>``. An ``added-child`` event will
  * be generated for the parent of ``<ul>``.
  *
  * If the fragment is removed, an ``excluding-element`` and ``excluded-element``
  * event will be generated for ``<ul>`` and ``<li>`` but a ``removing-element``
  * and ``remove-element`` event will be generated only for ``<ul>``. A
- * ``children-changing`` and ``children-changed`` event will be generated for
- * the parent of ``<ul>``.
+ * ``removing-child`` and ``removed-child`` event will be generated for the
+ * parent of ``<ul>``.
  *
  * The order in which handlers are added matters. The listener provides the
  * following guarantee: for any given type of event, the handlers will be called
@@ -293,7 +273,7 @@ interface CallSpec<T extends Events> {
  *
  * <h2>Warnings:</h2>
  *
- * - Keep in mind that the ``children-changed``, ``excluded-element`` and
+ * - Keep in mind that the ``removed-child``, ``excluded-element`` and
  *   ``removed-element`` events are generated **after** the DOM operation that
  *   triggers them. This has some consequences. In particular, a selector that
  *   will work perfectly with ``removing-element`` or ``excluding-element`` may
@@ -330,7 +310,7 @@ interface CallSpec<T extends Events> {
  *   will have both their ``previousSibling`` and ``nextSibling`` set to
  *   ``null``.
  *
- * - Handlers that are fired on children-changed events, **and** which modify
+ * - Handlers that are fired on ``*-child`` events, **and** which modify
  *   the DOM tree can easily result in infinite loops. Care should be taken
  *   early in any such handler to verify that the kind of elements added or
  *   removed **should** result in a change to the DOM tree, and ignore those
@@ -344,8 +324,9 @@ export class DOMListener {
     "excluding-element": [],
     "removed-element": [],
     "removing-element": [],
-    "children-changed": [],
-    "children-changing": [],
+    "added-child": [],
+    "removing-child": [],
+    "removed-child": [],
     "text-changed": [],
     "attribute-changed": [],
   };
@@ -529,7 +510,7 @@ export class DOMListener {
     // 1 and 2 can be done in any order relative to one another.
     //
 
-    const ccCalls = this._childrenCalls("children-changed", parent);
+    const ccCalls = this._childrenCalls("added-child", parent);
 
     let aeCalls: EventHandler<AddedElementEvent>[] = [];
     let ieCalls: CallSpec<IncludedElementEvent>[] = [];
@@ -539,12 +520,7 @@ export class DOMListener {
     }
 
     const { root } = this;
-    const added = [node];
-    const removed: Node[] = [];
-    const { previousSibling, nextSibling } = node;
-    const ccEvent = { name: "children-changed", root,
-                      added, removed, previousSibling, nextSibling,
-                      element: parent } as const;
+    const ccEvent = { name: "added-child", root, child: node } as const;
     for (const fn of ccCalls) {
       fn(ccEvent);
     }
@@ -586,7 +562,7 @@ export class DOMListener {
     // 1 and 2 can be done in any order relative to one another.
     //
 
-    const ccCalls = this._childrenCalls("children-changing", parent);
+    const ccCalls = this._childrenCalls("removing-child", parent);
 
     let reCalls: EventHandler<RemovingElementEvent>[] = [];
     let eeCalls: CallSpec<ExcludingElementEvent>[] = [];
@@ -596,12 +572,7 @@ export class DOMListener {
     }
 
     const { root } = this;
-    const added: Node[] = [];
-    const removed = [node];
-    const { previousSibling, nextSibling } = node;
-    const ccEvent = { name: "children-changing", root,
-                      added, removed, previousSibling, nextSibling,
-                      element: parent } as const;
+    const ccEvent = { name: "removing-child", root, child: node } as const;
     for (const fn of ccCalls) {
       fn(ccEvent);
     }
@@ -643,7 +614,7 @@ export class DOMListener {
     // 1 and 2 can be done in any order relative to one another.
     //
 
-    const ccCalls = this._childrenCalls("children-changed", parent);
+    const ccCalls = this._childrenCalls("removed-child", parent);
 
     let reCalls: EventHandler<RemovedElementEvent>[] = [];
     let eeCalls: CallSpec<ExcludedElementEvent>[] = [];
@@ -653,11 +624,8 @@ export class DOMListener {
     }
 
     const { root } = this;
-    const added: Node[] = [];
-    const removed = [node];
-    const ccEvent = { name: "children-changed", root, added, removed,
-                      previousSibling: null, nextSibling: null,
-                      element: parent } as const;
+    const ccEvent = { name: "removed-child", root, parent,
+                      child: node } as const;
     for (const fn of ccCalls) {
       fn(ccEvent);
     }
@@ -677,7 +645,7 @@ export class DOMListener {
   }
 
   /**
-   * Produces the calls for ``children-...`` events.
+   * Produces the calls for ``*-child`` events.
    *
    * @param call The type of call to produce.
    *

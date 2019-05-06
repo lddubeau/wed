@@ -123,7 +123,7 @@ describe("domlistener", () => {
     };
   }
 
-  it("fires included-element, added-element and children-changed when " +
+  it("fires included-element, added-element and added-child when " +
      "adding a fragment", done => {
        mark = new Mark(5, {
          "included ul": 1,
@@ -141,29 +141,24 @@ describe("domlistener", () => {
                               assert.equal(element, fragmentToAdd);
                               mark.mark("added ul");
                            });
-       listener.addHandler(
-         "children-changed", "*",
-         ({ root: thisRoot, added, removed, previousSibling, nextSibling,
-            element }) => {
-              // The marker will also trigger this handler. Ignore it.
-              if (added[0] === marker) {
-                return;
-              }
-              assert.equal(thisRoot, element);
-              assert.equal(removed.length, 0);
-              assert.equal(added.length, 1);
-              assert.equal(added[0], fragmentToAdd);
-              assert.isNull(previousSibling);
-              assert.isNull(nextSibling);
-              mark.mark("children root");
-            });
+       listener.addHandler("added-child", "*",
+                           ({ root: thisRoot, child }) => {
+                             // The marker will also trigger this
+                             // handler. Ignore it.
+                             if (child === marker) {
+                               return;
+                             }
+                             assert.equal(thisRoot, root);
+                             assert.equal(child, fragmentToAdd);
+                             mark.mark("children root");
+                           });
        listener.startListening();
        treeUpdater.insertNodeAt(root, root.childNodes.length, fragmentToAdd);
        mark.check();
      });
 
   it("fires excluding-element, excluded-element, removing-element, " +
-     "removed-element, children-changing and children-changed when " +
+     "removed-element, removing-child and removed-child when " +
      "removing a fragment", done => {
        root.appendChild(fragmentToAdd);
        mark = new Mark(10, {
@@ -171,8 +166,8 @@ describe("domlistener", () => {
          "excluded ul": 1,
          "removing ul": 1,
          "removed ul": 1,
-         "children-changing root": 1,
-         "children-changed root": 1,
+         "removing-child root": 1,
+         "removed-child root": 1,
          "excluding li": 2,
          "excluded li": 2,
        }, listener, done);
@@ -200,39 +195,30 @@ describe("domlistener", () => {
                              mark.mark("removed ul");
                            });
 
-       listener.addHandler(
-         "children-changing", "*",
-         ({ root: thisRoot, added, removed, previousSibling, nextSibling,
-            element }) => {
-              // The marker will also trigger this handler. Ignore it.
-              if (added[0] === marker) {
-                return;
-              }
-              assert.equal(thisRoot, element);
-              assert.equal(added.length, 0);
-              assert.equal(removed.length, 1);
-              assert.equal(removed[0], fragmentToAdd);
-              assert.isNull(previousSibling);
-              assert.isNull(nextSibling);
-              mark.mark("children-changing root");
-            });
+       listener.addHandler("removing-child", "*",
+                           ({ root: thisRoot, child }) => {
+                             // The marker will also trigger this
+                             // handler. Ignore it.
+                             if (child === marker) {
+                               return;
+                             }
+                             assert.equal(thisRoot, root);
+                             assert.equal(child, fragmentToAdd);
+                             mark.mark("removing-child root");
+                           });
 
-       listener.addHandler(
-         "children-changed", "*",
-         ({ root: thisRoot, added, removed, previousSibling, nextSibling,
-            element }) => {
-              // The marker will also trigger this handler. Ignore it.
-              if (added[0] === marker) {
-                return;
-              }
-              assert.equal(thisRoot, element);
-              assert.equal(added.length, 0);
-              assert.equal(removed.length, 1);
-              assert.equal(removed[0], fragmentToAdd);
-              assert.isNull(previousSibling);
-              assert.isNull(nextSibling);
-              mark.mark("children-changed root");
-            });
+       listener.addHandler("removed-child", "*",
+                           ({ root: thisRoot, parent, child }) => {
+                             // The marker will also trigger this
+                             // handler. Ignore it.
+                             if (child === marker) {
+                               return;
+                             }
+                             assert.equal(thisRoot, root);
+                             assert.equal(parent, root);
+                             assert.equal(child, fragmentToAdd);
+                             mark.mark("removed-child root");
+                           });
        listener.startListening();
        treeUpdater.deleteNode(fragmentToAdd);
        mark.check();
@@ -308,40 +294,25 @@ describe("domlistener", () => {
     mark.check();
   });
 
-  it("fires children-changed when adding a text node", done => {
+  it("fires added-child when adding a text node", done => {
     // The handler is called twice. Once when the single text node which was
     // already there is removed. Once when the new text node is added.
 
-    mark = new Mark(2, { "children li": 2 }, listener, done);
-    let li: Node;
-    let changeNo = 0;
+    mark = new Mark(1, { "children li": 1 }, listener, done);
     listener.addHandler(
-      "children-changed", "._real.li",
-      ({ root: thisRoot, added, removed, previousSibling, nextSibling,
-         element }) => {
-           // The marker will also trigger this handler. Ignore it.
-           if (added[0] === marker) {
-             return;
-           }
-           assert.equal(thisRoot, root);
-           assert.equal(element, li);
-           assert.equal(added.length, changeNo === 0 ? 0 : 1, "added elements");
-           assert.equal(removed.length, changeNo === 0 ? 1 : 0,
-                        "removed elements");
-           assert.isNull(previousSibling);
-           assert.isNull(nextSibling);
-           if (changeNo === 0) {
-             assert.equal(removed[0].nodeValue, "A");
-           }
-           else {
-             assert.equal(added[0].nodeValue, "Q");
-           }
-           changeNo++;
-           mark.mark("children li");
-         });
+      "added-child", "._real.li",
+      ({ root: thisRoot, child }) => {
+        // The marker will also trigger this handler. Ignore it.
+        if (child === marker) {
+          return;
+        }
+        assert.equal(thisRoot, root);
+        assert.equal(child.nodeValue, "Q");
+        mark.mark("children li");
+      });
     root.appendChild(fragmentToAdd);
     listener.startListening();
-    li = root.querySelector("._real.li")!;
+    const li = root.querySelector("._real.li")!;
     // We'll simulate what jQuery does: remove the text node and add a new one.
     treeUpdater.deleteNode(li.firstChild!);
     treeUpdater.insertText(li, 0, "Q");
@@ -392,67 +363,37 @@ describe("domlistener", () => {
     mark.check();
   });
 
-  it("generates children-changed with the right previous and " +
-     "next siblings when adding", done => {
-       mark = new Mark(1, { "children ul": 1 }, listener, done);
-       root.appendChild(fragmentToAdd);
-       const li = root.querySelectorAll("._real.li");
-       listener.addHandler(
-         "children-changed", "._real.ul",
-         ({ added, previousSibling, nextSibling }) => {
-           // The marker will also trigger this handler. Ignore it.
-           if (added[0] === marker) {
-             return;
-           }
-           assert.equal(previousSibling, li[0]);
-           assert.equal(nextSibling, li[1]);
-           mark.mark("children ul");
-         });
-       listener.startListening();
-       const $new = $("<li>Q</li>");
-       treeUpdater
-         .insertNodeAt(li[0].parentNode!,
-                       indexOf(li[0].parentNode!.childNodes, li[0]) + 1,
-                       $new[0]);
-       mark.check();
-     });
-
   it("generates children-changing and children-changed with " +
-     "the right previous and next siblings when removing", done => {
+     "the right parent when removing", done => {
        fragmentToAdd = $(`<div class='_real ul'><div class='_real li'>A</div>\
 <div class='_real li'>B</div><div class='_real li'>C</div></div>`)[0];
 
        mark = new Mark(2, {
-         "children-changed ul": 1,
-         "children-changing ul": 1,
+         "removed-child ul": 1,
+         "removing-child ul": 1,
        }, listener, done);
        root.appendChild(fragmentToAdd);
        const $li = $root.find("._real.li");
        const parent = $li[0].parentNode;
-       listener.addHandler(
-         "children-changing", "._real.ul",
-         ({ added, previousSibling, nextSibling, element }) => {
-           // The marker will also trigger this handler. Ignore it.
-           if (added[0] === marker) {
-             return;
-           }
-           assert.equal(previousSibling, $li[0]);
-           assert.equal(nextSibling, $li[2]);
-           assert.equal(element, parent);
-           mark.mark("children-changing ul");
-         });
+       listener.addHandler("removing-child", "._real.ul",
+                           ({ child }) => {
+                             // The marker will also trigger this
+                             // handler. Ignore it.
+                             if (child === marker) {
+                               return;
+                             }
+                             mark.mark("removing-child ul");
+                           });
 
-       listener.addHandler(
-         "children-changed", "._real.ul",
-         ({ added, previousSibling, nextSibling, element }) => {
-           // The marker will also trigger this handler. Ignore it.
-           if (added[0] === marker) {
-             return;
-           }
-           assert.isNull(previousSibling);
-           assert.isNull(nextSibling);
-           assert.equal(element, parent);
-           mark.mark("children-changed ul");
+       listener.addHandler("removed-child", "._real.ul",
+                           ({ parent: thisParent, child }) => {
+                             // The marker will also trigger this
+                             // handler. Ignore it.
+                             if (child === marker) {
+                               return;
+                             }
+                             assert.equal(thisParent, parent);
+                             mark.mark("removed-child ul");
          });
 
        listener.startListening();
@@ -460,53 +401,52 @@ describe("domlistener", () => {
        mark.check();
      });
 
-  it("generates included-element with the right tree",
-     done => {
-       mark = new Mark(8, {
-         "included li at root": 2,
-         "included li at ul": 2,
-         "excluding li at ul": 2,
-         "excluding li at root": 2,
-       }, listener, done);
-       const $fragment = $(`<div><p>before</p><div class='_real ul'>\
+  it("generates included-element with the right tree", done => {
+    mark = new Mark(8, {
+      "included li at root": 2,
+      "included li at ul": 2,
+      "excluding li at ul": 2,
+      "excluding li at root": 2,
+    }, listener, done);
+    const $fragment = $(`<div><p>before</p><div class='_real ul'>\
 <div class='_real li'>A</div><div class='_real li'>B</div></div>\
 <p>after</p></div>`);
-       function addHandler(incex: "included" | "excluding"): void {
-         listener.addHandler(
-           `${incex}-element` as "included-element" | "excluding-element",
-           "._real.li",
-           ({ root: thisRoot, tree, element }) => {
-             assert.equal(thisRoot, root, "root");
-             assert.equal(element.className, "_real li", "element class");
-             // The following tests are against $fragment rather than $root
-             // or $thisRoot because by the time the handler is called, the
-             // $root could be empty!
+    function addHandler(incex: "included" | "excluding"): void {
+      listener.addHandler(
+        `${incex}-element` as "included-element" | "excluding-element",
+        "._real.li",
+        ({ root: thisRoot, tree, element }) => {
+          assert.equal(thisRoot, root, "root");
+          assert.equal(element.className, "_real li", "element class");
+          // The following tests are against $fragment rather than $root
+          // or $thisRoot because by the time the handler is called, the
+          // $root could be empty!
 
-             if (tree === $fragment[0]) {
-               mark.mark(`${incex} li at root`);
-             }
-             else {
-               assert.equal(tree, $fragment.find(".ul")[0], "tree value");
-               mark.mark(`${incex} li at ul`);
-             }
-           });
-       }
-       addHandler("included");
-       addHandler("excluding");
-       listener.startListening();
-       treeUpdater.insertNodeAt(root, root.childNodes.length, $fragment[0]);
-       const $ul = $root.find(".ul");
-       treeUpdater.deleteNode($ul[0]);
-       const p = $root.find("p")[0];
-       const pParent = p.parentNode!;
-       treeUpdater.insertNodeAt(pParent, indexOf(pParent.childNodes, p) + 1,
-                                $ul[0]);
-       $root.contents().each(function each(this: Node): void {
-         // tslint:disable-next-line:no-invalid-this
-         treeUpdater.deleteNode(this);
-       });
-       mark.check();
-     });
+          if (tree === $fragment[0]) {
+            mark.mark(`${incex} li at root`);
+          }
+          else {
+            assert.equal(tree, $fragment.find(".ul")[0], "tree value");
+            mark.mark(`${incex} li at ul`);
+          }
+        });
+    }
+    addHandler("included");
+    addHandler("excluding");
+    listener.startListening();
+    treeUpdater.insertNodeAt(root, root.childNodes.length, $fragment[0]);
+    const $ul = $root.find(".ul");
+    treeUpdater.deleteNode($ul[0]);
+    const p = $root.find("p")[0];
+    const pParent = p.parentNode!;
+    treeUpdater.insertNodeAt(pParent, indexOf(pParent.childNodes, p) + 1,
+                             $ul[0]);
+    $root.contents().each(function each(this: Node): void {
+      // tslint:disable-next-line:no-invalid-this
+      treeUpdater.deleteNode(this);
+    });
+    mark.check();
+  });
 
   it("processImmediately processes immediately", () => {
     let marked = false;
@@ -514,8 +454,8 @@ describe("domlistener", () => {
                     () => {
                       marked = true;
                     });
-    listener.addHandler("children-changed", "*", ({ added }) => {
-      if (added[0] === marker) {
+    listener.addHandler("added-child", "*", ({ child }) => {
+      if (child === marker) {
         return;
       }
       listener.trigger("t");
@@ -537,8 +477,8 @@ describe("domlistener", () => {
     mark = new Mark(1, { "children root": 1 }, listener, () => {
       marked = true;
     });
-    listener.addHandler("children-changed", "*", ({ added }) => {
-      if (added[0] === marker) {
+    listener.addHandler("added-child", "*", ({ child }) => {
+      if (child === marker) {
         return;
       }
       listener.trigger("t");
