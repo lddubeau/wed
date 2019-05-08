@@ -56,14 +56,8 @@ describe("domlistener", () => {
   let listener: DOMListener;
   let treeUpdater: TreeUpdater;
   let mark: Mark;
-  let marker: HTMLElement;
 
   before(() => {
-    // This is a fake element we add to the root to know when we've seen
-    // everything we care about.
-    marker = document.createElement("div");
-    marker.className = "_real _marker";
-
     domroot = document.createElement("div");
     document.body.appendChild(domroot);
   });
@@ -143,11 +137,6 @@ describe("domlistener", () => {
                            });
        listener.addHandler("added-child", "*",
                            ({ root: thisRoot, child }) => {
-                             // The marker will also trigger this
-                             // handler. Ignore it.
-                             if (child === marker) {
-                               return;
-                             }
                              assert.equal(thisRoot, root);
                              assert.equal(child, fragmentToAdd);
                              mark.mark("children root");
@@ -197,11 +186,6 @@ describe("domlistener", () => {
 
        listener.addHandler("removing-child", "*",
                            ({ root: thisRoot, child }) => {
-                             // The marker will also trigger this
-                             // handler. Ignore it.
-                             if (child === marker) {
-                               return;
-                             }
                              assert.equal(thisRoot, root);
                              assert.equal(child, fragmentToAdd);
                              mark.mark("removing-child root");
@@ -209,11 +193,6 @@ describe("domlistener", () => {
 
        listener.addHandler("removed-child", "*",
                            ({ root: thisRoot, parent, child }) => {
-                             // The marker will also trigger this
-                             // handler. Ignore it.
-                             if (child === marker) {
-                               return;
-                             }
                              assert.equal(thisRoot, root);
                              assert.equal(parent, root);
                              assert.equal(child, fragmentToAdd);
@@ -302,10 +281,6 @@ describe("domlistener", () => {
     listener.addHandler(
       "added-child", "._real.li",
       ({ root: thisRoot, child }) => {
-        // The marker will also trigger this handler. Ignore it.
-        if (child === marker) {
-          return;
-        }
         assert.equal(thisRoot, root);
         assert.equal(child.nodeValue, "Q");
         mark.mark("children li");
@@ -375,26 +350,15 @@ describe("domlistener", () => {
        root.appendChild(fragmentToAdd);
        const $li = $root.find("._real.li");
        const parent = $li[0].parentNode;
-       listener.addHandler("removing-child", "._real.ul",
-                           ({ child }) => {
-                             // The marker will also trigger this
-                             // handler. Ignore it.
-                             if (child === marker) {
-                               return;
-                             }
-                             mark.mark("removing-child ul");
-                           });
+       listener.addHandler("removing-child", "._real.ul", () => {
+         mark.mark("removing-child ul");
+       });
 
        listener.addHandler("removed-child", "._real.ul",
-                           ({ parent: thisParent, child }) => {
-                             // The marker will also trigger this
-                             // handler. Ignore it.
-                             if (child === marker) {
-                               return;
-                             }
+                           ({ parent: thisParent }) => {
                              assert.equal(thisParent, parent);
                              mark.mark("removed-child ul");
-         });
+                           });
 
        listener.startListening();
        treeUpdater.deleteNode($li[1]);
@@ -454,10 +418,7 @@ describe("domlistener", () => {
                     () => {
                       marked = true;
                     });
-    listener.addHandler("added-child", "*", ({ child }) => {
-      if (child === marker) {
-        return;
-      }
+    listener.addHandler("added-child", "*", () => {
       listener.trigger("t");
       mark.mark("children root");
     });
@@ -477,10 +438,7 @@ describe("domlistener", () => {
     mark = new Mark(1, { "children root": 1 }, listener, () => {
       marked = true;
     });
-    listener.addHandler("added-child", "*", ({ child }) => {
-      if (child === marker) {
-        return;
-      }
+    listener.addHandler("added-child", "*", () => {
       listener.trigger("t");
       mark.mark("children root");
     });
