@@ -7,9 +7,10 @@
  */
 
 import { isElement } from "./domtypeguards";
+import { findProcessingInstructions } from "./domutil";
 import { BeforeDeleteNodeEvent, DeleteNodeEvent, InsertNodeAtEvent,
-         SetAttributeNSEvent, SetTextNodeValueEvent,
-         TreeUpdater } from "./tree-updater";
+         SetAttributeNSEvent, SetCommentValueEvent, SetPIBodyEvent,
+         SetTextNodeValueEvent, TreeUpdater } from "./tree-updater";
 
 export interface BaseDOMListenerEvent {
   /** The name of the event. */
@@ -177,6 +178,89 @@ export interface TextChangedEvent extends BaseDOMListenerEvent {
 }
 
 /**
+ * Generated when a comment node has its value changed.  A ``comment-changed``
+ * event is not generated when Node objects of type ``COMMENT_NODE`` are added
+ * or removed. They trigger ``children-changed`` events.
+ */
+export interface CommentChangedEvent extends BaseDOMListenerEvent {
+  readonly name: "comment-changed";
+
+  /** The comment node that was changed. */
+  readonly node: Comment;
+
+  /** The value the node had before this change. */
+  readonly oldValue: string;
+}
+
+/**
+ * Generated when a processing instruction is included in the tree.
+ */
+export interface IncludedPIEvent extends BaseDOMListenerEvent {
+  readonly name: "included-pi";
+
+  /**
+   * The node which is at the root of the tree *fragment* that was added to
+   * trigger the event concerning [[pi]].
+   */
+  readonly tree: Node;
+
+  /** The processing instruction that was included. */
+  readonly pi: ProcessingInstruction;
+}
+
+/**
+ * Generated when a processing instruction is about to be removed from the DOM.
+ */
+export interface ExcludingPIEvent extends BaseDOMListenerEvent {
+  readonly name: "excluding-pi";
+
+  /**
+   * The node which is at the root of the tree *fragment* that is about to be
+   * removed.
+   */
+  readonly tree: Node;
+
+  /** The processing instruction that is about to be removed. */
+  readonly pi: ProcessingInstruction;
+}
+
+/**
+ * Generated when a processing instruction has been removed from the DOM.
+ */
+export interface ExcludedPIEvent extends BaseDOMListenerEvent {
+  readonly name: "excluded-pi";
+
+  /**
+   * The node which is at the root of the tree *fragment* that was removed.
+   */
+  readonly tree: Node;
+
+  /**
+   * The **former** parent of the tree.
+   */
+  readonly parent: Node;
+
+  /** The processing instruction was removed. */
+  readonly pi: ProcessingInstruction;
+}
+
+/**
+ * Generated when a processing instruction node has its body changed.  A
+ * ``pi-changed`` event is not generated when Node objects of type
+ * ``PROCESSING_INSTRUCTION_NODE`` are added or removed. They trigger
+ * ``children-changed`` events.
+ */
+export interface PIChangedEvent extends BaseDOMListenerEvent {
+  readonly name: "pi-changed";
+
+  /** The processing instruction that was changed. */
+  readonly node: ProcessingInstruction;
+
+  /** The value the body of the node had before this change. */
+  readonly oldValue: string;
+}
+
+/**
  * Generated when an attribute value has changed.
  */
 export interface AttributeChangedEvent extends BaseDOMListenerEvent {
@@ -202,7 +286,9 @@ export interface TriggerEvent extends BaseDOMListenerEvent {
 export type Events = IncludedElementEvent | ExcludedElementEvent |
   ExcludingElementEvent | AddedElementEvent | RemovingElementEvent |
   RemovedElementEvent | AddedChildEvent | RemovingChildEvent |
-  RemovedChildEvent | TextChangedEvent | AttributeChangedEvent | TriggerEvent;
+  RemovedChildEvent | TextChangedEvent | AttributeChangedEvent |
+  CommentChangedEvent | IncludedPIEvent | ExcludingPIEvent | ExcludedPIEvent |
+  PIChangedEvent | TriggerEvent;
 
 export type EventNames = Events["name"];
 
@@ -234,10 +320,16 @@ type ChildEvents = "added-child" | "removing-child" | "removed-child";
 type AddRemEvents = "added-element" | "removed-element" | "removing-element";
 type IncludeExcludeEvents = "included-element" | "excluded-element" |
   "excluding-element";
+type PIIncludeExcludeEvents = "included-pi" | "excluded-pi" | "excluding-pi";
 
-interface CallSpec<T extends Events> {
+interface ElementCallSpec<T extends Events> {
   fn: EventHandlerFor<T["name"]>;
   subtarget: Element;
+}
+
+interface PICallSpec<T extends Events> {
+  fn: EventHandlerFor<T["name"]>;
+  subtarget: ProcessingInstruction;
 }
 
 /**
@@ -329,6 +421,11 @@ export class DOMListener {
     "removed-child": [],
     "text-changed": [],
     "attribute-changed": [],
+    "comment-changed": [],
+    "included-pi": [],
+    "excluding-pi": [],
+    "excluded-pi": [],
+    "pi-changed": [],
   };
 
   private readonly triggerHandlers: { [key: string]:
@@ -348,21 +445,27 @@ export class DOMListener {
               private readonly updater: TreeUpdater) {
     this.updater.events.subscribe(ev => {
       switch (ev.name) {
-      case "InsertNodeAt":
-        this._insertNodeAtHandler(ev);
-        break;
-      case "SetTextNodeValue":
-        this._setTextNodeValueHandler(ev);
-        break;
-      case "BeforeDeleteNode":
-        this._beforeDeleteNodeHandler(ev);
-        break;
-      case "DeleteNode":
-        this._deleteNodeHandler(ev);
-        break;
-      case "SetAttributeNS":
-        this._setAttributeNSHandler(ev);
-        break;
+        case "InsertNodeAt":
+          this._insertNodeAtHandler(ev);
+          break;
+        case "SetTextNodeValue":
+          this._setTextNodeValueHandler(ev);
+          break;
+        case "BeforeDeleteNode":
+          this._beforeDeleteNodeHandler(ev);
+          break;
+        case "DeleteNode":
+          this._deleteNodeHandler(ev);
+          break;
+        case "SetAttributeNS":
+          this._setAttributeNSHandler(ev);
+          break;
+        case "SetCommentValue":
+          this._setCommentValueHandler(ev);
+          break;
+        case "SetPIBody":
+          this._setPIBodyHandler(ev);
+          break;
       default:
         // Do nothing...
       }
@@ -413,14 +516,30 @@ export class DOMListener {
    * @param eventTypes Either a string naming the event this handler will
    * process.
    *
-   * @param selector When adding an event handler, this argument is a CSS
-   * selector. When adding a trigger handler, this argument is a trigger name.
+   * @param selector The selector has different meanings depending on
+   * ``eventType``:
    *
-   *   Note that the meaning of the ``selector`` parameter for ``text-changed``
-   *   events is different than the usual. Whereas for all other handlers, the
-   *   ``selector`` matches the ``element`` parameter passed to the handlers, in
-   *   the case of a ``text-changed`` event the ``selector`` matches the
-   *   **parent** of the ``node`` parameter.
+   * - Generally, when adding an event handler, this argument is a CSS selector.
+   *   What it matches depends on the event:
+   *
+   *   + For the ``*-element`` events, it matches the element for which an event
+   *     is generated (which appears as the ``element`` field on these events).
+   *
+   *   + For the ``*-child`` events, it matches the *parent* of the child for
+   *     which an event is generated. The matched element is
+   *     ``child.parentNode`` on ``{added,removing}-child`` and it is the
+   *     ``parent`` field on ``removed-child``.
+   *
+   *   + For the ``{text,comment,attribute}-changed`` events, it matches the
+   *     parent of the node that changed. The matched element is
+   *     ``node.parentNode`` on all these events.
+   *
+   *   + For the ``*-pi`` events and the ``pi-changed`` event the selector is
+   *   not a CSS selector but a simple string matching the processing
+   *   instruction name. The special value `"*"` may be used to match all
+   *   processing instructions.
+   *
+   * - When adding a trigger handler, this argument is a trigger name.
    *
    * @param handler The handler to be called by this listener when the events
    * specified in ``eventTypes`` occur.
@@ -513,11 +632,12 @@ export class DOMListener {
     const ccCalls = this._childrenCalls("added-child", parent);
 
     let aeCalls: EventHandler<AddedElementEvent>[] = [];
-    let ieCalls: CallSpec<IncludedElementEvent>[] = [];
+    let ieCalls: ElementCallSpec<IncludedElementEvent>[] = [];
     if (isElement(node)) {
       aeCalls = this._addRemCalls("added-element", node);
       ieCalls = this._incExcCalls("included-element", node);
     }
+    const piCalls = this._piCalls("included-pi", node);
 
     const { root } = this;
     const ccEvent = { name: "added-child", root, child: node } as const;
@@ -533,6 +653,10 @@ export class DOMListener {
 
     for (const { fn, subtarget } of ieCalls) {
       fn({ name: "included-element", root, tree: node, element: subtarget});
+    }
+
+    for (const { fn, subtarget } of piCalls) {
+      fn({ name: "included-pi", root, tree: node, pi: subtarget });
     }
 
     this._scheduleProcessTriggers();
@@ -565,11 +689,12 @@ export class DOMListener {
     const ccCalls = this._childrenCalls("removing-child", parent);
 
     let reCalls: EventHandler<RemovingElementEvent>[] = [];
-    let eeCalls: CallSpec<ExcludingElementEvent>[] = [];
+    let eeCalls: ElementCallSpec<ExcludingElementEvent>[] = [];
     if (isElement(node)) {
       reCalls = this._addRemCalls("removing-element", node);
       eeCalls = this._incExcCalls("excluding-element", node);
     }
+    const piCalls = this._piCalls("excluding-pi", node);
 
     const { root } = this;
     const ccEvent = { name: "removing-child", root, child: node } as const;
@@ -585,6 +710,10 @@ export class DOMListener {
 
     for (const { fn, subtarget } of eeCalls) {
       fn({ name: "excluding-element", root, tree: node, element: subtarget });
+    }
+
+    for (const { fn, subtarget } of piCalls) {
+      fn({ name: "excluding-pi", root, tree: node, pi: subtarget });
     }
 
     this._scheduleProcessTriggers();
@@ -617,11 +746,12 @@ export class DOMListener {
     const ccCalls = this._childrenCalls("removed-child", parent);
 
     let reCalls: EventHandler<RemovedElementEvent>[] = [];
-    let eeCalls: CallSpec<ExcludedElementEvent>[] = [];
+    let eeCalls: ElementCallSpec<ExcludedElementEvent>[] = [];
     if (isElement(node)) {
       reCalls = this._addRemCalls("removed-element", node);
       eeCalls = this._incExcCalls("excluded-element", node);
     }
+    const piCalls = this._piCalls("excluded-pi", node);
 
     const { root } = this;
     const ccEvent = { name: "removed-child", root, parent,
@@ -639,6 +769,10 @@ export class DOMListener {
     for (const { fn, subtarget } of eeCalls) {
       fn({ name: "excluded-element", root, tree: node, parent,
            element: subtarget});
+    }
+
+    for (const { fn, subtarget } of piCalls) {
+      fn({ name: "excluded-pi", root, tree: node, parent, pi: subtarget });
     }
 
     this._scheduleProcessTriggers();
@@ -692,6 +826,65 @@ export class DOMListener {
                         oldValue } as const;
     for (const fn of fns) {
       fn(textEvent);
+    }
+
+    this._scheduleProcessTriggers();
+  }
+
+  /**
+   * Handles comment changes events.
+   *
+   * @param ev The event.
+   */
+  private _setCommentValueHandler(ev: SetCommentValueEvent): void {
+    if (this.stopped) {
+      return;
+    }
+
+    const { node, oldValue } = ev;
+
+    // Go over all the elements for which we have handlers
+    const parent = node.parentNode as Element;
+    const fns: EventHandler<CommentChangedEvent>[] = [];
+    for (const [sel, fn] of this.eventHandlers["comment-changed"]) {
+      if (parent.matches(sel)) {
+        fns.push(fn);
+      }
+    }
+
+    const commentEvent = { name: "comment-changed", root: this.root, node,
+                           oldValue } as const;
+    for (const fn of fns) {
+      fn(commentEvent);
+    }
+
+    this._scheduleProcessTriggers();
+  }
+
+  /**
+   * Handles processing instruction changes events.
+   *
+   * @param ev The event.
+   */
+  private _setPIBodyHandler(ev: SetPIBodyEvent): void {
+    if (this.stopped) {
+      return;
+    }
+
+    const { node, oldValue } = ev;
+
+    // Go over all the elements for which we have handlers
+    const fns: EventHandler<PIChangedEvent>[] = [];
+    for (const [sel, fn] of this.eventHandlers["pi-changed"]) {
+      if (sel === "*" || node.nodeName === sel) {
+        fns.push(fn);
+      }
+    }
+
+    const piEvent = { name: "pi-changed", root: this.root, node,
+                      oldValue } as const;
+    for (const fn of fns) {
+      fn(piEvent);
     }
 
     this._scheduleProcessTriggers();
@@ -775,8 +968,8 @@ export class DOMListener {
    * @returns A list of call specs.
    */
   private _incExcCalls<T extends IncludeExcludeEvents>(name: T, node: Element):
-  CallSpec<EventFor<T>>[] {
-    const ret: CallSpec<EventFor<T>>[] = [];
+  ElementCallSpec<EventFor<T>>[] {
+    const ret: ElementCallSpec<EventFor<T>>[] = [];
 
     // Go over all the elements for which we have handlers
     for (const [sel, fn] of this.eventHandlers[name]) {
@@ -792,6 +985,20 @@ export class DOMListener {
     return ret;
   }
 
+  private _piCalls<T extends PIIncludeExcludeEvents>(name: T, node: Node):
+  PICallSpec<EventFor<T>>[] {
+    const ret: PICallSpec<EventFor<T>>[] = [];
+
+    for (const pi of findProcessingInstructions(node)) {
+      for (const [sel, fn] of this.eventHandlers[name]) {
+        if (sel === "*" || pi.nodeName === sel) {
+          ret.push({ fn, subtarget: pi });
+        }
+      }
+    }
+
+    return ret;
+  }
 }
 //  LocalWords:  eventType SetAttributeNS DeleteNode BeforeDeleteNode ul li MPL
 //  LocalWords:  SetTextNodeValue nextSibling InsertNodeAt previousSibling DOM

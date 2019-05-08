@@ -1559,6 +1559,28 @@ export function anySpecialKeyHeld(ev: Event | JQuery.Event): boolean {
   return anyEv.altKey || anyEv.ctrlKey || anyEv.metaKey;
 }
 
+/**
+ * Find all the processing instructions within a specific node.
+ *
+ * @param root The root from which to search.
+ *
+ * @returns The nodes.
+ */
+export function findProcessingInstructions(root: Node):
+ProcessingInstruction[] {
+  const iterator = root.ownerDocument!.createNodeIterator(
+    root, NodeFilter.SHOW_PROCESSING_INSTRUCTION, null);
+
+  const pis: ProcessingInstruction[] = [];
+  let node: ProcessingInstruction | null = null;
+  // tslint:disable-next-line:no-conditional-assignment
+  while (node = iterator.nextNode() as ProcessingInstruction | null) {
+    pis.push(node);
+  }
+
+  return pis;
+}
+
 //  LocalWords:  wed's URIs rect clientTop jquery util whitespace clientLeft cd
 //  LocalWords:  contenteditable abcd abfoocd insertIntoText Prepend scrollbars
 //  LocalWords:  deleteText jQuery getSelectionRange prev lastChild nodeType zA
