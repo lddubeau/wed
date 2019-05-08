@@ -19,9 +19,7 @@ class Mark {
   private readonly counts: Record<string, number> = Object.create(null);
 
   constructor(private readonly totalExpected: number,
-              private readonly countsExpected: Record<string, number>,
-              readonly listener: DOMListener,
-              private readonly done: () => void) {}
+              private readonly countsExpected: Record<string, number>) {}
 
   check(): void {
     // We iterate so that we can get a precise error message.
@@ -34,7 +32,6 @@ class Mark {
     }
 
     assert.equal(this.count, this.totalExpected, "total mark count");
-    this.done();
   }
 
   mark(label: string): void {
@@ -109,13 +106,13 @@ describe("domlistener", () => {
   }
 
   it("fires included-element, added-element and added-child when " +
-     "adding a fragment", done => {
+     "adding a fragment", () => {
        mark = new Mark(5, {
          "included ul": 1,
          "added ul": 1,
          "children root": 1,
          "included li": 2,
-       }, listener, done);
+       });
        listener.addHandler("included-element", "ul",
                            makeIncludedHandler("ul", fragmentToAdd));
        listener.addHandler("included-element", "li",
@@ -139,7 +136,7 @@ describe("domlistener", () => {
 
   it("fires excluding-element, excluded-element, removing-element, " +
      "removed-element, removing-child and removed-child when " +
-     "removing a fragment", done => {
+     "removing a fragment", () => {
        root.appendChild(fragmentToAdd);
        mark = new Mark(10, {
          "excluding ul": 1,
@@ -150,7 +147,7 @@ describe("domlistener", () => {
          "removed-child root": 1,
          "excluding li": 2,
          "excluded li": 2,
-       }, listener, done);
+       });
        listener.addHandler("excluding-element", "ul",
                            makeExcludingHandler("ul", fragmentToAdd));
        listener.addHandler("excluded-element", "ul",
@@ -194,11 +191,11 @@ describe("domlistener", () => {
        mark.check();
      });
 
-  it("fires included-pi when adding a fragment", done => {
+  it("fires included-pi when adding a fragment", () => {
     mark = new Mark(5, {
       "included mypi": 2,
       "included star": 3,
-    }, listener, done);
+    });
 
     const bodies: (string | null)[] = [];
     listener.addHandler("included-pi", "mypi",
@@ -226,14 +223,14 @@ describe("domlistener", () => {
     mark.check();
   });
 
-  it("fires excluding-pi and excluded-pi when removing a fragment", done => {
+  it("fires excluding-pi and excluded-pi when removing a fragment", () => {
     root.appendChild(fragmentToAdd);
     mark = new Mark(10, {
       "excluded mypi": 2,
       "excluding mypi": 2,
       "excluding star": 3,
       "excluded star": 3,
-    }, listener, done);
+    });
 
     const excludingBodies: (string | null)[] = [];
     listener.addHandler("excluding-pi", "mypi",
@@ -286,8 +283,7 @@ describe("domlistener", () => {
   });
 
   it("trigger triggered twice, invoked once", done => {
-    mark = new Mark(3, { "triggered test": 1, "included li": 2 },
-                    listener, done);
+    mark = new Mark(3, { "triggered test": 1, "included li": 2 });
     listener.addHandler("trigger", "test", ({ root: thisRoot }) => {
       assert.equal(thisRoot, root);
       mark.mark("triggered test");
@@ -304,6 +300,7 @@ describe("domlistener", () => {
     // We have to allow for triggers to run.
     window.setTimeout(() => {
       mark.check();
+      done();
     }, 0);
   });
 
@@ -312,7 +309,7 @@ describe("domlistener", () => {
       "triggered test": 1,
       "triggered test2": 1,
       "included li": 2,
-    }, listener, done);
+    });
     listener.addHandler("trigger", "test", ({ root: thisRoot }) => {
       assert.equal(thisRoot, root);
       listener.trigger("test2");
@@ -335,11 +332,12 @@ describe("domlistener", () => {
     // We have to allow for triggers to run.
     window.setTimeout(() => {
       mark.check();
+      done();
     }, 0);
   });
 
-  it("fires text-changed when changing a text node", done => {
-    mark = new Mark(1, { "text-changed": 1 }, listener, done);
+  it("fires text-changed when changing a text node", () => {
+    mark = new Mark(1, { "text-changed": 1 });
     listener.addHandler(
       "text-changed", "li", ({ root: thisRoot, node, oldValue }) => {
         assert.equal(thisRoot, root);
@@ -355,8 +353,8 @@ describe("domlistener", () => {
     mark.check();
   });
 
-  it("fires comment-changed when changing a comment node", done => {
-    mark = new Mark(1, { "comment-changed": 1 }, listener, done);
+  it("fires comment-changed when changing a comment node", () => {
+    mark = new Mark(1, { "comment-changed": 1 });
     listener.addHandler(
       "comment-changed", "ul", ({ root: thisRoot, node, oldValue }) => {
         assert.equal(thisRoot, root);
@@ -375,11 +373,11 @@ describe("domlistener", () => {
     mark.check();
   });
 
-  it("fires pi-changed when changing a pi node", done => {
+  it("fires pi-changed when changing a pi node", () => {
     mark = new Mark(2, {
       "pi-changed": 1,
       "pi-changed star": 1,
-    }, listener, done);
+    });
     listener.addHandler(
       "pi-changed", "mypi", ({ root: thisRoot, node, oldValue }) => {
         assert.equal(thisRoot, root);
@@ -405,11 +403,11 @@ describe("domlistener", () => {
     mark.check();
   });
 
-  it("fires added-child when adding a node", done => {
+  it("fires added-child when adding a node", () => {
     // The handler is called twice. Once when the single text node which was
     // already there is removed. Once when the new text node is added.
 
-    mark = new Mark(1, { "children li": 1 }, listener, done);
+    mark = new Mark(1, { "children li": 1 });
     listener.addHandler("added-child", "li",
                         ({ root: thisRoot, child }) => {
                           assert.equal(thisRoot, root);
@@ -425,8 +423,8 @@ describe("domlistener", () => {
     mark.check();
   });
 
-  it("fires attribute-changed when changing an attribute", done => {
-    mark = new Mark(1, { "attribute-changed": 1 }, listener, done);
+  it("fires attribute-changed when changing an attribute", () => {
+    mark = new Mark(1, { "attribute-changed": 1 });
     listener.addHandler(
       "attribute-changed", "li",
       ({ root: thisRoot, element, ns, attrName, oldValue }) => {
@@ -446,8 +444,8 @@ describe("domlistener", () => {
     mark.check();
   });
 
-  it("fires attribute-changed when deleting an attribute", done => {
-    mark = new Mark(1, { "attribute-changed": 1 }, listener, done);
+  it("fires attribute-changed when deleting an attribute", () => {
+    mark = new Mark(1, { "attribute-changed": 1 });
     listener.addHandler(
       "attribute-changed", "li",
       ({ root: thisRoot, element, ns, attrName, oldValue }) => {
@@ -470,13 +468,13 @@ describe("domlistener", () => {
   });
 
   it("generates removed-child and removing-child with the right parent " +
-     "when removing", done => {
+     "when removing", () => {
        fragmentToAdd = $(`<ul><li>A</li><li>B</li><li>C</li></ul>`)[0];
 
        mark = new Mark(2, {
          "removed-child ul": 1,
          "removing-child ul": 1,
-       }, listener, done);
+       });
        root.appendChild(fragmentToAdd);
        const $li = $root.find("li");
        const parent = $li[0].parentNode;
@@ -494,13 +492,13 @@ describe("domlistener", () => {
        mark.check();
      });
 
-  it("generates included-element with the right tree", done => {
+  it("generates included-element with the right tree", () => {
     mark = new Mark(8, {
       "included li at root": 2,
       "included li at ul": 2,
       "excluding li at ul": 2,
       "excluding li at root": 2,
-    }, listener, done);
+    });
     const $fragment = $(`<div><p>before</p><ul><li>A</li><li>B</li></ul>\
 <p>after</p></div>`, doc);
     function addHandler(incex: "included" | "excluding"): void {
@@ -541,10 +539,7 @@ describe("domlistener", () => {
   });
 
   it("processImmediately processes immediately", () => {
-    let marked = false;
-    mark = new Mark(2, { "children root": 1, trigger: 1 }, listener, () => {
-      marked = true;
-    });
+    mark = new Mark(2, { "children root": 1, trigger: 1 });
     listener.addHandler("added-child", "*", () => {
       listener.trigger("t");
       mark.mark("children root");
@@ -557,14 +552,10 @@ describe("domlistener", () => {
     treeUpdater.insertNodeAt(root, root.childNodes.length, fragmentToAdd);
     listener.processImmediately();
     mark.check();
-    assert.isTrue(marked);
   });
 
   it("clearPending clears pending operations", () => {
-    let marked = false;
-    mark = new Mark(1, { "children root": 1 }, listener, () => {
-      marked = true;
-    });
+    mark = new Mark(1, { "children root": 1 });
     listener.addHandler("added-child", "*", () => {
       listener.trigger("t");
       mark.mark("children root");
@@ -577,7 +568,6 @@ describe("domlistener", () => {
     treeUpdater.insertNodeAt(root, root.childNodes.length, fragmentToAdd);
     listener.clearPending();
     mark.check();
-    assert.isTrue(marked);
   });
 });
 
