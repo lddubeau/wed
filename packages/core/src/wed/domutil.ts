@@ -389,7 +389,6 @@ export function genericInsertIntoText(this: GenericInsertIntoTextContext,
   if (node == null) {
     throw new Error("must pass an actual node to insert");
   }
-  // tslint:disable-next-line:no-invalid-this
   return _genericInsertIntoText.call(this, textNode, index, node);
 }
 
@@ -882,7 +881,6 @@ export function genericCutFunction(this: GenericCutContext,
 
     startText = parent.ownerDocument!.createTextNode(
       startContainer.data.slice(startOffset, endTextOffset));
-    // tslint:disable-next-line:no-invalid-this
     this.deleteText(startContainer, startOffset, startText.length);
 
     // deleteText will delete startContainer from the tree if it happens that
@@ -922,7 +920,6 @@ export function genericCutFunction(this: GenericCutContext,
 
     endText = parent.ownerDocument!.createTextNode(
       endContainer.data.slice(0, endOffset));
-    // tslint:disable-next-line:no-invalid-this
     this.deleteText(endContainer, 0, endOffset);
 
     // Alter our end to take care of the rest
@@ -942,7 +939,6 @@ export function genericCutFunction(this: GenericCutContext,
   endOffset--;
   for (let count = endOffset - startOffset; count >= 0; count--) {
     returnNodes.push(endContainer.childNodes[startOffset]);
-    // tslint:disable-next-line:no-invalid-this
     this.deleteNode(endContainer.childNodes[startOffset]);
   }
   if (endText !== undefined) {
@@ -950,7 +946,6 @@ export function genericCutFunction(this: GenericCutContext,
   }
 
   if (endContainer.childNodes[startOffset - 1] !== undefined) {
-    // tslint:disable-next-line:no-invalid-this
     this.mergeTextNodes(endContainer.childNodes[startOffset - 1]);
   }
   return [finalCaret, returnNodes];
