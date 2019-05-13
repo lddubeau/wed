@@ -882,15 +882,16 @@ export function genericCutFunction(this: GenericCutContext,
     }
   }
 
+  const doc = parent.ownerDocument!;
   const finalCaret: Caret = [startContainer, startOffset];
   let startText: Text | undefined;
   if (isText(startContainer)) {
     const sameContainer = startContainer === endContainer;
-    const startContainerOffset = indexOf(parent.childNodes, startContainer);
-    const endTextOffset = sameContainer ? endOffset : startContainer.length;
 
-    startText = parent.ownerDocument!.createTextNode(
-      startContainer.data.slice(startOffset, endTextOffset));
+    startText =
+      doc.createTextNode(startContainer.data.slice(startOffset,
+                                                   sameContainer ? endOffset :
+                                                   startContainer.length));
     this.deleteText(startContainer, startOffset, startText.length);
 
     if (startContainer.parentNode === null) {
@@ -907,7 +908,7 @@ export function genericCutFunction(this: GenericCutContext,
     }
 
     // Alter our start to take care of the rest
-    startOffset = startContainerOffset + 1;
+    startOffset = indexOf(parent.childNodes, startContainer) + 1;
     startContainer = parent;
   }
 
@@ -920,8 +921,7 @@ export function genericCutFunction(this: GenericCutContext,
 
     const endContainerOffset = indexOf(parent.childNodes, endContainer);
 
-    endText = parent.ownerDocument!.createTextNode(
-      endContainer.data.slice(0, endOffset));
+    endText = doc.createTextNode(endContainer.data.slice(0, endOffset));
     this.deleteText(endContainer, 0, endOffset);
 
     // Alter our end to take care of the rest
