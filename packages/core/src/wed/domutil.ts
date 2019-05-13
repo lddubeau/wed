@@ -882,7 +882,7 @@ export function genericCutFunction(this: GenericCutContext,
     }
   }
 
-  let finalCaret: Caret;
+  const finalCaret: Caret = [startContainer, startOffset];
   let startText: Text | undefined;
   if (isText(startContainer)) {
     const sameContainer = startContainer === endContainer;
@@ -893,12 +893,12 @@ export function genericCutFunction(this: GenericCutContext,
       startContainer.data.slice(startOffset, endTextOffset));
     this.deleteText(startContainer, startOffset, startText.length);
 
-    // deleteText will delete startContainer from the tree if it happens that
-    // we've emptied it.
-    const notEmptied = startContainer.parentNode !== null;
-    finalCaret = notEmptied ? [startContainer, startOffset] :
-      // Selection was such that the text node was emptied.
-      [parent, startContainerOffset];
+    if (startContainer.parentNode === null) {
+      // This should not happen because of the test above if the startContainer
+      // is a text node and we start at offset 0, then we move to the parent.
+      // To empty the text node, we'd have to start at offset 0.
+      throw new Error("emptied the text node; this should not happen");
+    }
 
     if (sameContainer) {
       // Both the start and end were in the same node, so the deleteText
@@ -907,16 +907,8 @@ export function genericCutFunction(this: GenericCutContext,
     }
 
     // Alter our start to take care of the rest
-    startOffset = notEmptied ?
-      // Look after the text node we just modified.
-      startContainerOffset + 1 :
-      // Selection was such that the text node was emptied, and thus removed. So
-      // stay at the same place.
-      startContainerOffset;
+    startOffset = startContainerOffset + 1;
     startContainer = parent;
-  }
-  else {
-    finalCaret = [startContainer, startOffset];
   }
 
   let endText: Text | undefined;
