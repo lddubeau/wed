@@ -7,7 +7,8 @@
 
 import $ from "jquery";
 
-import { isAttr, isDocumentFragment, isElement, isText } from "./domtypeguards";
+import { isAttr, isComment, isDocumentFragment, isElement, isPI,
+         isText } from "./domtypeguards";
 import * as util from "./util";
 
 /**
@@ -612,6 +613,17 @@ export function deleteNode(node: Node): void {
 }
 
 /**
+ * Set the ``data`` field of a ``CharacterData`` node.
+ *
+ * @param node The node to set.
+ *
+ * @param value The value to set it to.
+ */
+export function setNodeData(node: CharacterData, value: string): void {
+  node.data = value;
+}
+
+/**
  * Inserts a node at the position specified. Mainly for use with the generic
  * functions defined here.
  *
@@ -651,9 +663,7 @@ export function insertText(node: Node,
                            caretAtEnd?: boolean): TextInsertionResult {
   return genericInsertText.call({
     insertNodeAt,
-    setTextNodeValue: (textNode: Text, value: string) => {
-      textNode.data = value;
-    },
+    setTextNodeValue: setNodeData,
     // tslint:disable-next-line:align
   }, node, index, text, caretAtEnd);
 }
@@ -837,6 +847,8 @@ export interface GenericCutContext {
   deleteText(node: Text, index: number, length: number): void;
   deleteNode(node: Node): void;
   mergeTextNodes(node: Node): void;
+  setCommentValue(node: Comment, value: string): void;
+  setPIBody(node: ProcessingInstruction, value: string): void;
 }
 
 export type CutResult = [Caret, Node[]];
@@ -860,95 +872,117 @@ export function genericCutFunction(this: GenericCutContext,
                                    endCaret: Caret): CutResult {
   // copy uses an algorithm similar to the one here and probably should also be
   // modified if this function is modified.
-  let [startContainer, startOffset] = startCaret;
-  let [endContainer, endOffset] = endCaret;
-  if (!isWellFormedRange({ startContainer, startOffset, endContainer,
-                           endOffset })) {
+  let [start, startIx] = startCaret;
+  let [end, endIx] = endCaret;
+  if (!isWellFormedRange({ startContainer: start, startOffset: startIx,
+                           endContainer: end, endOffset: endIx })) {
     throw new Error("range is not well-formed");
   }
 
-  let parent = startContainer.parentNode;
+  let parent = start.parentNode;
   if (parent === null) {
     throw new Error("detached node");
   }
 
-  if (isText(startContainer) && startOffset === 0) {
+  if (isText(start) && startIx === 0) {
     // We are at the start of a text node, move up to the parent.
-    startOffset = indexOf(parent.childNodes, startContainer);
-    startContainer = parent;
-    parent = startContainer.parentNode;
+    startIx = indexOf(parent.childNodes, start);
+    start = parent;
+    parent = start.parentNode;
     if (parent === null) {
       throw new Error("detached node");
     }
   }
 
   const doc = parent.ownerDocument!;
-  const finalCaret: Caret = [startContainer, startOffset];
-  let startText: Text | undefined;
-  if (isText(startContainer)) {
-    const sameContainer = startContainer === endContainer;
-
-    startText =
-      doc.createTextNode(startContainer.data.slice(startOffset,
-                                                   sameContainer ? endOffset :
-                                                   startContainer.length));
-    this.deleteText(startContainer, startOffset, startText.length);
-
-    if (startContainer.parentNode === null) {
-      // This should not happen because of the test above if the startContainer
-      // is a text node and we start at offset 0, then we move to the parent.
-      // To empty the text node, we'd have to start at offset 0.
-      throw new Error("emptied the text node; this should not happen");
+  const finalCaret: Caret = [start, startIx];
+  let firstNode: Node | undefined;
+  if (isText(start) || isComment(start) || isPI(start)) {
+    const same = start === end;
+    const { data } = start;
+    const cutData = data.slice(startIx, same ? endIx : start.length);
+    if (isText(start)) {
+      firstNode = doc.createTextNode(cutData);
+      this.deleteText(start, startIx, cutData.length);
+      if (start.parentNode === null) {
+        // This should not happen because of the test above if the start is a
+        // text node and we start at offset 0, then we move to the parent. To
+        // empty the text node, we'd have to start at offset 0.
+        throw new Error("emptied the text node; this should not happen");
+      }
+    }
+    else if (isPI(start)) {
+      firstNode = doc.createProcessingInstruction(start.nodeName, cutData);
+      this.setPIBody(start,
+                     data.slice(0, startIx) +
+                     data.slice(startIx + cutData.length));
+    }
+    else {
+      firstNode = doc.createComment(cutData);
+      this.setCommentValue(start,
+                           data.slice(0, startIx) +
+                           data.slice(startIx + cutData.length));
     }
 
-    if (sameContainer) {
-      // Both the start and end were in the same node, so the deleteText
+    if (same) {
+      // Both the start and end were in the same node, so the operations
       // operation above did everything needed.
-      return [finalCaret, [startText]];
+      return [finalCaret, [firstNode]];
     }
 
     // Alter our start to take care of the rest
-    startOffset = indexOf(parent.childNodes, startContainer) + 1;
-    startContainer = parent;
+    startIx = indexOf(parent.childNodes, start) + 1;
+    start = parent;
   }
 
-  let endText: Text | undefined;
-  if (isText(endContainer)) {
-    parent = endContainer.parentNode;
+  let lastNode: Node | undefined;
+  if (isText(end) || isComment(end) || isPI(end)) {
+    parent = end.parentNode;
     if (parent === null) {
       throw new Error("detached node");
     }
 
-    const endContainerOffset = indexOf(parent.childNodes, endContainer);
-
-    endText = doc.createTextNode(endContainer.data.slice(0, endOffset));
-    this.deleteText(endContainer, 0, endOffset);
+    const offsetOfEnd = indexOf(parent.childNodes, end);
+    const { data } = end;
+    const cutData = data.slice(0, endIx);
+    if (isText(end)) {
+      lastNode = doc.createTextNode(cutData);
+      this.deleteText(end, 0, endIx);
+    }
+    else if (isPI(end)) {
+      lastNode = doc.createProcessingInstruction(end.nodeName, cutData);
+      this.setPIBody(end, data.slice(endIx));
+    }
+    else {
+      lastNode = doc.createComment(cutData);
+      this.setCommentValue(end, data.slice(endIx));
+    }
 
     // Alter our end to take care of the rest
-    endOffset = endContainerOffset;
-    endContainer = parent;
+    endIx = offsetOfEnd;
+    end = parent;
   }
 
   // At this point, the following checks must hold
-  if (startContainer !== endContainer) {
+  if (start !== end) {
     throw new Error("internal error in cut: containers unequal");
   }
-  if (!isElement(startContainer)) {
+  if (!isElement(start)) {
     throw new Error("internal error in cut: not an element");
   }
 
-  const returnNodes: Node[] = startText === undefined ? [] : [startText];
-  endOffset--;
-  for (let count = endOffset - startOffset; count >= 0; count--) {
-    returnNodes.push(endContainer.childNodes[startOffset]);
-    this.deleteNode(endContainer.childNodes[startOffset]);
+  const returnNodes: Node[] = firstNode === undefined ? [] : [firstNode];
+  endIx--;
+  for (let count = endIx - startIx; count >= 0; count--) {
+    returnNodes.push(end.childNodes[startIx]);
+    this.deleteNode(end.childNodes[startIx]);
   }
-  if (endText !== undefined) {
-    returnNodes.push(endText);
+  if (lastNode !== undefined) {
+    returnNodes.push(lastNode);
   }
 
-  if (endContainer.childNodes[startOffset - 1] !== undefined) {
-    this.mergeTextNodes(endContainer.childNodes[startOffset - 1]);
+  if (end.childNodes[startIx - 1] !== undefined) {
+    this.mergeTextNodes(end.childNodes[startIx - 1]);
   }
   return [finalCaret, returnNodes];
 }
@@ -967,75 +1001,90 @@ export function genericCutFunction(this: GenericCutContext,
 export function copy(startCaret: Caret, endCaret: Caret): Node[] {
   // genericCutFunction uses an algorithm similar to the one here and probably
   // should also be modified if this function is modified.
-  let [startContainer, startOffset] = startCaret;
-  let [endContainer, endOffset] = endCaret;
-  if (!isWellFormedRange({ startContainer, startOffset, endContainer,
-                           endOffset })) {
+  let [start, startIx] = startCaret;
+  let [end, endIx] = endCaret;
+  if (!isWellFormedRange({ startContainer: start, startOffset: startIx,
+                           endContainer: end, endOffset: endIx })) {
     throw new Error("range is not well-formed");
   }
-  let parent = startContainer.parentNode;
+  let parent = start.parentNode;
   if (parent === null) {
     throw new Error("detached node");
   }
 
-  if (isText(startContainer) && startOffset === 0) {
+  if (isText(start) && startIx === 0) {
     // We are at the start of a text node, move up to the parent.
-    startOffset = indexOf(parent.childNodes, startContainer);
-    startContainer = parent;
-    parent = startContainer.parentNode;
+    startIx = indexOf(parent.childNodes, start);
+    start = parent;
+    parent = start.parentNode;
     if (parent === null) {
       throw new Error("detached node");
     }
   }
 
-  let startText: Text | undefined;
-  if (isText(startContainer)) {
-    const sameContainer = startContainer === endContainer;
-    const endTextOffset = sameContainer ? endOffset : startContainer.length;
+  const doc = parent.ownerDocument!;
+  let firstNode: Node | undefined;
+  if (isText(start) || isComment(start) || isPI(start)) {
+    const same = start === end;
+    const cutData = start.data.slice(startIx, same ? endIx : start.length);
+    if (isText(start)) {
+      firstNode = doc.createTextNode(cutData);
+    }
+    else if (isPI(start)) {
+      firstNode = doc.createProcessingInstruction(start.nodeName, cutData);
+    }
+    else {
+      firstNode = doc.createComment(cutData);
+    }
 
-    startText = parent.ownerDocument!.createTextNode(
-      startContainer.data.slice(startOffset, endTextOffset));
-
-    if (sameContainer) {
+    if (same) {
       // Both the start and end were in the same node, so we have everything we
       // need.
-      return [startText];
+      return [firstNode];
     }
 
-    startOffset = indexOf(parent.childNodes, startContainer) + 1;
-    startContainer = parent;
+    startIx = indexOf(parent.childNodes, start) + 1;
+    start = parent;
   }
 
-  let endText: Text | undefined;
-  if (isText(endContainer)) {
-    parent = endContainer.parentNode;
+  let lastNode: Node | undefined;
+  if (isText(end) || isComment(end) || isPI(end)) {
+    parent = end.parentNode;
     if (parent === null) {
       throw new Error("detached node");
     }
 
-    endText = parent.ownerDocument!.createTextNode(
-      endContainer.data.slice(0, endOffset));
+    const cutData = end.data.slice(0, endIx);
+    if (isText(end)) {
+      lastNode = doc.createTextNode(cutData);
+    }
+    else if (isPI(end)) {
+      lastNode = doc.createProcessingInstruction(end.nodeName, cutData);
+    }
+    else {
+      lastNode = doc.createComment(cutData);
+    }
 
     // Alter our end to take care of the rest
-    endOffset = indexOf(parent.childNodes, endContainer);
-    endContainer = parent;
+    endIx = indexOf(parent.childNodes, end);
+    end = parent;
   }
 
   // At this point, the following checks must hold
-  if (startContainer !== endContainer) {
+  if (start !== end) {
     throw new Error("internal error in cut: containers unequal");
   }
-  if (!isElement(startContainer)) {
+  if (!isElement(start)) {
     throw new Error("internal error in cut: not an element");
   }
 
-  const returnNodes: Node[] = startText === undefined ? [] : [startText];
-  endOffset--;
-  while (startOffset <= endOffset) {
-    returnNodes.push(endContainer.childNodes[startOffset++].cloneNode(true));
+  const returnNodes: Node[] = firstNode === undefined ? [] : [firstNode];
+  endIx--;
+  while (startIx <= endIx) {
+    returnNodes.push(end.childNodes[startIx++].cloneNode(true));
   }
-  if (endText !== undefined) {
-    returnNodes.push(endText);
+  if (lastNode !== undefined) {
+    returnNodes.push(lastNode);
   }
 
   return returnNodes;
@@ -1431,17 +1480,19 @@ export function getCharacterImmediatelyBefore(caret: Caret):
 string | undefined {
   const [node, offset] = caret;
   switch (node.nodeType) {
-  case Node.TEXT_NODE:
-    const value = (node as Text).data;
-    return value[offset - 1];
-  case Node.ELEMENT_NODE:
-    const prev = node.childNodes[offset - 1];
-    if (isText(prev)) {
-      return prev.data[prev.length - 1];
-    }
-    break;
-  default:
-    throw new Error(`unexpected node type: ${node.nodeType}`);
+    case Node.COMMENT_NODE:
+    case Node.PROCESSING_INSTRUCTION_NODE:
+    case Node.TEXT_NODE:
+      const value = (node as Text).data;
+      return value[offset - 1];
+    case Node.ELEMENT_NODE:
+      const prev = node.childNodes[offset - 1];
+      if (isText(prev)) {
+        return prev.data[prev.length - 1];
+      }
+      break;
+    default:
+      throw new Error(`unexpected node type: ${node.nodeType}`);
   }
   return undefined;
 }
@@ -1459,17 +1510,19 @@ string | undefined {
 export function getCharacterImmediatelyAt(caret: Caret): string | undefined {
   const [node, offset] = caret;
   switch (node.nodeType) {
-  case Node.TEXT_NODE:
-    const value = (node as Text).data;
-    return value[offset];
-  case Node.ELEMENT_NODE:
-    const next = node.childNodes[offset];
-    if (isText(next)) {
-      return next.data[0];
-    }
-    break;
-  default:
-    throw new Error(`unexpected node type: ${node.nodeType}`);
+    case Node.COMMENT_NODE:
+    case Node.PROCESSING_INSTRUCTION_NODE:
+    case Node.TEXT_NODE:
+      const value = (node as Text).data;
+      return value[offset];
+    case Node.ELEMENT_NODE:
+      const next = node.childNodes[offset];
+      if (isText(next)) {
+        return next.data[0];
+      }
+      break;
+    default:
+      throw new Error(`unexpected node type: ${node.nodeType}`);
   }
   return undefined;
 }

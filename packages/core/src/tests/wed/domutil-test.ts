@@ -639,29 +639,43 @@ element child.");
 
   describe("genericCutFunction", () => {
     let root: Document;
-    let p: Element;
+    let p1: Element;
+    let p4: Element;
+    let comment: Comment;
+    let pi: ProcessingInstruction;
+
     beforeEach(() => {
       root = sourceDoc.cloneNode(true) as Document;
-      p = root.querySelectorAll("body>p")[1];
+      const ps = root.querySelectorAll("body>p");
+      p1 = ps[1];
+      p4 = ps[4];
+      comment = p4.childNodes[1] as Comment;
+      pi = p4.childNodes[3] as ProcessingInstruction;
+      expect(comment).to.have.property("nodeType").equal(Node.COMMENT_NODE);
+      expect(pi).to.have.property("nodeType")
+        .equal(Node.PROCESSING_INSTRUCTION_NODE);
     });
 
     function checkNodes(ret: Node[], nodes: Node[]): void {
       assert.equal(ret.length, nodes.length, "result length");
       for (let i = 0; i < nodes.length; ++i) {
-        assert.equal(ret[i].nodeType, nodes[i].nodeType);
-        assert.isTrue(ret[i].nodeType === Node.TEXT_NODE ||
-                      ret[i].nodeType === Node.ELEMENT_NODE,
-                      "node type");
-        switch (ret[i].nodeType) {
-        case Node.TEXT_NODE:
-          assert.equal(ret[i].nodeValue, nodes[i].nodeValue,
-                       `text node at ${i}`);
-          break;
-        case Node.ELEMENT_NODE:
-          assert.equal((ret[i] as Element).outerHTML,
-                       (nodes[i] as Element).outerHTML, `element node at ${i}`);
-          break;
-        default:
+        const actual = ret[i];
+        const expected = nodes[i];
+        expect(actual).to.have.property("nodeType").equal(expected.nodeType);
+        switch (actual.nodeType) {
+          case Node.COMMENT_NODE:
+          case Node.PROCESSING_INSTRUCTION_NODE:
+          case Node.TEXT_NODE:
+            assert.equal((actual as CharacterData).data,
+                         (expected as CharacterData).data, `node data at ${i}`);
+            break;
+          case Node.ELEMENT_NODE:
+            assert.equal((actual as Element).outerHTML,
+                         (expected as Element).outerHTML,
+                         `element node at ${i}`);
+            break;
+          default:
+            expect.fail(`nodeType is not a supported node ${actual.nodeType}`);
         }
       }
     }
@@ -673,102 +687,235 @@ element child.");
         deleteText: domutil.deleteText,
         deleteNode: domutil.deleteNode,
         mergeTextNodes: domutil.mergeTextNodes,
+        setCommentValue: domutil.setNodeData,
+        setPIBody: domutil.setNodeData,
       });
     });
 
     it("removes nodes and merges text", () => {
-      const start = [p.firstChild!, 4] as const;
-      const end = [p.lastChild!, 3] as const;
-      assert.equal(p.childNodes.length, 5);
+      const start = [p1.firstChild!, 4] as const;
+      const end = [p1.lastChild!, 3] as const;
+      assert.equal(p1.childNodes.length, 5);
 
       const nodes = Array.prototype.slice.call(
-        p.childNodes,
-        domutil.indexOf(p.childNodes, start[0].nextSibling!),
-        domutil.indexOf(p.childNodes, end[0].previousSibling!) + 1);
-      nodes.unshift(p.ownerDocument!.createTextNode("re "));
-      nodes.push(p.ownerDocument!.createTextNode(" af"));
+        p1.childNodes,
+        domutil.indexOf(p1.childNodes, start[0].nextSibling!),
+        domutil.indexOf(p1.childNodes, end[0].previousSibling!) + 1);
+      nodes.unshift(p1.ownerDocument!.createTextNode("re "));
+      nodes.push(p1.ownerDocument!.createTextNode(" af"));
 
       const [final, cutContent] = cut(start, end);
 
       // Check that we're doing what we think we're doing.
-      assert.equal(p.childNodes.length, 1);
-      assert.equal(p.innerHTML, "befoter");
+      assert.equal(p1.childNodes.length, 1);
+      assert.equal(p1.innerHTML, "befoter");
 
       // Check the caret position.
-      assert.deepEqual(final, [p.firstChild!, 4]);
+      assert.deepEqual(final, [p1.firstChild!, 4]);
 
       // Check that the nodes are those we expected.
       checkNodes(cutContent, nodes);
     });
 
     it("returns proper nodes when merging a single node", () => {
-      const start = [p.firstChild!, 4] as const;
-      const end = [p.firstChild!, 6] as const;
-      assert.equal(p.childNodes.length, 5);
+      const start = [p1.firstChild!, 4] as const;
+      const end = [p1.firstChild!, 6] as const;
+      assert.equal(p1.childNodes.length, 5);
 
-      const nodes = [p.ownerDocument!.createTextNode("re")];
+      const nodes = [p1.ownerDocument!.createTextNode("re")];
       const [final, cutContent] = cut(start, end);
 
       // Check that we're doing what we think we're doing.
-      assert.equal(p.childNodes.length, 5);
-      assert.equal(p.firstChild!.nodeValue, "befo ");
+      assert.equal(p1.childNodes.length, 5);
+      assert.equal(p1.firstChild!.nodeValue, "befo ");
 
       // Check the caret position.
-      assert.deepEqual(final, [p.firstChild!, 4]);
+      assert.deepEqual(final, [p1.firstChild!, 4]);
 
       // Check that the nodes are those we expected.
       checkNodes(cutContent, nodes);
     });
 
     it("empties an element without problem", () => {
-      const start = [p, 0] as const;
-      const end = [p, p.childNodes.length] as const;
-      assert.equal(p.childNodes.length, 5);
+      const start = [p1, 0] as const;
+      const end = [p1, p1.childNodes.length] as const;
+      assert.equal(p1.childNodes.length, 5);
 
-      const nodes = Array.prototype.slice.call(p.childNodes);
+      const nodes = Array.prototype.slice.call(p1.childNodes);
       const [final, cutContent] = cut(start, end);
 
       // Check that we're doing what we think we're doing.
-      assert.equal(p.childNodes.length, 0);
+      assert.equal(p1.childNodes.length, 0);
 
       // Check the caret position.
-      assert.deepEqual(final, [p, 0]);
+      assert.deepEqual(final, [p1, 0]);
       // Check that the nodes are those we expected.
       checkNodes(cutContent, nodes);
     });
 
     it("accepts a start caret in text and an end caret outside text", () => {
-      const start = [p.firstChild!, 0] as const;
-      const end = [p, p.childNodes.length] as const;
-      assert.equal(p.childNodes.length, 5);
+      const start = [p1.firstChild!, 0] as const;
+      const end = [p1, p1.childNodes.length] as const;
+      assert.equal(p1.childNodes.length, 5);
 
-      const nodes = Array.prototype.slice.call(p.cloneNode(true).childNodes);
+      const nodes = Array.prototype.slice.call(p1.cloneNode(true).childNodes);
       const [final, cutContent] = cut(start, end);
 
       // Check that we're doing what we think we're doing.
-      assert.equal(p.childNodes.length, 0);
+      assert.equal(p1.childNodes.length, 0);
 
       // Check the caret position.
-      assert.deepEqual(final, [p, 0]);
+      assert.deepEqual(final, [p1, 0]);
       // Check that the nodes are those we expected.
       checkNodes(cutContent, nodes);
     });
 
     it("accepts a start caret outside text and an end caret in text", () => {
-      const start = [p, 0] as const;
-      const end = [p.lastChild!, p.lastChild!.nodeValue!.length] as const;
-      assert.equal(p.childNodes.length, 5);
+      const start = [p1, 0] as const;
+      const end = [p1.lastChild!, p1.lastChild!.nodeValue!.length] as const;
+      assert.equal(p1.childNodes.length, 5);
 
-      const nodes = Array.prototype.slice.call(p.cloneNode(true).childNodes);
+      const nodes = Array.prototype.slice.call(p1.cloneNode(true).childNodes);
       const [final, cutContent] = cut(start, end);
 
       // Check that we're doing what we think we're doing.
-      assert.equal(p.childNodes.length, 0);
+      assert.equal(p1.childNodes.length, 0);
 
       // Check the caret position.
-      assert.deepEqual(final, [p, 0]);
+      assert.deepEqual(final, [p1, 0]);
       // Check that the nodes are those we expected.
       checkNodes(cutContent, nodes);
+    });
+
+    it("accepts start caret in comment and end caret outside comment", () => {
+      const start = [comment, 1] as const;
+      const end = [p4, p4.childNodes.length] as const;
+      expect(end[1]).to.equal(5);
+
+      const expectedCut = Array.from(p4.cloneNode(true).childNodes);
+      expectedCut.shift(); // Drop the text node.
+      (expectedCut[0] as Comment).data =
+        (expectedCut[0] as Comment).data.slice(1); // Cut the comment.
+      const remaining = [p4.firstChild!.cloneNode(true),
+                         p4.childNodes[1].cloneNode(true)];
+      (remaining[1] as Comment).data =
+        (remaining[1] as Comment).data.slice(0, 1);
+      const [final, cutContent] = cut(start, end);
+
+      // Check the caret position.
+      expect(final).to.have.members([p4.childNodes[1]!, 1]);
+      // Check that the nodes are those we expected.
+      checkNodes(cutContent, expectedCut);
+      // Check that we're doing what we think we're doing.
+      checkNodes(Array.from(p4.childNodes), remaining);
+    });
+
+    it("accepts start caret outside comment and end caret in comment", () => {
+      const start = [p4, 0] as const;
+      const end = [comment, 1] as const;
+
+      const expectedCut = [p4.firstChild!.cloneNode(true),
+                           p4.childNodes[1].cloneNode(true)];
+      (expectedCut[1] as Comment).data =
+        (expectedCut[1] as Comment).data.slice(0, 1); // Cut the comment.
+      const remaining = Array.from(p4.cloneNode(true).childNodes);
+      remaining.shift(); // Drop the text node.
+      (remaining[0] as Comment).data = (remaining[0] as Comment).data.slice(1);
+      const [final, cutContent] = cut(start, end);
+
+      // Check the caret position.
+      expect(final).to.have.members([p4, 0]);
+      // Check that the nodes are those we expected.
+      checkNodes(cutContent, expectedCut);
+      // Check that we're doing what we think we're doing.
+      checkNodes(Array.from(p4.childNodes), remaining);
+    });
+
+    it("accepts start caret and end caret in same comment", () => {
+      const start = [comment, 1] as const;
+      const end = [comment, 2] as const;
+
+      const expectedCut = [comment.cloneNode(true)];
+      (expectedCut[0] as Comment).data =
+        (expectedCut[0] as Comment).data[1]; // Cut the comment.
+      const remaining = Array.from(p4.cloneNode(true).childNodes);
+      (remaining[1] as Comment).data =
+        (remaining[1] as Comment).data.slice(0, 1) +
+        (remaining[1] as Comment).data.slice(2);
+      const [final, cutContent] = cut(start, end);
+
+      // Check the caret position.
+      expect(final).to.have.members([p4.childNodes[1]!, 1]);
+      // Check that the nodes are those we expected.
+      checkNodes(cutContent, expectedCut);
+      // Check that we're doing what we think we're doing.
+      checkNodes(Array.from(p4.childNodes), remaining);
+    });
+
+    it("accepts start caret in pi and end caret outside pi", () => {
+      const start = [pi, 1] as const;
+      const end = [p4, p4.childNodes.length] as const;
+      expect(end[1]).to.equal(5);
+
+      const expectedCut = [p4.childNodes[3].cloneNode(true),
+                           p4.childNodes[4].cloneNode(true)];
+      (expectedCut[0] as ProcessingInstruction).data =
+        (expectedCut[0] as ProcessingInstruction).data.slice(1);
+      const remaining = Array.from(p4.cloneNode(true).childNodes);
+      remaining.pop(); // Drop the last text node.
+      (remaining[3] as ProcessingInstruction).data =
+        (remaining[3] as ProcessingInstruction).data.slice(0, 1);
+      const [final, cutContent] = cut(start, end);
+
+      // Check the caret position.
+      expect(final).to.have.members([p4.childNodes[3], 1]);
+      // Check that the nodes are those we expected.
+      checkNodes(cutContent, expectedCut);
+      // Check that we're doing what we think we're doing.
+      checkNodes(Array.from(p4.childNodes), remaining);
+    });
+
+    it("accepts start caret outside pi and end caret inside pi", () => {
+      const start = [p4, 0] as const;
+      const end = [pi, 1] as const;
+
+      const expectedCut = Array.from(p4.cloneNode(true).childNodes);
+      expectedCut.pop(); // Drop the last text node.
+      (expectedCut[3] as ProcessingInstruction).data =
+        (expectedCut[3] as ProcessingInstruction).data.slice(0, 1);
+      const remaining = [p4.childNodes[3].cloneNode(true),
+                         p4.childNodes[4].cloneNode(true)];
+      (remaining[0] as ProcessingInstruction).data =
+        (remaining[0] as ProcessingInstruction).data.slice(1);
+
+      const [final, cutContent] = cut(start, end);
+      // Check the caret position.
+      expect(final).to.have.members([p4, 0]);
+      // Check that the nodes are those we expected.
+      checkNodes(cutContent, expectedCut);
+      // Check that we're doing what we think we're doing.
+      checkNodes(Array.from(p4.childNodes), remaining);
+    });
+
+    it("accepts start caret end caret inside the same pi", () => {
+      const start = [pi, 1] as const;
+      const end = [pi, 2] as const;
+
+      const expectedCut = [pi.cloneNode(true)];
+      (expectedCut[0] as ProcessingInstruction).data =
+        (expectedCut[0] as ProcessingInstruction).data[1]; // Cut the pi.
+      const remaining = Array.from(p4.cloneNode(true).childNodes);
+      (remaining[3] as ProcessingInstruction).data =
+        (remaining[3] as ProcessingInstruction).data.slice(0, 1) +
+        (remaining[3] as ProcessingInstruction).data.slice(2);
+
+      const [final, cutContent] = cut(start, end);
+      // Check the caret position.
+      expect(final).to.have.members([pi, 1]);
+      // Check that the nodes are those we expected.
+      checkNodes(cutContent, expectedCut);
+      // Check that we're doing what we think we're doing.
+      checkNodes(Array.from(p4.childNodes), remaining);
     });
   });
 
