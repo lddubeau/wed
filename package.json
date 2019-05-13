@@ -105,7 +105,7 @@
     "tslint-config-lddubeau": "^4.1.0",
     "typeahead.js-bootstrap4-css": "^1.0.0",
     "typedoc": "^0.13.0",
-    "typescript": "^3.4.3",
+    "typescript": "^3.4.5",
     "versync": "^4.1.0",
     "vinyl-fs": "^3.0.3",
     "webpack": "^4.29.6",
