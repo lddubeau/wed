@@ -755,10 +755,12 @@ export interface RangeLike {
 export type ElementPair = [Element, Element];
 
 /**
- * Returns the **element** nodes that contain the start and the end of the
- * range. If an end of the range happens to be in a text node, the element node
- * will be that node's parent. If a boundary of the range is immediately in a
- * text or element, then there is no pair to return.
+ * Returns the **element** nodes that contain the start and the end boundaries
+ * of the range. If a boundary happens to be in a text node, comment node or
+ * processing instruction node, the element node will be that node's parent. If
+ * the boundary happens to be in an element node, then this node is the element
+ * node. If the boundary happens to be in anything else, then there is no pair
+ * to return.
  *
  * @private
  *
@@ -773,7 +775,9 @@ function nodePairFromRange(range: RangeLike): ElementPair | null {
   let startNode: Element;
   const { startContainer, endContainer } = range;
   switch (startContainer.nodeType) {
-  case Node.TEXT_NODE:
+    case Node.TEXT_NODE:
+    case Node.COMMENT_NODE:
+    case Node.PROCESSING_INSTRUCTION_NODE:
       startNode = startContainer.parentNode as Element;
       if (startNode === null) {
         throw new Error("detached node");
@@ -789,6 +793,8 @@ function nodePairFromRange(range: RangeLike): ElementPair | null {
   let endNode: Element;
   switch (endContainer.nodeType) {
     case Node.TEXT_NODE:
+    case Node.COMMENT_NODE:
+    case Node.PROCESSING_INSTRUCTION_NODE:
       endNode = endContainer.parentNode as Element;
       if (endNode === null) {
         throw new Error("detached node");
@@ -807,9 +813,13 @@ function nodePairFromRange(range: RangeLike): ElementPair | null {
 /**
  * Determines whether a range is well-formed. A well-formed range is one which
  * has its start and end in the same element. If either the start or the end is
- * in a text node, then that boundary is adjusted to the element which contains
- * the node. If either boundary is inside something which is neither an element
- * or a text node, then the range is not well-formed.
+ * in a text node, comment node or a processing instruction node, then that
+ * boundary is adjusted to the element which contains the node. If either
+ * boundary is inside something which is neither an element or one of the node
+ * types just mentioned, then the range is not well-formed.
+ *
+ * **NOTE**: though ranges starting or ending in comments or processing
+ * instructions may seem strange, they are allowed by the DOM.
  *
  * @param range An object which has the ``startContainer``, ``startOffset``,
  * ``endContainer``, ``endOffset`` attributes set. The interpretation of these

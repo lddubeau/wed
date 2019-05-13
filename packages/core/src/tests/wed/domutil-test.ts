@@ -540,9 +540,17 @@ element child.");
   describe("isWellFormedRange", () => {
     let p: HTMLElement;
     let p2: HTMLElement;
+    let firstComment: Comment;
+    let firstPI: ProcessingInstruction;
     before(() => {
       p = sourceDoc.querySelector("body>p:nth-of-type(2)") as HTMLElement;
       p2 = sourceDoc.querySelector("body>p:nth-of-type(5)") as HTMLElement;
+      firstComment = p2.childNodes[1] as Comment;
+      expect(firstComment).to.have.property("nodeType")
+        .equal(Node.COMMENT_NODE);
+      firstPI = p2.childNodes[3] as ProcessingInstruction;
+      expect(firstPI).to.have.property("nodeType")
+        .equal(Node.PROCESSING_INSTRUCTION_NODE);
     });
 
     describe("returns true when", () => {
@@ -563,11 +571,45 @@ element child.");
           .to.be.true;
       });
 
+      it("boundaries are in text and comment of the same element", () => {
+        const startContainer = p2.firstChild!;
+        expect(startContainer).to.have.property("nodeType")
+          .equal(Node.TEXT_NODE);
+        expect(domutil.isWellFormedRange({ startContainer, startOffset: 0,
+                                           endContainer: firstComment,
+                                           endOffset: 0 }))
+          .to.be.true;
+      });
+
+      it("boundaries are in text and pi of the same element", () => {
+        const startContainer = p2.firstChild!;
+        expect(startContainer).to.have.property("nodeType")
+          .equal(Node.TEXT_NODE);
+        expect(domutil.isWellFormedRange({ startContainer, startOffset: 0,
+                                           endContainer: firstPI,
+                                           endOffset: 0 }))
+          .to.be.true;
+      });
+
       it("one boundary in element and other text in same element", () => {
         const endContainer = p.childNodes[2];
         expect(endContainer).to.have.property("nodeType").equal(Node.TEXT_NODE);
         expect(domutil.isWellFormedRange({ startContainer: p, startOffset: 0,
                                            endContainer, endOffset: 0 }))
+          .to.be.true;
+      });
+
+      it("first boundary in comment and second in parent of comment", () => {
+        expect(domutil.isWellFormedRange({ startContainer: firstComment,
+                                           startOffset: 0,
+                                           endContainer: p2, endOffset: 2 }))
+          .to.be.true;
+      });
+
+      it("second boundary in comment and first in parent of comment", () => {
+        expect(domutil.isWellFormedRange({ startContainer: p2, startOffset: 0,
+                                           endContainer: firstComment,
+                                           endOffset: 0 }))
           .to.be.true;
       });
     });
@@ -589,24 +631,6 @@ element child.");
         const endContainer = p.childNodes[1].firstChild!;
         expect(endContainer).to.have.property("nodeType").equal(Node.TEXT_NODE);
         expect(domutil.isWellFormedRange({ startContainer, startOffset: 0,
-                                           endContainer, endOffset: 0 }))
-          .to.be.false;
-      });
-
-      it("first boundary is in a comment", () => {
-        const startContainer = p2.childNodes[1];
-        expect(startContainer).to.have.property("nodeType")
-          .equal(Node.COMMENT_NODE);
-        expect(domutil.isWellFormedRange({ startContainer, startOffset: 0,
-                                           endContainer: p2, endOffset: 2 }))
-          .to.be.false;
-      });
-
-      it("second boundary is in a comment", () => {
-        const endContainer = p2.childNodes[1];
-        expect(endContainer).to.have.property("nodeType")
-          .equal(Node.COMMENT_NODE);
-        expect(domutil.isWellFormedRange({ startContainer: p2, startOffset: 0,
                                            endContainer, endOffset: 0 }))
           .to.be.false;
       });
