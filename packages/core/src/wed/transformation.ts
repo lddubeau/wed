@@ -17,7 +17,40 @@ import * as icon from "./gui/icon";
 import { EditorAPI } from "./mode-api";
 import { TreeUpdater } from "./tree-updater";
 
-const TYPE_TO_KIND: { [key: string]: string } = {
+export type TransformationType =
+  "add" |
+  "delete" |
+  "transform" |
+  "insert" |
+  "delete-element" |
+  "delete-parent" |
+  "wrap" |
+  "wrap-content" |
+  "merge-with-next" |
+  "merge-with-previous" |
+  "swap-with-next" |
+  "swap-with-previous" |
+  "split" |
+  "append" |
+  "prepend" |
+  "unwrap" |
+  "add-attribute" |
+  "delete-attribute" |
+  "insert-text";
+
+/**
+ * The transformation kind is used for the classification of transformations
+ * when showing transformations to the user.
+ */
+export type TransformationKind =
+  "add" |
+  "delete" |
+  "transform" |
+  "wrap" |
+  "unwrap" |
+  "other";
+
+const TYPE_TO_KIND: Record<TransformationType, TransformationKind> = {
   // Ideally the next line would be uncommented but TS goes off the rails
   // if that line is there. (Type inference gets stupid).
   // __proto__: null,
@@ -43,9 +76,19 @@ const TYPE_TO_KIND: { [key: string]: string } = {
   unwrap: "unwrap",
   "add-attribute": "add",
   "delete-attribute": "delete",
+  "insert-text": "other",
 };
 
-const TYPE_TO_NODE_TYPE: { [key: string]: string } = {
+/**
+ * The transformation node type is used for the classification of
+ * transformations when showing transformations to the user.
+ */
+export type TransformationNodeType =
+  "other" |
+  "element" |
+  "attribute";
+
+const TYPE_TO_NODE_TYPE: Record<TransformationType, TransformationNodeType> = {
   // Ideally the next line would be uncommented but TS goes off the rails
   // if that line is there. (Type inference gets stupid).
   // __proto__: null,
@@ -74,6 +117,7 @@ const TYPE_TO_NODE_TYPE: { [key: string]: string } = {
   unwrap: "element",
   "add-attribute": "attribute",
   "delete-attribute": "attribute",
+  "insert-text": "other",
 };
 
 /**
@@ -137,7 +181,8 @@ export type TransformationHandler<Data extends TransformationData> =
   (editor: EditorAPI, data: Data) => void;
 
 function computeIconHtml(iconHtml: string | undefined,
-                         transformationType: string): string | undefined {
+                         transformationType: TransformationType):
+string | undefined {
   if (iconHtml !== undefined) {
     return iconHtml;
   }
@@ -168,13 +213,12 @@ export interface TransformationOptions extends ActionOptions {
  * An operation that transforms the data tree.
  */
 export class Transformation<Data extends TransformationData =
-  TransformationData>
-  extends Action<Data> {
-  public readonly handler: TransformationHandler<Data>;
-  public readonly transformationType: string;
-  public readonly kind: string;
-  public readonly nodeType: string;
-  public readonly treatAsTextInput: boolean;
+  TransformationData> extends Action<Data> {
+  readonly handler: TransformationHandler<Data>;
+  readonly transformationType: string;
+  readonly kind: TransformationKind;
+  readonly nodeType: TransformationNodeType;
+  readonly treatAsTextInput: boolean;
 
   /**
    * @param origin The origin of the transformation. See [[Action.origin]] for
@@ -195,7 +239,7 @@ export class Transformation<Data extends TransformationData =
    * @param options Additional options.
    */
   constructor(origin: string, editor: EditorAPI,
-              transformationType: string, desc: string,
+              transformationType: TransformationType, desc: string,
               handler: TransformationHandler<Data>,
               options?: TransformationOptions) {
     const actualOpts = options !== undefined ? options : {};

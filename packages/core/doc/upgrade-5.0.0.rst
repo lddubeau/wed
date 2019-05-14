@@ -163,6 +163,19 @@ Miscelaneous changes
   the arrays **could** have contained more than one element.) They also omit
   redundant information.
 
+* ``Transformation`` objects are stricter:
+
+  + They no longer accept arbitrary transformation types. Wed was not designed
+    for arbitrary types but did not enforce it.
+
+  + Previously, an ``undefined`` ``kind`` field meant "other than the more
+    precise kinds". The value ``"other"`` is used instead. ``kind`` cannot be
+    undefined anymore.
+
+  + Previously, an ``undefined`` ``nodeType`` field meant "other than element or
+    attribute". The value ``"other"`` is used instead. ``nodeType`` cannot
+    be undefined anymore.
+
 Notable Bootstrap Changes
 =========================
 

@@ -11,18 +11,19 @@ import * as browsers from "@wedxml/common/browsers";
 import { UnspecifiedAction, UnspecifiedActionInvocation } from "../action";
 import * as keyMod from "../key";
 import * as keyConstants from "../key-constants";
-import { NamedTransformationData, Transformation } from "../transformation";
+import { NamedTransformationData, Transformation,
+         TransformationKind, TransformationNodeType } from "../transformation";
 import { ContextMenu, DismissCallback } from "./context-menu";
 import { makeHTML } from "./icon";
 
-const KINDS = ["transform", "add", "delete", "wrap", "unwrap"];
-// ``undefined`` is "other kinds".
-const KIND_FILTERS = (KINDS as (string | undefined)[]).concat(undefined);
-// Sort order.
-const KIND_ORDER = ([undefined] as (string | undefined)[]).concat(KINDS);
+const KINDS: TransformationKind[] =
+  ["transform", "add", "delete", "wrap", "unwrap"];
+// This is in the order we want the filters to appear in.
+const KIND_FILTERS = KINDS.concat(["other"]);
+// This is in the sort order.
+const KIND_ORDER = (["other"] as TransformationKind[]).concat(KINDS);
 
-const TYPES = ["element", "attribute"];
-const TYPE_FILTERS = (TYPES as (string | undefined)[]).concat(undefined);
+const TYPES = ["element", "attribute", "other"];
 
 const plus = keyMod.makeKey("+");
 const minus = keyMod.makeKey("-");
@@ -33,20 +34,29 @@ const less = keyMod.makeKey("<");
 const at = keyMod.makeKey("@");
 const exclamation = keyMod.makeKey("!");
 
-const KEY_TO_FILTER: {
+interface KeyToFilterKind {
   key: keyMod.Key;
-  filter: "add" | "delete" | "wrap" | "unwrap" | "element" | "attribute" |
-    undefined;
-  which: "kind" | "type";
-}[] = [
+  which: "kind";
+  filter: TransformationKind;
+}
+
+interface KeyToFilterType {
+  key: keyMod.Key;
+  which: "type";
+  filter: TransformationNodeType;
+}
+
+type KeyToFilter = KeyToFilterKind | KeyToFilterType;
+
+const KEY_TO_FILTER: KeyToFilter[] = [
   { key: plus, filter: "add", which: "kind" },
   { key: minus, filter: "delete", which: "kind" },
   { key: comma, filter: "wrap", which: "kind" },
   { key: period, filter: "unwrap", which: "kind" },
-  { key: question, filter: undefined, which: "kind" },
+  { key: question, filter: "other", which: "kind" },
   { key: less, filter: "element", which: "type" },
   { key: at, filter: "attribute", which: "type" },
-  { key: exclamation, filter: undefined, which: "type" },
+  { key: exclamation, filter: "other", which: "type" },
 ];
 
 interface MadeItem {
@@ -56,14 +66,11 @@ interface MadeItem {
 }
 
 function compareItems(a: MadeItem, b: MadeItem): number {
-  const aKind = a.action instanceof Transformation ? a.action.kind : undefined;
-  const bKind = b.action instanceof Transformation ? b.action.kind : undefined;
+  const aKind = a.action instanceof Transformation ? a.action.kind : "other";
+  const bKind = b.action instanceof Transformation ? b.action.kind : "other";
 
   if (aKind !== bKind) {
-    const aOrder = KIND_ORDER.indexOf(aKind);
-    const bOrder = KIND_ORDER.indexOf(bKind);
-
-    return aOrder - bOrder;
+    return KIND_ORDER.indexOf(aKind) - KIND_ORDER.indexOf(bKind);
   }
 
   const aText = a.item.textContent!;
@@ -80,7 +87,7 @@ function compareItems(a: MadeItem, b: MadeItem): number {
 }
 
 interface Filters {
-  kind: string | undefined | null;
+  kind: TransformationKind | null;
   // tslint:disable-next-line:no-reserved-keywords
   type: string | undefined | null;
 }
@@ -257,19 +264,11 @@ extends ContextMenu<UnspecifiedActionInvocation> {
     for (const kind of KIND_FILTERS) {
       const child = document.createElement("button");
       child.className = "btn btn-outline-dark";
-      let title;
-      if (kind !== undefined) {
-        // tslint:disable-next-line:no-inner-html
-        child.innerHTML = makeHTML(kind);
-        title = `Show only ${kind} operations.`;
-      }
-      else {
-        // tslint:disable-next-line:no-inner-html
-        child.innerHTML = makeHTML("other");
-        title = "Show operations not covered by other filter buttons.";
-      }
+      // tslint:disable-next-line:no-inner-html
+      child.innerHTML = makeHTML(kind);
       $(child).tooltip({
-        title,
+        title: kind !== "other" ? `Show only ${kind} operations.` :
+          "Show operations not covered by other filter buttons.",
         // If we don't set it to be on the body, then the tooltip will be
         // clipped by the dropdown. However, we then run into the problem that
         // when the dropdown menu is removed, the tooltip may remain displayed.
@@ -288,22 +287,15 @@ extends ContextMenu<UnspecifiedActionInvocation> {
   private makeTypeGroup(document: Document): Element {
     const typeGroup = document.createElement("div");
     typeGroup.className = "btn-group btn-group-sm";
-    for (const actionType of TYPE_FILTERS) {
+    for (const actionType of TYPES) {
       const child = document.createElement("button");
       child.className = "btn btn-outline-dark";
-      let title;
-      if (actionType !== undefined) {
-        // tslint:disable-next-line:no-inner-html
-        child.innerHTML = makeHTML(actionType);
-        title = `Show only ${actionType} operations.`;
-      }
-      else {
-        // tslint:disable-next-line:no-inner-html
-        child.innerHTML = makeHTML("other");
-        title = "Show operations not covered by other filter buttons.";
-      }
+      // tslint:disable-next-line:no-inner-html
+      child.innerHTML = makeHTML(actionType);
       $(child).tooltip({
-        title,
+        title: actionType !== "other" ?
+          `Show only ${actionType} operations.` :
+          "Show operations not covered by other filter buttons.",
         // If we don't set it to be on the body, then the tooltip will be
         // clipped by the dropdown. However, we then run into the problem that
         // when the dropdown menu is removed, the tooltip may remain displayed.
@@ -319,7 +311,7 @@ extends ContextMenu<UnspecifiedActionInvocation> {
     return typeGroup;
   }
 
-  private makeKindHandler(kind: string | undefined): () => void {
+  private makeKindHandler(kind: TransformationKind): () => void {
     return () => {
       this.filters.kind = kind;
       this.refreshItemList();
@@ -355,8 +347,7 @@ extends ContextMenu<UnspecifiedActionInvocation> {
         setTimeout(() => {
           this.actionFilterInput.value = "";
           this.refreshItemList();
-        },
-                   0);
+        }, 0);
       }
       ev.stopPropagation();
       ev.preventDefault();
@@ -469,7 +460,7 @@ extends ContextMenu<UnspecifiedActionInvocation> {
 
     child = actionFilterItem
       .firstElementChild!.lastElementChild!.firstElementChild!;
-    for (const actionType of TYPE_FILTERS) {
+    for (const actionType of TYPES) {
       const cl = child.classList;
       const method = (actionTypeFilter === actionType) ? cl.add : cl.remove;
       method.call(cl, "active");
@@ -489,58 +480,52 @@ extends ContextMenu<UnspecifiedActionInvocation> {
     const typeFilter = this.filters.type;
     const textFilter = this.actionTextFilter;
 
-    let kindMatch;
+    let kindMatch: (item: MadeItem) => boolean;
     switch (kindFilter) {
       case null:
         kindMatch = () => true;
         break;
-      case undefined:
-        kindMatch =
-          (item: MadeItem) => !(item.action instanceof Transformation) ||
-          KINDS.indexOf(item.action.kind) === -1;
+      case "other":
+        kindMatch = ({ action }) => !(action instanceof Transformation) ||
+          action.kind === "other";
         break;
       default:
-        kindMatch =
-          (item: MadeItem) => (item.action instanceof Transformation) &&
-          item.action.kind === kindFilter;
+        kindMatch = ({ action }) => (action instanceof Transformation) &&
+          action.kind === kindFilter;
     }
 
-    let typeMatch;
+    let typeMatch: (item: MadeItem) => boolean;
     switch (typeFilter) {
       case null:
         typeMatch = () => true;
         break;
-      case undefined:
-        typeMatch =
-          (item: MadeItem) => !(item.action instanceof Transformation) ||
-          TYPES.indexOf(item.action.nodeType) === -1;
+      case "other":
+        typeMatch = ({ action }) => !(action instanceof Transformation) ||
+          action.nodeType === "other";
         break;
       default:
-        typeMatch =
-          (item: MadeItem) => (item.action instanceof Transformation) &&
-          item.action.nodeType === typeFilter;
+        typeMatch = ({ action }) => (action instanceof Transformation) &&
+          action.nodeType === typeFilter;
     }
 
-    let textMatch;
+    let textMatch: (item: MadeItem) => boolean;
     if (textFilter !== "") {
       if (textFilter[0] === "^") {
         const textFilterRe = RegExp(textFilter);
-        textMatch = (item: MadeItem) => {
-          const { data } =
-            item as MadeItem & { data: NamedTransformationData };
+        textMatch = item => {
+          const { data } = item as MadeItem & { data: NamedTransformationData };
           const text = (data !== null && data.name !== undefined) ? data.name :
             item.item.textContent!;
           return textFilterRe.test(text);
         };
       }
       else {
-          textMatch = (item: MadeItem) => {
-            const { data } =
-              item as MadeItem & { data: NamedTransformationData };
-            const text = (data !== null && data.name !== undefined) ?
-              data.name : item.item.textContent!;
-            return text.indexOf(textFilter) !== -1;
-          };
+        textMatch = item => {
+          const { data } = item as MadeItem & { data: NamedTransformationData };
+          const text = (data !== null && data.name !== undefined) ?
+            data.name : item.item.textContent!;
+          return text.indexOf(textFilter) !== -1;
+        };
       }
     }
     else {
