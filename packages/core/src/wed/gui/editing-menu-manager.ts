@@ -10,7 +10,7 @@ import { Action, ActionInvocation, UnspecifiedAction,
 import { CaretManager } from "../caret-manager";
 import { DLoc } from "../dloc";
 import { isElement } from "../domtypeguards";
-import { closestByClass, isNotDisplayed } from "../domutil";
+import { closestByClass, isNotDisplayed, mustGetMirror } from "../domutil";
 import { Editor } from "../editor";
 import { ContextMenuHandler } from "../mode-api";
 import { ModeTree } from "../mode-tree";
@@ -439,7 +439,7 @@ export class EditingMenuManager {
       const mode = this.modeTree.getMode(transformationNode);
       const actions = mode.getContextualActions(
         ["merge-with-next", "merge-with-previous", "append", "prepend"], sepFor,
-        $.data(transformationNode, "wed_mirror_node"), 0);
+        mustGetMirror(transformationNode), 0);
       for (const action of actions) {
         menuItems.push(
           new ActionInvocation(action,

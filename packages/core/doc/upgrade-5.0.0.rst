@@ -176,6 +176,12 @@ Miscelaneous changes
     attribute". The value ``"other"`` is used instead. ``nodeType`` cannot
     be undefined anymore.
 
+* Wed no longer uses the jQuery data key ``wed_mirror_node`` to link the data
+  and GUI trees. If you were using this, you should switch to using
+  ``domutil``'s ``getMirror`` function.
+
+* ``domutil``'s ``unlinkTree`` is gone. You probably were not using it anyway.
+
 Notable Bootstrap Changes
 =========================
 

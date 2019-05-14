@@ -153,11 +153,11 @@ export abstract class Decorator implements DecoratorAPI {
     let dataCaret: DLoc | undefined = this.editor.caretManager.getDataCaret();
     if (dataCaret != null &&
         !(isAttr(dataCaret.node) &&
-          dataCaret.node.ownerElement === $.data(el, "wed_mirror_node"))) {
+          dataCaret.node.ownerElement === domutil.getMirror(el))) {
       dataCaret = undefined;
     }
 
-    const dataNode = $.data(el, "wed_mirror_node");
+    const dataNode = domutil.mustGetMirror(el);
     this.setReadOnly(el, Boolean(this.editor.validator.getNodeProperty(
       dataNode, "PossibleDueToWildcard")));
 

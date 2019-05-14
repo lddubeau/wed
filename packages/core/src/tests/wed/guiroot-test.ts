@@ -9,7 +9,7 @@ import $ from "jquery";
 
 import * as convert from "wed/convert";
 import { DLocRoot, findRoot } from "wed/dloc";
-import { linkTrees } from "wed/domutil";
+import { linkTrees, mustGetMirror } from "wed/domutil";
 import * as guiroot from "wed/guiroot";
 
 import { DataProvider } from "../util";
@@ -139,19 +139,19 @@ describe("guiroot", () => {
         linkTrees(xmlDoc.firstElementChild!, root.firstElementChild!);
         let targetDataNode = xmlDoc.getElementsByTagName("quote")[0];
         const phantomWrapTemplate = "<span class='_phantom_wrap'></span>";
-        $($.data(targetDataNode, "wed_mirror_node"))
+        $(mustGetMirror(targetDataNode))
           .wrap(phantomWrapTemplate)
           .after("<span class='_phantom'>Boo</span>Blip")
           .wrap(phantomWrapTemplate);
 
         const dataNode = targetDataNode.parentNode as Element;
         // Wrap twice for good measure.
-        $($.data(dataNode, "wed_mirror_node"))
+        $(mustGetMirror(dataNode))
           .wrap(phantomWrapTemplate)
           .wrap(phantomWrapTemplate);
 
         targetDataNode = xmlDoc.getElementsByTagName("quote")[1];
-        const targetGuiNode = $.data(targetDataNode, "wed_mirror_node");
+        const targetGuiNode = mustGetMirror(targetDataNode);
         const guiPath = rootObj.nodeToPath(targetGuiNode);
         // tslint:disable-next-line:no-shadowed-variable
         const dataPath = dataRootObj.nodeToPath(targetDataNode);

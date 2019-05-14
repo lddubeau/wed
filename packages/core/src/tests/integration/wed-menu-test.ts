@@ -4,6 +4,7 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 import { CaretManager } from "wed/caret-manager";
+import { mustGetMirror } from "wed/domutil";
 import { Editor } from "wed/editor";
 import { EditingMenuManager } from "wed/gui/editing-menu-manager";
 import * as keyConstants from "wed/key-constants";
@@ -107,7 +108,7 @@ describe("wed menus:", () => {
     it("on elements inside _phantom_wrap", () => {
       const p =
         guiRoot.querySelector(`.body .p[${encodeAttrName("rend")}='wrap']`)!;
-      const dataNode = $.data(p, "wed_mirror_node") as Element;
+      const dataNode = mustGetMirror(p) as Element;
       const rend = dataNode.getAttribute("rend");
       // Make sure the paragraph has rend="wrap".
       assert.equal(rend, "wrap");

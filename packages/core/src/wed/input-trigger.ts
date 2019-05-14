@@ -4,11 +4,9 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import $ from "jquery";
-
 import { DLoc } from "./dloc";
-import { isText } from "./domtypeguards";
-import { closest } from "./domutil";
+import { isElement, isText } from "./domtypeguards";
+import { closest, getMirror, mustGetMirror } from "./domutil";
 import { GUISelector } from "./gui-selector";
 import { Key } from "./key";
 import { Mode } from "./mode";
@@ -141,7 +139,8 @@ export class InputTrigger {
       return null;
     }
 
-    if (this.editor.modeTree.getMode(caret.node) !== this.mode) {
+    const { node } = caret;
+    if (this.editor.modeTree.getMode(node) !== this.mode) {
       // Outside our jurisdiction.
       return null;
     }
@@ -149,10 +148,9 @@ export class InputTrigger {
     // We transit through the GUI tree to perform our match because CSS
     // selectors cannot operate on XML namespace prefixes (or, at the time of
     // writing, on XML namespaces, period).
-    const dataNode = isText(caret.node) ? caret.node.parentNode : caret.node;
-    const guiNode = $.data(dataNode as Element, "wed_mirror_node");
-
-    return closest(guiNode, this.selector.value, this.editor.guiRoot);
+    const selected = closest(getMirror(node), this.selector.value,
+                             this.editor.guiRoot);
+    return selected === null ? null : mustGetMirror(selected) as Element;
   }
 
   /**
@@ -168,11 +166,10 @@ export class InputTrigger {
       return;
     }
 
-    const dataNode = $.data(nodeOfInterest, "wed_mirror_node");
     this.keyToHandler.forEach((handlers: KeyHandler[], key: Key) => {
       if (key.matchesEvent(e)) {
         for (const handler of handlers) {
-          handler("keydown", dataNode, e);
+          handler("keydown", nodeOfInterest, e);
         }
       }
     });
@@ -191,11 +188,10 @@ export class InputTrigger {
       return;
     }
 
-    const dataNode = $.data(nodeOfInterest, "wed_mirror_node");
     this.keyToHandler.forEach((handlers: KeyHandler[], key: Key) => {
       if (key.matchesEvent(e)) {
         for (const handler of handlers) {
-          handler("keypress", dataNode, e);
+          handler("keypress", nodeOfInterest, e);
         }
       }
     });
@@ -231,7 +227,8 @@ export class InputTrigger {
       return;
     }
 
-    if (this.editor.modeTree.getMode(caret.node) !== this.mode) {
+    const { node } = caret;
+    if (this.editor.modeTree.getMode(node) !== this.mode) {
       // Outside our jurisdiction.
       return;
     }
@@ -239,9 +236,9 @@ export class InputTrigger {
     // We transit through the GUI tree to perform our match because CSS
     // selectors cannot operate on XML namespace prefixes (or, at the time of
     // writing, on XML namespaces, period).
-    const nodeOfInterest = (isText(caret.node) ?
-                            caret.node.parentNode! : caret.node) as Element;
-    const guiNode = $.data(nodeOfInterest, "wed_mirror_node");
+    const nodeOfInterest =
+      (isElement(node) ? node : node.parentNode) as Element;
+    const guiNode = getMirror(nodeOfInterest);
 
     if (closest(guiNode, this.selector.value, this.editor.guiRoot) === null) {
       return;
@@ -254,9 +251,9 @@ export class InputTrigger {
       }
       const ch = String.fromCharCode(key.which);
 
-      for (const node of text) {
+      for (const textNode of text) {
         // Skip those that are not in the tree anymore.
-        if (node.parentNode !== null && node.data.indexOf(ch) > -1) {
+        if (textNode.parentNode !== null && textNode.data.indexOf(ch) > -1) {
           for (const handler of handlers) {
             handler("paste", nodeOfInterest, e);
           }

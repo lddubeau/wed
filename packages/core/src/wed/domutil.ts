@@ -4,9 +4,6 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-
-import $ from "jquery";
-
 import { isAttr, isComment, isDocumentFragment, isElement, isPI,
          isText } from "./domtypeguards";
 import * as util from "./util";
@@ -517,34 +514,37 @@ export function deleteText(node: Text, index: number, length: number): void {
 }
 
 /**
- * This function recursively links two DOM trees through the jQuery ``.data()``
- * method. For an element in the first tree the data item named
- * "wed_mirror_node" points to the corresponding element in the second tree, and
- * vice-versa. It is presumed that the two DOM trees are perfect mirrors of each
- * other, although no test is performed to confirm this.
+ * This function recursively links two DOM trees. It is presumed that the two
+ * DOM trees have a corresponding node in the other tree, although no test is
+ * performed to confirm this.
  */
-export function linkTrees(rootA: Element, rootB: Element): void {
-  $.data(rootA, "wed_mirror_node", rootB);
-  $.data(rootB, "wed_mirror_node", rootA);
-  for (let i = 0; i < rootA.children.length; ++i) {
-    const childA = rootA.children[i];
-    const childB = rootB.children[i];
+export function linkTrees(rootA: Node, rootB: Node): void {
+  setMirror(rootB, rootA);
+  for (let i = 0; i < rootA.childNodes.length; ++i) {
+    const childA = rootA.childNodes[i];
+    const childB = rootB.childNodes[i];
     linkTrees(childA, childB);
   }
 }
 
-/**
- * This function recursively unlinks a DOM tree though the jQuery ``.data()``
- * method.
- *
- * @param root A DOM node.
- *
- */
-export function unlinkTree(root: Element): void {
-  $.removeData(root, "wed_mirror_node");
-  for (let i = 0; i < root.children.length; ++i) {
-    unlinkTree(root.children[i]);
+const mirrors = new WeakMap<Node, Node>();
+
+export function setMirror(nodeA: Node, nodeB: Node): void {
+  mirrors.set(nodeA, nodeB);
+  mirrors.set(nodeB, nodeA);
+}
+
+export function getMirror(node: Node): Node | undefined {
+  return mirrors.get(node);
+}
+
+export function mustGetMirror(node: Node): Node {
+  const mirror = mirrors.get(node);
+  if (mirror === undefined) {
+    throw new Error("node without a mirror");
   }
+
+  return mirror;
 }
 
 /**
@@ -1399,13 +1399,13 @@ export function toGUISelector(selector: string,
 export function dataFind(node: Element, selector: string,
                          namespaces: Record<string, string>): Element | null {
   const guiSelector = toGUISelector(selector, namespaces);
-  const guiNode = $.data(node, "wed_mirror_node") as Element;
+  const guiNode = mustGetMirror(node) as Element;
   const foundNodes = guiNode.querySelector(guiSelector);
   if (foundNodes === null) {
     return null;
   }
-  const data = $.data(foundNodes, "wed_mirror_node");
-  return data != null ? data : null;
+  const data = getMirror(foundNodes) as Element | undefined;
+  return data !== undefined ? data : null;
 }
 
 /**
@@ -1424,11 +1424,14 @@ export function dataFind(node: Element, selector: string,
 export function dataFindAll(node: Element, selector: string,
                             namespaces: Record<string, string>): Element[] {
   const guiSelector = toGUISelector(selector, namespaces);
-  const guiNode = $.data(node, "wed_mirror_node") as Element;
+  const guiNode = mustGetMirror(node) as Element;
   const foundNodes = guiNode.querySelectorAll(guiSelector);
   const ret: Element[] = [];
   for (let i = 0; i < foundNodes.length; ++i) {
-    ret.push($.data(foundNodes[i], "wed_mirror_node"));
+    const mirror = getMirror(foundNodes[i]);
+    if (mirror !== undefined) {
+      ret.push(mirror as Element);
+    }
   }
   return ret;
 }

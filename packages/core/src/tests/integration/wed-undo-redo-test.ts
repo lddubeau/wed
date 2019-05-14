@@ -7,6 +7,7 @@ import { Subscription } from "rxjs";
 import { filter, first } from "rxjs/operators";
 
 import { CaretManager } from "wed/caret-manager";
+import { mustGetMirror } from "wed/domutil";
 import { Editor } from "wed/editor";
 import * as keyConstants from "wed/key-constants";
 
@@ -78,18 +79,18 @@ describe("wed undo redo:", () => {
   it("undo undoes typed text as a group (inside element)", () => {
     // Text node inside title.
     const title = titles[0];
-    const titleData = $.data(title, "wed_mirror_node");
+    const titleData = mustGetMirror(title) as Element;
 
-    const trs = editor.modeTree.getMode(titleData.firstChild)
-      .getContextualActions(["insert"], "hi", titleData.firstChild, 2);
+    const trs = editor.modeTree.getMode(titleData.firstChild!)
+      .getContextualActions(["insert"], "hi", titleData.firstChild!, 2);
 
     caretManager.setCaret(titleData.firstChild, 2);
 
     trs[0].execute({ node: undefined, name: "hi" });
 
     editor.type("a");
-    const hi = titleData.firstElementChild;
-    const hiText = hi.firstChild;
+    const hi = titleData.firstElementChild!;
+    const hiText = hi.firstChild!;
     assert.equal(hiText.textContent, "a", "text after edit");
     assert.equal(titleData.childNodes.length, 3);
 

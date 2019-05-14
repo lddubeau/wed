@@ -7,6 +7,7 @@ import * as browsers from "@wedxml/common/browsers";
 
 import { CaretManager } from "wed/caret-manager";
 import { isAttr } from "wed/domtypeguards";
+import { mustGetMirror } from "wed/domutil";
 import { Editor } from "wed/editor";
 import { GUIValidationError } from "wed/gui-validation-error";
 import * as keyConstants from "wed/key-constants";
@@ -105,7 +106,7 @@ describe("wed validation errors:", () => {
     const p = guiRoot.querySelectorAll(".body .p")[12];
     const dataP = editor.toDataNode(p)!;
     const dataMonogr = dataP.childNodes[0] as Element;
-    const monogr = $.data(dataMonogr, "wed_mirror_node");
+    const monogr = mustGetMirror(dataMonogr) as Element;
     assert.equal(dataMonogr.tagName, "monogr");
 
     let pError;

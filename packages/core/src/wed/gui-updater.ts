@@ -9,8 +9,8 @@ import $ from "jquery";
 
 import * as convert from "./convert";
 import { DLoc } from "./dloc";
-import { isElement, isText } from "./domtypeguards";
-import { isAttr, linkTrees, unlinkTree} from "./domutil";
+import { isText } from "./domtypeguards";
+import { isAttr, linkTrees, mustGetMirror } from "./domutil";
 import { BeforeDeleteNodeEvent, InsertNodeAtEvent, SetAttributeNSEvent,
          SetTextNodeValueEvent, TreeUpdater } from "./tree-updater";
 import * as util from "./util";
@@ -64,10 +64,7 @@ export class GUIUpdater extends TreeUpdater {
       throw new Error("cannot find gui tree position");
     }
     const clone = convert.toHTMLTree(this.tree.ownerDocument!, ev.node);
-    if (isElement(ev.node)) {
-      // If ev.node is an element, then the clone is an element too.
-      linkTrees(ev.node, clone as Element);
-    }
+    linkTrees(ev.node, clone);
     this.insertNodeAt(guiCaret, clone);
   }
 
@@ -92,30 +89,7 @@ export class GUIUpdater extends TreeUpdater {
    */
   private _beforeDeleteNodeHandler(ev: BeforeDeleteNodeEvent):
   void {
-    const dataNode = ev.node;
-    let toRemove;
-    let element = false;
-    switch (dataNode.nodeType) {
-    case Node.TEXT_NODE:
-      const guiCaret = this.fromDataLocation(dataNode, 0);
-      if (guiCaret === null) {
-        throw new Error("cannot find gui tree position");
-      }
-      toRemove = guiCaret.node;
-      break;
-    case Node.ELEMENT_NODE:
-      toRemove = $.data(dataNode as Element, "wed_mirror_node");
-      element = true;
-      break;
-    default:
-    }
-    this.deleteNode(toRemove);
-
-    // We have to do this **after** we delete the node.
-    if (element) {
-      unlinkTree(dataNode as Element);
-      unlinkTree(toRemove);
-    }
+    this.deleteNode(mustGetMirror(ev.node));
   }
 
   /**

@@ -1061,7 +1061,7 @@ export class Editor implements EditorAPI {
     val = val.slice(0, offset) + add + val.slice(offset + count);
     offset += add.length;
     const dataReal =
-      $.data(closestByClass(attrVal, "_real")!, "wed_mirror_node");
+      domutil.mustGetMirror(closestByClass(attrVal, "_real")!) as Element;
     const guiPath = this.nodeToPath(attrVal);
     const name =
       domutil.siblingByClass(attrVal, "_attribute_name")!.textContent!;
@@ -1109,24 +1109,20 @@ export class Editor implements EditorAPI {
   }
 
   toDataNode(node: Node): Node | Attr | null {
-    if (isElement(node)) {
-      const ret = $.data(node, "wed_mirror_node");
-      // We can bypass the whole pathToNode, nodeToPath thing.
-      if (ret != null) {
-        return ret;
-      }
+    const ret = domutil.getMirror(node);
+    // We can bypass the whole pathToNode, nodeToPath thing.
+    if (ret !== undefined) {
+      return ret;
     }
 
     return this.dataUpdater.pathToNode(this.nodeToPath(node));
   }
 
   fromDataNode(node: Node): Node | null {
-    if (isElement(node)) {
-      const ret = $.data(node, "wed_mirror_node");
-      // We can bypass the whole pathToNode, nodeToPath thing.
-      if (ret != null) {
-        return ret;
-      }
+    const ret = domutil.getMirror(node);
+    // We can bypass the whole pathToNode, nodeToPath thing.
+    if (ret !== undefined) {
+      return ret;
     }
 
     return this.pathToNode(this.dataUpdater.nodeToPath(node));

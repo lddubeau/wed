@@ -3,8 +3,6 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import $ from "jquery";
-
 import * as convert from "wed/convert";
 import * as domutil from "wed/domutil";
 
@@ -459,14 +457,14 @@ describe("domutil", () => {
       doc = sourceDoc.cloneNode(true) as Document;
     });
 
-    it("sets wed_mirror_node", () => {
+    it("sets mirrors", () => {
       const root = doc.firstChild as Element;
       const cloned = root.cloneNode(true) as Element;
       domutil.linkTrees(cloned, root);
       const p = root.getElementsByTagName("p")[0];
       const clonedP = cloned.getElementsByTagName("p")[0];
-      assert.equal($.data(p, "wed_mirror_node"), clonedP);
-      assert.equal($.data(clonedP, "wed_mirror_node"), p);
+      expect(domutil.getMirror(p)).to.equal(clonedP);
+      expect(domutil.getMirror(clonedP)).to.equal(p);
     });
   });
 
