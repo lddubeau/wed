@@ -128,10 +128,9 @@ export function toHTMLTree(doc: Document, node: Node): Node {
       ret.textContent = node.textContent;
       break;
     case Node.PROCESSING_INSTRUCTION_NODE:
-      const pi = node as ProcessingInstruction;
       ret = document.createElement("div");
       ret.className = "_real _pi";
-      ret.textContent = `${pi.target} ${pi.data}`;
+      ret.textContent = (node as CharacterData).data;
       break;
     case Node.TEXT_NODE:
       const text = node as Text;
