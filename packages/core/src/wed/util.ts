@@ -116,18 +116,6 @@ export function escapeCSSClass(cls: string): string {
 }
 
 /**
- * Get the original element name of a node created for wed's data tree.
- *
- * @param el The element whose name we want.
- *
- * @returns The name.
- */
-export function getOriginalName(el: Element): string {
-  // The original name is the first class name of the element that was created.
-  return el.classList[0];
-}
-
-/**
  * Makes a class string for a node in wed's data tree. The string is meant to be
  * used for the corresponding node in wed's GUI tree.
  *

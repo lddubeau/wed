@@ -5,7 +5,6 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 import { EName } from "salve";
-import { util } from "wed";
 
 import { compile, Context, DocPattern } from "./doc-pattern";
 import { Dochtml, Inline, Metadata } from "./metadata-as-json";
@@ -69,8 +68,8 @@ class MetadataV2 extends MetadataBase {
     }
 
     // We need to normalize the name to fit the names we have below.
-    const originalName = util.getOriginalName(node);
-    const parts = originalName.split(":");
+    const { tagName } = node;
+    const parts = tagName.split(":");
     if (parts.length === 1) {
       parts[1] = parts[0];
       parts[0] = "tei";

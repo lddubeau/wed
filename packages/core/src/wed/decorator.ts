@@ -72,14 +72,13 @@ export abstract class Decorator implements DecoratorAPI {
       return;
     }
 
+    const dataNode = this.editor.toDataNode(el) as Element;
     // We expect to work with a homogeneous list. That is, all children the same
     // element.
     const nameMap: Record<string, number> = Object.create(null);
-    let child = el.firstElementChild;
+    let child = dataNode.firstElementChild;
     while (child !== null) {
-      if (child.classList.contains("_real")) {
-        nameMap[util.getOriginalName(child)] = 1;
-      }
+      nameMap[child.tagName] = 1;
       child = child.nextElementSibling;
     }
 
@@ -157,11 +156,11 @@ export abstract class Decorator implements DecoratorAPI {
       dataCaret = undefined;
     }
 
-    const dataNode = domutil.mustGetMirror(el);
+    const dataNode = domutil.mustGetMirror(el) as Element;
     this.setReadOnly(el, Boolean(this.editor.validator.getNodeProperty(
       dataNode, "PossibleDueToWildcard")));
 
-    const origName = util.getOriginalName(el);
+    const origName = dataNode.tagName;
     // _[name]_label is used locally to make the function idempotent.
     let cls = `_${origName}_label`;
 

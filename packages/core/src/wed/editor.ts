@@ -3211,28 +3211,39 @@ cannot be cut.`, { type: "danger" });
   private mouseoverHandler(ev: JQueryMouseEventObject): void {
     const root = this.guiRoot;
     const label = closestByClass(ev.target, "_label", root);
-    if (label !== null) {
-      // Get tooltips from the current mode
-      const real = closestByClass(label, "_real", root);
-      const origName = util.getOriginalName(real!);
-      const options = {
-        title: () => {
-          const mode = this.modeTree.getMode(label);
-        // We cheat because of a bug in the Bootstrap definitions.
-          // tslint:disable-next-line:no-any
-          return mode.shortDescriptionFor(origName) as any;
-        },
-        container: "body",
+    if (label === null) {
+      return;
+    }
+
+    // Get tooltips from the current mode
+    const real = closestByClass(label, "_real", root);
+    if (real === null) {
+      return;
+    }
+
+    const dataNode = this.toDataNode(real) as Element;
+    if (dataNode === null) {
+      return;
+    }
+
+    const origName = dataNode.tagName;
+    const options = {
+      title: () => {
+        const mode = this.modeTree.getMode(label);
         // We cheat because of a bug in the Bootstrap definitions.
         // tslint:disable-next-line:no-any
-        delay: { show: 1000 } as any,
-        placement: "auto" as "auto",
-        trigger: "hover" as "hover",
-      };
-      this.makeGUITreeTooltip($(label), options);
-      const tt = $.data(label, "bs.tooltip");
-      tt.toggle();
-    }
+        return mode.shortDescriptionFor(origName) as any;
+      },
+      container: "body",
+      // We cheat because of a bug in the Bootstrap definitions.
+      // tslint:disable-next-line:no-any
+      delay: { show: 1000 } as any,
+      placement: "auto" as "auto",
+      trigger: "hover" as "hover",
+    };
+    this.makeGUITreeTooltip($(label), options);
+    const tt = $.data(label, "bs.tooltip");
+    tt.toggle();
   }
 
   private mouseoutHandler(ev: JQueryMouseEventObject): boolean | undefined {
@@ -3805,18 +3816,23 @@ cannot be cut.`, { type: "danger" });
    * @param el The element at which the location should point.
    */
   private setLocationTo(el: Element): void {
-    const steps = [];
-    while (el !== this.guiRoot) {
-      if (el.nodeType !== Node.ELEMENT_NODE) {
-        throw new Error(`unexpected node type: ${el.nodeType}`);
-      }
+    const real = closestByClass(el, "_real", this.guiRoot);
+    if (!real) {
+      return;
+    }
 
-      if (!el.classList.contains("_placeholder") &&
-          closestByClass(el, "_phantom", this.guiRoot) === null) {
+    let dataNode = this.toDataNode(real);
+    if (dataNode === null) {
+      return;
+    }
+
+    const steps = [];
+    while (dataNode !== this.dataRoot) {
+      if (isElement(dataNode)) {
         steps.unshift(`<span class='_gui _label'><span>&nbsp;\
-${util.getOriginalName(el)}&nbsp;</span></span>`);
+${dataNode.tagName}&nbsp;</span></span>`);
       }
-      el = el.parentNode as HTMLElement;
+      dataNode = dataNode.parentNode as HTMLElement;
     }
     const span = this.wedLocationBar.getElementsByTagName("span")[0];
     // tslint:disable-next-line:no-inner-html

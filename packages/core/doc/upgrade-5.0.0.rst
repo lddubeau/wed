@@ -182,6 +182,10 @@ Miscelaneous changes
 
 * ``domutil``'s ``unlinkTree`` is gone. You probably were not using it anyway.
 
+* ``domutil``'s ``getOriginalName`` is gone. Instead of using
+  ``getOriginalName``, get the data node from the GUI node you were working with
+  and extract ``tagName`` from it instead.
+
 Notable Bootstrap Changes
 =========================
 

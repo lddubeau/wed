@@ -35,7 +35,7 @@ export interface Metadata {
   /**
    * This method determines whether a node needs to be represented inline.
    *
-   * @param node The node to examine.
+   * @param node The node to examine, which must be from the data tree.
    *
    * @return True if the node should be inline, false otherwise.
    */

@@ -106,8 +106,12 @@ export class GenericDecorator extends Decorator {
    * attribute in an HTML tree.
    */
   getAdditionalClasses(node: Element): string {
+    const dataNode = this.editor.toDataNode(node);
+    if (!isElement(dataNode)) {
+      throw new Error("the GUI node passed does not correspond to an element");
+    }
     const ret = [];
-    if (this.metadata.isInline(node)) {
+    if (this.metadata.isInline(dataNode)) {
       ret.push("_inline");
     }
     return ret.join(" ");
