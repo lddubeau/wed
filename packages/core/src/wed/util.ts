@@ -426,37 +426,6 @@ export function encodeAttrName(name: string, qualifier?: string): string {
   return `data-wed-${qualifier}${sanitized}-${encodeDiff(name, attrName)}`;
 }
 
-/**
- * Determines whether a ``data-wed-`` attribute corresponds to an XML attribute.
- */
-export function isXMLAttrName(name: string): boolean {
-  return /^data-wed-(?!-)/.test(name);
-}
-
-/**
- * Gets all the attributes of the node that were "original" attributes in the
- * XML document being edited, by opposition to those attributes that exist only
- * for HTML rendering.
- *
- * @param node The node to process.
- *
- * @returns An object whose keys are attribute names and values are attribute
- * values.
- */
-export function getOriginalAttributes(node: Element): Record<string, string> {
-  const original: Record<string, string> =
-    Object.create(null) as Record<string, string>;
-  const attributes = node.attributes;
-  for (let i = 0; i < attributes.length; ++i) {
-    const attr = attributes[i];
-    const localName = attr.localName;
-    if (isXMLAttrName(localName)) {
-      original[decodeAttrName(localName).name] = attr.value;
-    }
-  }
-  return original;
-}
-
 let nextID = 0;
 
 /**

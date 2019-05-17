@@ -14,7 +14,6 @@ import * as  domutil from "./domutil";
 import { GUIUpdater } from "./gui-updater";
 import { Mode } from "./mode";
 import { ContextMenuHandler, DecoratorAPI, EditorAPI } from "./mode-api";
-import * as  util from "./util";
 
 function tryToSetDataCaret(editor: EditorAPI, dataCaret: DLoc): void {
   try {
@@ -190,8 +189,8 @@ export abstract class Decorator implements DecoratorAPI {
     const attributeHandling = this.editor.modeTree.getAttributeHandling(el);
     if (attributeHandling === "show" || attributeHandling === "edit") {
       // include the attributes
-      const attributes = util.getOriginalAttributes(el);
-      const names = Object.keys(attributes).sort();
+      const attributes = dataNode.attributes;
+      const names = dataNode.getAttributeNames().sort();
 
       for (const name of names) {
         const hideAttribute = this.mustHideAttribute(el, name);
@@ -205,7 +204,7 @@ export abstract class Decorator implements DecoratorAPI {
 <span class="_phantom _attribute${extra}">\
 <span class="_phantom _attribute_name">${name}</span>=\
 "<span class="_phantom _attribute_value">\
-${domutil.textToHTML(attributes[name])}</span>"</span>`;
+${domutil.textToHTML(attributes.getNamedItem(name)!.value)}</span>"</span>`;
       }
     }
 

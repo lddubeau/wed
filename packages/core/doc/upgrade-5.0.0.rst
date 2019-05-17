@@ -186,6 +186,9 @@ Miscelaneous changes
   ``getOriginalName``, get the data node from the GUI node you were working with
   and extract ``tagName`` from it instead.
 
+* ``domutil``'s ``getOriginalAttributes`` and ``isXMLAttrName`` are gone. You
+  can get the data node and its attributes.
+
 Notable Bootstrap Changes
 =========================
 
