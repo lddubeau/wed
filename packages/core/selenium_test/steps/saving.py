@@ -59,6 +59,7 @@ are shown for inline elements that end up spanning multiple lines.\
 </monogr></p><p n="">P</p>\
 <div type="a" subtype="b" rend="foo" rendition="bar"/>\
 <div xxx="x">This div has a bad attribute.</div>\
+<list rend="list"><item>a</item><item>b</item><item>c</item></list>\
 </body></text></TEI>""",
     "serializes multiple top namespaces properly": """\
 <TEI xmlns="http://www.tei-c.org/ns/1.0" \

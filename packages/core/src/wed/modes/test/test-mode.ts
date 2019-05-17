@@ -86,6 +86,7 @@ export class TestDecorator extends GenericDecorator {
   }
 
   // tslint:disable:no-jquery-raw-elements
+  // tslint:disable-next-line:max-func-body-length
   elementDecorator(root: Element, el: Element): void {
     const { editor: { editingMenuManager } } = this;
     if (this.editor.modeTree.getMode(el) !== this.mode) {
@@ -96,11 +97,17 @@ export class TestDecorator extends GenericDecorator {
     const rend = dataNode.getAttribute("rend");
 
     const localName = dataNode.localName;
+
     const inTEI = dataNode.namespaceURI === this.namespaces.tei;
 
     let level = inTEI ? this.elementLevel[localName] : undefined;
     if (level === undefined) {
       level = 1;
+    }
+
+    if (inTEI && localName === "list" && rend === "list") {
+      this.listDecorator(el, ",");
+      return;
     }
 
     const isP = inTEI && localName === "p";
