@@ -13,12 +13,6 @@ const XML1_NAMESPACE: string = "http://www.w3.org/XML/1998/namespace";
 // tslint:disable-next-line: no-http-string
 const XMLNS_NAMESPACE: string = "http://www.w3.org/2000/xmlns/";
 
-const TYPE_TO_KIND = {
-  __proto__: null,
-  [Node.COMMENT_NODE]: "comment",
-  [Node.DOCUMENT_TYPE_NODE]: "doctype",
-};
-
 function normalizeNS(ns: string | null): string {
   if (ns === null) {
     ns = "";
@@ -120,11 +114,7 @@ export function toHTMLTree(doc: Document, node: Node): Node {
       break;
     case Node.COMMENT_NODE:
       ret = document.createElement("div");
-      const kind = TYPE_TO_KIND[node.nodeType];
-      if (kind === undefined) {
-        throw new Error(`unknown node type: ${node.nodeType}`);
-      }
-      ret.className = `_real _${kind}`;
+      ret.className = `_real _comment`;
       ret.textContent = node.textContent;
       break;
     case Node.PROCESSING_INSTRUCTION_NODE:
