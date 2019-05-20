@@ -87,9 +87,10 @@ export class CaretMark {
     if (this.suspended < 0) {
       throw new Error("too many calls to resume");
     }
-    if (this.pendingRefresh) {
-      this.refresh();
+
+    if (this.suspended === 0 && this.pendingRefresh) {
       this.pendingRefresh = false;
+      this.refresh();
     }
   }
 
