@@ -70,7 +70,8 @@ def step_impl(context, order):
 
     position = ORDER_TO_POS[order]
 
-    el = driver.find_elements_by_css_selector("._real.body > ._real")[position]
+    el = driver\
+        .find_elements_by_css_selector("._real._el.body > ._real")[position]
 
     wedutil.wait_for_caret_to_be_in(util, el)
 

@@ -32,7 +32,7 @@ describe("wed submodes", () => {
   it("dispatch to proper decorators", () => {
     const wrapped =
       editor.guiRoot.querySelectorAll(
-        `[${encodeAttrName("rend")}='wrap'].tei\\:p._real`);
+        `[${encodeAttrName("rend")}='wrap'].tei\\:p._real._el`);
     expect(wrapped).to.have.length(2);
     function parentTest(el: HTMLElement, msg: string, expected: boolean): void {
       const parent = el.parentNode as HTMLElement;
@@ -57,12 +57,12 @@ by the test mode",
       editor.editingMenuManager.dismiss();
     }
 
-    const first =
-      editor.guiRoot.querySelector(".tei\\:sourceDesc._real>.tei\\:p._real");
+    const first = editor.guiRoot
+      .querySelector(".tei\\:sourceDesc._real._el>.tei\\:p._real._el");
     check(first as HTMLElement, true);
 
     const second =
-      editor.guiRoot.querySelector(".tei\\:body._real>.tei\\:p._real");
+      editor.guiRoot.querySelector(".tei\\:body._real._el>.tei\\:p._real._el");
     check(second as HTMLElement, false);
   });
 
@@ -82,12 +82,12 @@ by the test mode",
       }
     }
 
-    const first =
-      editor.guiRoot.querySelector(".tei\\:sourceDesc._real>.tei\\:p._real");
+    const first = editor.guiRoot
+      .querySelector(".tei\\:sourceDesc._real._el>.tei\\:p._real._el");
     check(first as HTMLElement, true);
 
-    const second =
-      editor.guiRoot.querySelectorAll(".tei\\:body._real>.tei\\:p._real")[13];
+    const second = editor.guiRoot
+      .querySelectorAll(".tei\\:body._real._el>.tei\\:p._real._el")[13];
     check(second as HTMLElement, false);
   });
 
@@ -104,13 +104,13 @@ by the test mode",
     check(null, 0);
 
     // Move into the submode, and check again.
-    const inSubmode =
-      editor.guiRoot.querySelector(".tei\\:sourceDesc._real>.tei\\:p._real");
+    const inSubmode = editor.guiRoot
+      .querySelector(".tei\\:sourceDesc._real._el>.tei\\:p._real._el");
     check(inSubmode as HTMLElement, 1);
 
     // Move out, and check again.
-    const outsideSubmode =
-      editor.guiRoot.querySelectorAll(".tei\\:body._real>.tei\\:p._real")[13];
+    const outsideSubmode = editor.guiRoot
+      .querySelectorAll(".tei\\:body._real._el>.tei\\:p._real._el")[13];
     check(outsideSubmode as HTMLElement, 0);
   });
 });

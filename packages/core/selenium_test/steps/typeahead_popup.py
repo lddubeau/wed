@@ -24,7 +24,7 @@ def step_impl(context, step, where=None):
         # ph.click()
     elif where:
         element = driver.execute_script("""
-        var title = document.querySelector("._real.title");
+        var title = document.querySelector("._real._el.title");
         var text;
         var child = title.firstChild;
         while (child && !text) {

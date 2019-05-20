@@ -113,7 +113,7 @@ def get_real_siblings(driver, element):
     while(child) {
         if (child === el)
             into = after;
-        else if (child.classList.contains("_real"))
+        else if (child.matches("._real._el"))
             into.push(child);
         child = child.nextElementSibling;
     }

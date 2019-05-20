@@ -112,7 +112,7 @@ describe("ModeTree", () => {
     });
 
     it("returns a submode for a GUI node governed by a submode", () => {
-      const p = editor.guiRoot.querySelector(".p._real")!;
+      const p = editor.guiRoot.querySelector(".p._real._el")!;
       const mode = tree.getMode(p);
       expect(mode.getWedOptions()).to.have.nested.property("metadata.name")
         .equal("Test1");
@@ -172,7 +172,7 @@ describe("ModeTree", () => {
 
     it("returns the submode options for a GUI node governed by a submode",
        () => {
-         const p = editor.guiRoot.querySelector(".p._real")!;
+         const p = editor.guiRoot.querySelector(".p._real._el")!;
          const opts = tree.getWedOptions(p);
          expect(opts).to.have.nested.property("metadata.name").equal("Test1");
        });
@@ -230,7 +230,7 @@ describe("ModeTree", () => {
     });
 
     it("returns the right value for a GUI node governed by a submode", () => {
-      const p = editor.guiRoot.querySelector(".p._real")!;
+      const p = editor.guiRoot.querySelector(".p._real._el")!;
       const handling = tree.getAttributeHandling(p);
       expect(handling).to.equal("hide");
     });
@@ -264,7 +264,7 @@ describe("ModeTree", () => {
     });
 
     it("returns the right value for a GUI node governed by a submode", () => {
-      const p = editor.guiRoot.querySelector(".p._real")!;
+      const p = editor.guiRoot.querySelector(".p._real._el")!;
       const handling = tree.getAttributeHidingSpecs(p);
       expect(handling).to.not.be.null;
     });

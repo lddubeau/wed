@@ -194,7 +194,7 @@ def step_impl(context, choice, element=None, order=None):
         }[order]
         button = util.find_elements(
             (By.CSS_SELECTOR,
-             ".body>._real .__start_label ._element_name"))[ix]
+             ".body>._real._el .__start_label ._element_name"))[ix]
     elif element is not None:
         element = element.replace(":", ur"\:")
         button = util.find_element((By.CSS_SELECTOR,

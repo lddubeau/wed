@@ -360,7 +360,7 @@ def step_impl(context, choice):
     if choice == "a placeholder":
         parent, where = driver.execute_script("""
         var $ph = jQuery("._placeholder");
-        var $parent = $ph.closest("._real");
+        var $parent = $ph.closest("._real._el");
         return [$parent[0], $ph[0]];
         """)
     elif choice == "text":
@@ -510,7 +510,7 @@ def step_impl(context, choice, new=None, name=None):
                 get_real_siblings(driver, for_element)
         elif choice == "new":
             info["children"] = driver.execute_script("""
-            return jQuery(arguments[0]).children("._real").toArray();
+            return jQuery(arguments[0]).children("._real._el").toArray();
             """, for_element)
     context.clicked_context_menu_item = \
         util.get_text_excluding_children(link).strip()

@@ -64,7 +64,7 @@ def step_impl(context, what):
 
     def cond(*_):
         children = driver.execute_script("""
-        return jQuery(arguments[0]).children("._real").toArray();
+        return jQuery(arguments[0]).children("._real._el").toArray();
         """, for_element)
         return len(info["children"]) + 1 == len(children)
 
@@ -78,25 +78,25 @@ def step_impl(context):
 
     def cond(*_):
         test, _ = driver.execute_script("""
-        var $children = jQuery("._real.teiHeader>._real");
+        var $children = jQuery("._real.teiHeader>._real._el");
         if (!($children.length === 1 && $children.eq(0).is(".fileDesc")))
             return [false, "teiHeader contents"];
 
-        $children = jQuery("._real.fileDesc>._real");
+        $children = jQuery("._real._el.fileDesc>._real");
         if (!($children.length === 3 && $children.eq(0).is(".titleStmt") &&
               $children.eq(1).is(".publicationStmt") &&
               $children.eq(2).is(".sourceDesc")))
             return [false, "fileDesc contents"];
 
 
-        $children = jQuery("._real.titleStmt>._real");
+        $children = jQuery("._real._el.titleStmt>._real");
         if (!($children.length === 1 && $children.eq(0).is(".title")))
             return [false, "titleStmt contents"];
 
 
-        $children = jQuery("._real.title>._real, " +
-                           "._real.publicationStmt>._real, " +
-                           "._real.sourceDesc>._real");
+        $children = jQuery("._real._el.title>._real, " +
+                           "._real._el.publicationStmt>._real, " +
+                           "._real._el.sourceDesc>._real");
         if ($children.length !== 0)
             return [false, "contents of end elements"];
 
@@ -114,7 +114,7 @@ def step_impl(context):
 
     def cond(*_):
         test, _ = driver.execute_script("""
-        var $children = jQuery("._real.teiHeader>._real");
+        var $children = jQuery("._real._el.teiHeader>._real._el");
         if ($children.length !== 0)
             return [false, "contents of teiHeader"];
 

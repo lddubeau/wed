@@ -14,11 +14,11 @@ describe("util", () => {
   describe("classFromOriginalName", () => {
     it("no namespace", () => {
       assert.equal(util.classFromOriginalName("li", { "": "" }),
-                   "._local_li._xmlns_._real");
+                   "._local_li._xmlns_._real._el");
     });
 
     it("match all", () => {
-      assert.equal(util.classFromOriginalName("*", {}), "._real");
+      assert.equal(util.classFromOriginalName("*", {}), "._real._el");
     });
 
     it("with namespace", () => {
@@ -26,7 +26,7 @@ describe("util", () => {
         // tslint:disable-next-line:no-http-string
         btw: "http://mangalamresearch.org/ns/btw-storage",
       }), "._local_foo.\
-_xmlns_http\\:\\/\\/mangalamresearch\\.org\\/ns\\/btw-storage._real");
+_xmlns_http\\:\\/\\/mangalamresearch\\.org\\/ns\\/btw-storage._real._el");
     });
   });
 

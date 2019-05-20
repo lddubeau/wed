@@ -1099,35 +1099,35 @@ element child.");
 
     it("converts a > sequence", () => {
       expect(domutil.toGUISelector("p > term > foreign", { "": "" }))
-        .to.equal("._local_p._xmlns_._real > ._local_term._xmlns_._real \
-> ._local_foreign._xmlns_._real");
+        .to.equal("._local_p._xmlns_._real._el > \
+._local_term._xmlns_._real._el > ._local_foreign._xmlns_._real._el");
     });
 
     it("converts a space sequence with namespaces", () => {
       expect(domutil.toGUISelector("btw:cit tei:q", commonMap))
         .to.equal("._local_cit.\
-_xmlns_http\\:\\/\\/mangalamresearch\\.org\\/ns\\/btw-storage._real \
-._local_q._xmlns_http\\:\\/\\/www\\.tei-c\\.org\\/ns\\/1\\.0._real");
+_xmlns_http\\:\\/\\/mangalamresearch\\.org\\/ns\\/btw-storage._real._el \
+._local_q._xmlns_http\\:\\/\\/www\\.tei-c\\.org\\/ns\\/1\\.0._real._el");
     });
 
     it("lets class names without element names go through", () => {
       expect(domutil.toGUISelector("p > .head", { "": "" }))
-        .to.equal("._local_p._xmlns_._real > .head");
+        .to.equal("._local_p._xmlns_._real._el > .head");
     });
 
     it("lets class names on element names go through", () => {
       expect(domutil.toGUISelector("p.foo", { "": "" }))
-        .to.equal("._local_p._xmlns_._real.foo");
+        .to.equal("._local_p._xmlns_._real._el.foo");
     });
 
     it("lets ids without element names go through", () => {
       expect(domutil.toGUISelector("p > .head#fnord", { "": "" }))
-        .to.equal("._local_p._xmlns_._real > .head#fnord");
+        .to.equal("._local_p._xmlns_._real._el > .head#fnord");
     });
 
     it("lets ids on element names go through", () => {
       expect(domutil.toGUISelector("p.foo#fnord", { "": "" }))
-        .to.equal("._local_p._xmlns_._real.foo#fnord");
+        .to.equal("._local_p._xmlns_._real._el.foo#fnord");
     });
   });
 
