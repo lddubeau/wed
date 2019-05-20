@@ -13,7 +13,6 @@ import { isText } from "./domtypeguards";
 import { isAttr, linkTrees, mustGetMirror } from "./domutil";
 import { BeforeDeleteNodeEvent, InsertNodeAtEvent, SetAttributeNSEvent,
          SetTextNodeValueEvent, TreeUpdater } from "./tree-updater";
-import * as util from "./util";
 
 /**
  * Updates a GUI tree so that its data nodes (those nodes that are not
@@ -103,7 +102,7 @@ export class GUIUpdater extends TreeUpdater {
       throw new Error("cannot find gui tree position");
     }
     this.setAttributeNS(guiCaret.node as Element, "",
-                        util.encodeAttrName(ev.attribute), ev.newValue);
+                        convert.encodeAttrName(ev.attribute), ev.newValue);
   }
 
   /**

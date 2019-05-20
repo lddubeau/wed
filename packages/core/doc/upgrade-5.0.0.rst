@@ -189,6 +189,11 @@ Miscelaneous changes
 * ``domutil``'s ``getOriginalAttributes`` and ``isXMLAttrName`` are gone. You
   can get the data node and its attributes.
 
+* ``util``'s ``stringToCodeSequence``, ``codeSequenceToString``,
+  ``encodeAttrName`` and ``decodeAttrName`` have moved to the ``convert``
+  module. They are all specialized functions that are used for conversion. Only
+  ``encodeAttrName`` has a general use outside the ``convert`` module itself.
+
 Notable Bootstrap Changes
 =========================
 

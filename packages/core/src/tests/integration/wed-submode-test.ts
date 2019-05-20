@@ -5,8 +5,8 @@
  */
 import { expect } from "chai";
 
+import { encodeAttrName } from "wed/convert";
 import { Editor } from "wed/editor";
-import { encodeAttrName } from "wed/util";
 
 import { config } from "../submode-config";
 import { activateContextMenu, contextMenuHasOption, dataPath, EditorSetup,

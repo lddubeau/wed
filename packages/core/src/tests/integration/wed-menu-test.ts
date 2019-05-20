@@ -4,11 +4,11 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 import { CaretManager } from "wed/caret-manager";
+import { encodeAttrName } from "wed/convert";
 import { mustGetMirror } from "wed/domutil";
 import { Editor } from "wed/editor";
 import { EditingMenuManager } from "wed/gui/editing-menu-manager";
 import * as keyConstants from "wed/key-constants";
-import { encodeAttrName } from "wed/util";
 
 import { delay } from "@wedxml/common/test/util";
 import * as globalConfig from "../base-config";
