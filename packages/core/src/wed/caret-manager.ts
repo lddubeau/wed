@@ -9,7 +9,7 @@ import { Observable, Subject } from "rxjs";
 
 import * as browsers from "@wedxml/common/browsers";
 
-import { CaretMark } from "./caret-mark";
+import { CaretMark, CaretSource } from "./caret-mark";
 import * as caretMovement from "./caret-movement";
 import { DLoc, DLocRange, DLocRoot } from "./dloc";
 import { isAttr, isElement, isText } from "./domtypeguards";
@@ -119,7 +119,7 @@ function previousTextOrReal(node: Node): Text | Element | null {
  * Similarly, a selection can either span a range in the GUI tree or in the data
  * tree. Again, "selection" without qualifier is a GUI selection.
  */
-export class CaretManager implements GUIToDataConverter {
+export class CaretManager implements GUIToDataConverter, CaretSource {
   private _sel: WedSelection | undefined;
   private selAtBlur: WedSelection | undefined;
   private readonly guiRootEl: Document | Element;

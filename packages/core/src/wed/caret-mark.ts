@@ -6,11 +6,15 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 
-import { CaretManager } from "./caret-manager";
+import { DLoc } from "./dloc";
 import { isElement } from "./domtypeguards";
 import { Layer } from "./gui/layer";
 import { Scroller } from "./gui/scroller";
 import { boundaryXY } from "./wed-util";
+
+export interface CaretSource {
+  caret: DLoc | undefined;
+}
 
 /**
  * The "caret mark" is the graphical indicator
@@ -31,7 +35,7 @@ export class CaretMark {
   readonly boundRefresh: () => void;
 
   /**
-   * @param manager The caret manager that holds this marker.
+   * @param source The caret source for this marker.
    *
    * @param doc The document in which the caret is located.
    *
@@ -43,7 +47,7 @@ export class CaretMark {
    * @param scroller The scroller element that contains the editor document for
    * which we are managing a caret.
    */
-  constructor(private readonly manager: CaretManager,
+  constructor(private readonly source: CaretSource,
               doc: Document,
               private readonly layer: Layer,
               private readonly inputField: HTMLElement,
@@ -101,7 +105,7 @@ export class CaretMark {
     }
 
     const el = this.el;
-    const caret = this.manager.caret;
+    const caret = this.source.caret;
     if (caret == null) {
       // We do not remove the fake caret from the DOM here because seeing
       // the caret position when the user is doing work outside the editing
