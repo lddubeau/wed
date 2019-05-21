@@ -150,25 +150,30 @@ export function boundaryXY(boundary: DLoc): BoundaryCoordinates {
   return parentBoundary(node, boundary.root);
 }
 
-export function getAttrValueNode(attrVal: Element): Node {
-  if (!attrVal.classList.contains("_attribute_value")) {
-    throw new Error("getAttrValueNode operates only on attribute values");
-  }
-
-  let ret: Node = attrVal;
-
-  let child: Node | null = attrVal.firstChild;
-  if (child !== null) {
-    while (child !== null && !isText(child)) {
-      child = child.nextSibling;
+/**
+ * This function is designed primarily as a helper for caret movements. Some
+ * contructs in the GUI tree are structured as an GUI element that contains a
+ * text node which is the value of the element. (Attributes, comments and PIs
+ * are like this.) For such constructs, a caret position inside the element but
+ * outside the text node is not generally sensible. It seeks the first text node
+ * ``element``.
+ *
+ * @param el The element to search.
+ *
+ * @returns The first text node in ``el``, or ``el`` if such text node does not
+ * exist.
+ */
+export function getValueNode(el: Element): Node {
+  let child: Node | null = el.firstChild;
+  while (child !== null) {
+    if (isText(child)) {
+      return child;
     }
 
-    if (child !== null) {
-      ret = child;
-    }
+    child = child.nextSibling;
   }
 
-  return ret;
+  return el;
 }
 
 export function getGUINodeIfExists(editor: Editor,

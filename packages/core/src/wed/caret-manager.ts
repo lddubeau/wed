@@ -23,7 +23,7 @@ import { Mode } from "./mode";
 import { ModeTree } from "./mode-tree";
 import * as objectCheck from "./object-check";
 import { GUIToDataConverter, WedSelection } from "./wed-selection";
-import { getAttrValueNode } from "./wed-util";
+import { getValueNode } from "./wed-util";
 
 /**
  * This is the template use with objectCheck to check whether the options passed
@@ -798,8 +798,7 @@ export class CaretManager implements GUIToDataConverter, CaretSource {
         ({ node, offset } = location);
       }
       else {
-        node = getAttrValueNode(
-          attr.getElementsByClassName("_attribute_value")[0]);
+        node = getValueNode(attr.getElementsByClassName("_attribute_value")[0]);
       }
     }
     else {
@@ -952,7 +951,7 @@ export class CaretManager implements GUIToDataConverter, CaretSource {
     // node that contains the data.
     if (isElement(node)) {
       if (node.classList.contains("_attribute_value")) {
-        const attr = getAttrValueNode(node);
+        const attr = getValueNode(node);
         if (node !== attr) {
           node = attr;
           loc = loc.make(node, offset);

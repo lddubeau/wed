@@ -12,7 +12,7 @@ import { isDocument, isElement, isText } from "./domtypeguards";
 import { Caret, childByClass, closest, closestByClass,
          indexOf } from "./domutil";
 import { ModeTree } from "./mode-tree";
-import { boundaryXY, getAttrValueNode } from "./wed-util";
+import { boundaryXY, getValueNode } from "./wed-util";
 
 function moveInAttributes(node: Node, modeTree: ModeTree): boolean {
   return modeTree.getAttributeHandling(node) === "edit";
@@ -480,8 +480,8 @@ export function positionRight(pos: DLoc | undefined | null,
 
           if (nextAttr !== undefined) {
             // There is a next attribute: move to it.
-            const val = getAttrValueNode(childByClass(nextAttr,
-                                                      "_attribute_value")!);
+            const val = getValueNode(childByClass(nextAttr,
+                                                  "_attribute_value")!);
             pos = pos.make(val, 0);
             break;
           }
