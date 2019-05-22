@@ -18,7 +18,7 @@ describe("wed save:", () => {
   let editor: Editor;
   let server: WedServer;
 
-  before(() => {
+  beforeEach(() => {
     setup = new EditorSetup(
       `${dataPath}/wed_test_data/server_interaction_converted.xml`,
       globalConfig.config,
@@ -28,10 +28,6 @@ describe("wed save:", () => {
   });
 
   afterEach(() => {
-    setup.reset();
-  });
-
-  after(() => {
     setup.restore();
     // tslint:disable-next-line:no-any
     (editor as any) = undefined;
@@ -148,11 +144,11 @@ describe("wed save:", () => {
              assert.deepEqual(server.lastSaveRequest, {
                command: "autosave",
                version,
-               data: "<TEI xmlns=\"http://www.tei-c.org/ns/1.0\">\
+               data: `<TEI xmlns="http://www.tei-c.org/ns/1.0">\
 <teiHeader><fileDesc><titleStmt><title>abcd</title></titleStmt>\
 <publicationStmt/><sourceDesc><p/></sourceDesc>\
 </fileDesc></teiHeader><text><body><p>Blah blah <term>blah</term> blah.</p>\
-<p><term>blah</term></p></body></text></TEI>",
+<p><term>blah</term></p></body></text></TEI>`,
              });
              setTimeout(() => {
                sub.unsubscribe();
