@@ -429,6 +429,13 @@ export interface EditorAPI extends EditorInstance {
    */
   afterModal(): void;
 
+  /**
+   * Make a modal, and call [[beforeModal]] and [[afterModal]] appropriately.
+   *
+   * @param options The options governing how the modal is created.
+   *
+   * @returns The new modal.
+   */
   makeModal(options?: ModalOptions): Modal;
 
   /**
