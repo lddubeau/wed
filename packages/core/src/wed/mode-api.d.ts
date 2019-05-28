@@ -411,6 +411,24 @@ export interface EditorAPI extends EditorInstance {
    */
   makeGUITreeTooltip($for: JQuery, options: TooltipOptions): void;
 
+  /**
+   * This is a function which performs generic bookkeeping functions prior to a
+   * modal being displayed.
+   *
+   * Together with [[afterModal]] this function exists for cases where a mode
+   * wants to create a custom modal which cannot be handled by [[makeModal]].
+   */
+  beforeModal(): void;
+
+  /**
+   * This is a function which performs generic bookkeeping functions after a
+   * modal has been dismissed.
+   *
+   * Together with [[beforeModal]] this function exists for cases where a mode
+   * wants to create a custom modal which cannot be handled by [[makeModal]].
+   */
+  afterModal(): void;
+
   makeModal(options?: ModalOptions): Modal;
 
   /**

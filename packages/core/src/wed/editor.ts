@@ -3388,15 +3388,23 @@ cannot be cut.`, { type: "danger" });
     this.$navigationPanel.css("display", "");
   }
 
+  beforeModal(): void {
+    this.caretManager.pushSelection();
+  }
+
+  afterModal(): void {
+    this.caretManager.popSelection();
+  }
+
   makeModal(options?: ModalOptions): Modal {
     const ret = new Modal(options);
     const $top = ret.getTopLevel();
     // Ensure that we don't lose the caret when a modal is displayed.
     $top.on("show.bs.modal.modal", () => {
-      this.caretManager.pushSelection();
+      this.beforeModal();
     });
     $top.on("hidden.bs.modal.modal", () => {
-      this.caretManager.popSelection();
+      this.afterModal();
     });
     this.$widget.prepend($top);
     return ret;
