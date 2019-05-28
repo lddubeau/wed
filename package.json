@@ -92,7 +92,7 @@
     "reflect-metadata": "^0.1.13",
     "rxjs": "^6.4.0",
     "salve": "^9.1.2",
-    "salve-dom": "^6.0.0",
+    "salve-dom": "^6.0.1",
     "semver": "^6.0.0",
     "serve-static": "^1.7.1",
     "sinon": "^7.3.1",
