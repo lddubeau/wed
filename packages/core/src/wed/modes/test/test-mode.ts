@@ -355,6 +355,19 @@ class ResizableModalAction extends Action<{}> {
   }
 }
 
+class PromptAction extends Action<{}> {
+  execute(): void {
+    this.editor.prompt({
+      title: "Enter some text",
+    }).then(result => {
+      return this.editor.prompt({
+        title: "You said",
+        defaultValue: result,
+      });
+    });
+  }
+}
+
 /**
  * This mode is purely designed to help test wed, and nothing
  * else. Don't derive anything from it and don't use it for editing.
@@ -364,6 +377,7 @@ export class TestMode extends GenericMode<TestModeOptions> {
   private draggableAction: DraggableModalAction;
   private resizableAction: ResizableModalAction;
   private draggableResizableAction: DraggableResizableModalAction;
+  private promptAction: PromptAction;
 
   readonly optionTemplate: Template = {
     metadata: true,
@@ -426,6 +440,9 @@ export class TestMode extends GenericMode<TestModeOptions> {
       new DraggableResizableModalAction(WED_ORIGIN, editor,
                                         "Test draggable resizable",
                                         { needsInput: true });
+    this.promptAction =
+      new PromptAction(WED_ORIGIN, editor,
+                       "Test prompt", { needsInput: true });
   }
 
   getStylesheets(): string[] {
@@ -464,7 +481,8 @@ export class TestMode extends GenericMode<TestModeOptions> {
       // It is a bit peculiar to tie the draggable and resizable actions to
       // "ref", because it is not necessary, but meh...
       ret.push(this.typeaheadAction, this.draggableAction,
-               this.resizableAction, this.draggableResizableAction);
+               this.resizableAction, this.draggableResizableAction,
+               this.promptAction);
     }
 
     return ret;

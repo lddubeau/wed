@@ -5,6 +5,7 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 import Ajv from "ajv";
+import * as bootprompt from "bootprompt";
 import "bootstrap";
 import { inject, injectable } from "inversify";
 import $ from "jquery";
@@ -3407,6 +3408,14 @@ cannot be cut.`, { type: "danger" });
       this.afterModal();
     });
     this.$widget.prepend($top);
+    return ret;
+  }
+
+  async prompt<T extends bootprompt.PromptOptions>(options: T):
+  Promise<bootprompt.PromiseValue<T>> {
+    this.beforeModal();
+    const ret = await bootprompt.prompt$(options);
+    this.afterModal();
     return ret;
   }
 

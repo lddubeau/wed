@@ -5,6 +5,7 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
+import * as bootprompt from "bootprompt";
 import { Observable } from "rxjs";
 
 import { EditorInstance, Options, Runtime } from "@wedxml/client-api";
@@ -437,6 +438,17 @@ export interface EditorAPI extends EditorInstance {
    * @returns The new modal.
    */
   makeModal(options?: ModalOptions): Modal;
+
+  /**
+   * Make a Bootprompt prompt, and call [[beforeModal]] and [[afterModal]]
+   * appropriately.
+   *
+   * @param options The options governing how the prompt is created.
+   *
+   * @returns A promise that resolves to the value of the prompt.
+   */
+  async prompt<T extends bootprompt.PromptOptions>(options: T):
+  Promise<bootprompt.PromiseValue<T>>;
 
   /**
    * Registers elements that are outside wed's editing pane but should be
