@@ -94,22 +94,6 @@ describe("wed wildcard support:", () => {
     caretManager.setCaret(fooBaz, 0);
     editor.type("foo");
     assert.equal(fooBaz.value, "x");
-
-    // We drop the _readonly classes to make sure that we're testing what we
-    // think we're testing. Note that the classes will be added right back as we
-    // change the file because it is revalidated. This is why we type only one
-    // character.
-    barGUI.classList.remove("_readonly");
-    attr.classList.remove("_readonly");
-
-    caretManager.setCaret(fooBaz, 0);
-    editor.type("f");
-    assert.equal(fooBaz.value, "fx");
-
-    barGUI.classList.remove("_readonly");
-    caretManager.setCaret(bar, 0);
-    editor.type("f");
-    assert.equal(bar.textContent, "fabc");
   });
 
   describe("a context menu has the complex pattern action when invoked", () => {

@@ -194,6 +194,9 @@ Miscelaneous changes
   module. They are all specialized functions that are used for conversion. Only
   ``encodeAttrName`` has a general use outside the ``convert`` module itself.
 
+* Use ``Editor.isReadonly`` on data nodes to test whether they are readonly. Do
+  not search for the class ``_readonly`` on GUI nodes.
+
 Notable Bootstrap Changes
 =========================
 

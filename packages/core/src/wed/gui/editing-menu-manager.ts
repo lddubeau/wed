@@ -9,7 +9,7 @@ import { Action, ActionInvocation, UnspecifiedAction,
          UnspecifiedActionInvocation } from "../action";
 import { CaretManager } from "../caret-manager";
 import { DLoc } from "../dloc";
-import { isElement } from "../domtypeguards";
+import { isAttr, isElement } from "../domtypeguards";
 import { closestByClass, isNotDisplayed, mustGetMirror } from "../domutil";
 import { Editor } from "../editor";
 import { ContextMenuHandler } from "../mode-api";
@@ -152,6 +152,7 @@ export class EditingMenuManager {
     }
 
     const attrVal = closestByClass(guiNode, "_attribute_value", editor.guiRoot);
+    let dataNode: Node;
     if (attrVal !== null) {
       const node = editor.toDataNode(attrVal) as Attr;
       const element = node.ownerElement!;
@@ -162,6 +163,7 @@ export class EditingMenuManager {
       if (!editor.isAttrProtected(node)) {
         pushInvocations("delete-attribute", node.name, node);
       }
+      dataNode = node;
     }
     else {
       const node = editor.toDataNode(real)! as Element;
@@ -210,6 +212,8 @@ export class EditingMenuManager {
           }
         }
       }
+
+      dataNode = node;
     }
 
     // There's no menu to display, so let the event bubble up.
@@ -218,7 +222,7 @@ export class EditingMenuManager {
     }
 
     this.setupContextMenu(ActionContextMenu, invocations,
-                          real.classList.contains("_readonly"), ev);
+                          editor.isReadonly(dataNode), ev);
     return false;
   }
 
@@ -235,30 +239,21 @@ export class EditingMenuManager {
       return false;
     }
 
-    let loc = sel.focus;
-    if (!isElement(loc.node)) {
-      loc = loc.getLocationInParent();
-    }
-
-    // Move out of any placeholder
-    const ph = closestByClass(loc.node, "_placeholder", this.guiRoot);
-    if (ph !== null) {
-      loc = loc.make(ph);
-    }
-
-    const { node, offset } = loc;
-    // If this happens to be called inside an attribute value, we let the
-    // event bubble.
-    if (closestByClass(node, "_attribute_value", this.guiRoot) !== null) {
+    const caret = this.caretManager.getDataCaret(true)!;
+    if (isAttr(caret.node)) {
       return true;
     }
 
-    const real = closestByClass(node, "_real", this.guiRoot);
-    const readonly = real !== null && real.classList.contains("_readonly");
+    const readonly = this.editor.isReadonly(caret.node);
 
-    const menuItems = this.getMenuItemsForElementContent(node as HTMLElement,
-                                                         offset,
-                                                         !sel.collapsed);
+    let guiCaret = this.caretManager.fromDataLocation(caret)!;
+    if (!isElement(guiCaret.node)) {
+      guiCaret = guiCaret.getLocationInParent();
+    }
+    const menuItems = this.getMenuItemsForElementContent(
+      guiCaret.node as HTMLElement,
+      guiCaret.offset,
+      !sel.collapsed);
 
     // There's no menu to display, so let the event bubble up.
     if (menuItems.length === 0) {

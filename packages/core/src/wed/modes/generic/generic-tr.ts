@@ -8,7 +8,7 @@
 
 import { ErrorData } from "salve-dom";
 
-import { DLoc, domtypeguards, domutil, EditorAPI, transformation,
+import { domtypeguards, domutil, EditorAPI, transformation,
          WED_ORIGIN } from "wed";
 
 const { insertElement, unwrap, wrapInElement } = transformation;
@@ -192,10 +192,9 @@ function executeDeleteElement(editor: EditorAPI,
 
   const parent = node.parentNode!;
   const index = indexOf(parent.childNodes, node);
-  const guiLoc = editor.caretManager.fromDataLocation(node, 0) as DLoc;
   // If the node we start with is an Element, then the node in guiLoc is
   // necessarily an Element too.
-  if (!(guiLoc.node as Element).classList.contains("_readonly")) {
+  if (!editor.isReadonly(node)) {
     editor.dataUpdater.removeNode(node);
     editor.caretManager.setCaret(parent, index);
   }
@@ -211,10 +210,9 @@ function executeDeleteParent(editor: EditorAPI,
 
   const parent = node.parentNode!;
   const index = indexOf(parent.childNodes, node);
-  const guiLoc = editor.caretManager.mustFromDataLocation(node, 0);
   // If the node we start with is an Element, then the node in guiLoc is
   // necessarily an Element too.
-  if (!(guiLoc.node as Element).classList.contains("_readonly")) {
+  if (!editor.isReadonly(node)) {
     editor.dataUpdater.removeNode(node);
     editor.caretManager.setCaret(parent, index);
   }
@@ -228,10 +226,9 @@ function executeAddAttribute(editor: EditorAPI,
     throw new Error("node must be an element");
   }
 
-  const guiLoc = editor.caretManager.mustFromDataLocation(node, 0);
   // If the node we start with is an Element, then the node in guiLoc is
   // necessarily an Element too.
-  if (!(guiLoc.node as Element).classList.contains("_readonly")) {
+  if (!editor.isReadonly(node)) {
     editor.dataUpdater.setAttribute(node, data.name, "");
     const attr = node.getAttributeNode(data.name);
     editor.caretManager.setCaret(attr, 0);
@@ -252,7 +249,7 @@ function executeDeleteAttribute(editor: EditorAPI,
   // If the node we start with is an Element, then the node in guiOwnerLoc
   // is necessarily an Element too.
   const guiOwner = guiOwnerLoc.node as Element;
-  if (!guiOwner.classList.contains("_readonly")) {
+  if (!editor.isReadonly(node)) {
     const encoded = node.name;
     const startLabel = childByClass(guiOwner, "__start_label")!;
 

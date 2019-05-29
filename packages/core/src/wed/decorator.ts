@@ -156,8 +156,7 @@ export abstract class Decorator implements DecoratorAPI {
     }
 
     const dataNode = domutil.mustGetMirror(el) as Element;
-    this.setReadOnly(el, Boolean(this.editor.validator.getNodeProperty(
-      dataNode, "PossibleDueToWildcard")));
+    this.setReadOnly(el, this.editor.isReadonly(dataNode));
 
     const origName = dataNode.tagName;
     // _[name]_label is used locally to make the function idempotent.

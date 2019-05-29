@@ -360,6 +360,9 @@ export interface EditorAPI extends EditorInstance {
   /** Find the GUI node that corresponds to a data node. */
   fromDataNode(node: Node): Node | null;
 
+  /** Whether a data node is meant to be readonly. */
+  isReadonly(node: Node): boolean;
+
   /** Convert a GUI node to a node path. */
   nodeToPath(node: Node | Attr): string;
 

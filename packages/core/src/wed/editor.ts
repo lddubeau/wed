@@ -50,7 +50,7 @@ import { Direction, QuickSearch } from "./gui/quick-search";
 import { Scroller } from "./gui/scroller";
 import { AddOptions, Toolbar } from "./gui/toolbar";
 import { tooltip } from "./gui/tooltip";
-import { AttributeNotFound, GUIRoot } from "./guiroot";
+import { GUIRoot } from "./guiroot";
 import { Key, makeKey } from "./key";
 import * as keyConstants from "./key-constants";
 import * as log from "./log";
@@ -851,6 +851,17 @@ export class Editor implements EditorAPI {
     return (name === "xmlns" || name.lastIndexOf("xmlns:", 0) === 0);
   }
 
+  isReadonly(node: Node): boolean {
+    if (isText(node)) {
+      node = node.parentNode as Element;
+    }
+    else if (isAttr(node)) {
+      node = node.ownerElement!;
+    }
+    return Boolean(this.validator.getNodeProperty(node,
+                                                  "PossibleDueToWildcard"));
+  }
+
   save(): Promise<void> {
     return this.saver.save();
   }
@@ -924,22 +935,19 @@ export class Editor implements EditorAPI {
     this.closeAllTooltips();
 
     const { caretManager } = this;
-    let caret = caretManager.caret;
+    const caret = caretManager.getDataCaret(true);
     if (caret === undefined) {
       return;
     }
 
-    let { text } = data;
-    const el = closestByClass(caret.node, "_real", this.guiRoot);
+    const dataNode = caret.node;
     // We do not operate on elements that are readonly.
-    if (el === null || el.classList.contains("_readonly")) {
+    if (this.isReadonly(dataNode)) {
       return;
     }
 
-    const attrVal = closestByClass(caret.node, "_attribute_value",
-                                   this.guiRoot);
-    if (attrVal === null) {
-      caret = caretManager.getDataCaret()!;
+    let { text } = data;
+    if (!isAttr(dataNode)) {
       text = this.compensateForAdjacentSpaces(text, caret);
       if (text === "") {
         return;
@@ -950,7 +958,7 @@ export class Editor implements EditorAPI {
     }
     else {
       // Modifying an attribute...
-      this.spliceAttribute(attrVal as HTMLElement, caret.offset, 0, text);
+      this.spliceAttribute(caret, 0, text);
     }
   }
 
@@ -1024,23 +1032,24 @@ export class Editor implements EditorAPI {
     }
   }
 
-  private spliceAttribute(attrVal: HTMLElement, offset: number, count: number,
-                          add: string): void {
+  private spliceAttribute(caret: DLoc, count: number, add: string): void {
+    let { offset } = caret;
+    const node = caret.node as Attr;
     if (offset < 0) {
       return;
     }
 
     // We ignore changes to protected attributes.
-    if (this.isAttrProtected(attrVal)) {
+    if (this.isAttrProtected(node)) {
       return;
     }
 
     // We ignore changes to non-editable attributes.
-    if (this.modeTree.getAttributeHandling(attrVal) !== "edit") {
+    if (this.modeTree.getAttributeHandling(node) !== "edit") {
       return;
     }
 
-    let val = (this.toDataNode(attrVal) as Attr).value;
+    let val = node.value;
     if (offset > val.length) {
       return;
     }
@@ -1061,39 +1070,23 @@ export class Editor implements EditorAPI {
 
     val = val.slice(0, offset) + add + val.slice(offset + count);
     offset += add.length;
-    const dataReal =
-      domutil.mustGetMirror(closestByClass(attrVal, "_real")!) as Element;
-    const guiPath = this.nodeToPath(attrVal);
-    const name =
-      domutil.siblingByClass(attrVal, "_attribute_name")!.textContent!;
-    const mode = this.modeTree.getMode(attrVal);
-    const resolved = mode.getAbsoluteResolver().resolveName(name, true);
+    const el = node.ownerElement as Element;
+    const mode = this.modeTree.getMode(node);
+    const resolved = mode.getAbsoluteResolver().resolveName(node.name, true);
     if (resolved === undefined) {
       throw new Error(`cannot resolve ${name}`);
     }
-    this.dataUpdater.setAttributeNS(dataReal, resolved.ns, resolved.name,
-                                    val);
+    this.dataUpdater.setAttributeNS(el, resolved.ns, resolved.name, val);
     // Redecoration of the attribute's element may have destroyed our old
     // attrVal node. Refetch. And after redecoration, the attribute value
     // element may not have a child. Not only that, but the attribute may no
     // longer be shown at all.
-    let moveTo;
-    try {
-      moveTo = this.pathToNode(guiPath)!;
-      if (moveTo.firstChild !== null) {
-        moveTo = moveTo.firstChild;
-      }
-    }
-    catch (ex) {
-      if (!(ex instanceof AttributeNotFound)) {
-        throw ex;
-      }
-    }
+    let moveTo: Node = node;
 
     // We don't have an attribute to go back to. Go back to the element that
     // held the attribute.
-    if (moveTo == null) {
-      moveTo = dataReal;
+    if (this.fromDataNode(moveTo) === null) {
+      moveTo = el;
       offset = 0;
     }
 
@@ -2126,9 +2119,13 @@ cannot be cut.`, { type: "danger" });
       return ClipboardEventHandling.NOOP;
     }
 
-    const el = closestByClass(sel.anchor.node, "_real", this.guiRoot);
+    const caret = this.caretManager.getDataCaret(true);
+    if (caret === undefined) {
+      return ClipboardEventHandling.NOOP;
+    }
+
     // We do not operate on elements that are readonly.
-    if (el === null || el.classList.contains("_readonly")) {
+    if (this.isReadonly(caret.node)) {
       return ClipboardEventHandling.NOOP;
     }
 
@@ -2144,9 +2141,8 @@ cannot be cut.`, { type: "danger" });
       return ClipboardEventHandling.NOOP;
     }
 
-    const el = closestByClass(caretManager.caret!.node, "_real", this.guiRoot);
     // We do not operate on elements that are readonly.
-    if (el === null || el.classList.contains("_readonly")) {
+    if (this.isReadonly(caret.node)) {
       return ClipboardEventHandling.NOOP;
     }
 
@@ -2180,11 +2176,7 @@ cannot be cut.`, { type: "danger" });
                         "and end in the same attribute");
       }
       span = attr.value.slice(startCaret.offset, endCaret.offset);
-      this.spliceAttribute(
-        closestByClass(caretManager.mustFromDataLocation(startCaret).node,
-                       "_attribute_value") as HTMLElement,
-        startCaret.offset,
-        endCaret.offset - startCaret.offset, "");
+      this.spliceAttribute(startCaret, endCaret.offset - startCaret.offset, "");
     }
     else {
       const cutRet = this.dataUpdater.cut(startCaret, endCaret);
@@ -2243,15 +2235,13 @@ cannot be cut.`, { type: "danger" });
   }
 
   private pasteHandler(e: JQueryEventObject): boolean {
-    const caret = this.caretManager.caret;
+    const caret = this.caretManager.getDataCaret(true);
     if (caret === undefined) {
       return false;
     }
 
-    const el = closestByClass(this.caretManager.anchor!.node, "_real",
-                              this.guiRoot);
     // We do not operate on elements that are readonly.
-    if (el === null || el.classList.contains("_readonly")) {
+    if (this.isReadonly(caret.node)) {
       return false;
     }
 
@@ -2403,11 +2393,7 @@ cannot be cut.`, { type: "danger" });
     // Handle the case where we are pasting only text.
     if (toPaste.childNodes.length === 1 && isText(toPaste.firstChild)) {
       if (isAttr(caret.node)) {
-        const guiCaret = this.caretManager.mustGetNormalizedCaret();
-        this.spliceAttribute(closestByClass(
-          guiCaret.node, "_attribute_value",
-          guiCaret.node as HTMLElement) as HTMLElement,
-                             guiCaret.offset, 0, toPaste.firstChild.data);
+        this.spliceAttribute(caret, 0, toPaste.firstChild.data);
       }
       else {
         ({ caret: newCaret } =
@@ -2459,11 +2445,7 @@ cannot be cut.`, { type: "danger" });
       }
     }
     else if (isAttr(node)) {
-      const guiCaret = this.caretManager.mustGetNormalizedCaret();
-      this.spliceAttribute(closestByClass(
-        guiCaret.node, "_attribute_value",
-        guiCaret.node as HTMLElement) as HTMLElement,
-                           guiCaret.offset, 0, top.firstChild!.textContent!);
+      this.spliceAttribute(caret, 0, top.firstChild!.textContent!);
     }
     else {
       const newCaret = this.pasteIntoElement(caret, top);
@@ -2789,8 +2771,7 @@ cannot be cut.`, { type: "danger" });
     else if (keyConstants.DELETE.matchesEvent(e)) {
       if (attrVal !== null) { // In attribute.
         if (attrVal.textContent !== "") { // empty === noop
-          this.spliceAttribute(attrVal as HTMLElement,
-                               this.caretManager.getNormalizedCaret()!.offset,
+          this.spliceAttribute(this.caretManager.getDataCaret(true)!,
                                1, "");
         }
       }
@@ -2813,9 +2794,8 @@ cannot be cut.`, { type: "danger" });
     else if (keyConstants.BACKSPACE.matchesEvent(e)) {
       if (attrVal !== null) { // In attribute.
         if (attrVal.textContent !== "") { // empty === noop
-          this.spliceAttribute(attrVal as HTMLElement,
-                               this.caretManager
-                               .getNormalizedCaret()!.offset - 1,
+          const dataCaret = this.caretManager.getDataCaret(true)!;
+          this.spliceAttribute(dataCaret.makeWithOffset(dataCaret.offset - 1),
                                1, "");
         }
       }
@@ -3335,11 +3315,7 @@ cannot be cut.`, { type: "danger" });
 
     if (guiNode != null) {
       const decorator = this.modeTree.getDecorator(node);
-      // guiNode is necessarily an Element if we get here.
-      // And the property is necessarily set.
-      decorator.setReadOnly(guiNode as Element,
-                            this.validator.getNodeProperty(
-                              node, "PossibleDueToWildcard")!);
+      decorator.setReadOnly(guiNode as Element, this.isReadonly(node));
     }
 
     // If the GUI node does not exist yet, then the decorator will take care of
