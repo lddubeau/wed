@@ -8,7 +8,29 @@
 import { Action as ActionInterface,
          EventWithData } from "@wedxml/client-api/action";
 import { Button } from "./gui/button";
+import { makeHTML } from "./gui/icon";
 import { EditorAPI } from "./mode-api";
+
+/**
+ * The action kind is used for the classification of action when showing actions
+ * to the user.
+ */
+export type ActionKind =
+  "add" |
+  "delete" |
+  "transform" |
+  "wrap" |
+  "unwrap" |
+  "other";
+
+/**
+ * The action node type is used for the classification of actions when showing
+ * actions to the user.
+ */
+export type ActionNodeType =
+  "other" |
+  "element" |
+  "attribute";
 
 /**
  * An action invocation pairs an action with its data.
@@ -45,6 +67,15 @@ export class ActionInvocation<Data extends {} | void = void> {
   }
 }
 
+function computeIconHtml(iconHtml: string | undefined,
+                         kind: ActionKind): string {
+  if (iconHtml !== undefined) {
+    return iconHtml;
+  }
+
+  return kind === "other" ? "" : makeHTML(kind);
+}
+
 export interface ActionOptions {
   /**  An abbreviated description of this action. */
   abbreviatedDesc?: string;
@@ -66,6 +97,21 @@ export interface ActionOptions {
    * Defaults to ``false`` if not specified.
    */
   needsInput?: boolean;
+
+  /**
+   * The kind of action. This is used to sort actions shown to the user.
+   *
+   * Defaults to ``"other"`` if not specified.
+   */
+  kind?: ActionKind;
+
+  /**
+   * The type of node that the action operates on. This is used to sort actions
+   * shown to the user.
+   *
+   * Defaults to ``"other"`` if not specified.
+   */
+  nodeType?: ActionNodeType;
 }
 
 /**
@@ -78,6 +124,8 @@ export abstract class Action<Data extends {} | void = void>
   implements ActionInterface<Data> {
   protected readonly abbreviatedDesc?: string;
   protected readonly icon: string;
+  readonly kind: ActionKind;
+  readonly nodeType: ActionNodeType;
   readonly needsInput: boolean = false;
   readonly boundHandler: (ev: EventWithData<Data>) => void;
   readonly boundTerminalHandler: (ev: EventWithData<Data>) => boolean;
@@ -104,7 +152,9 @@ export abstract class Action<Data extends {} | void = void>
     options = options || {};
     this.needsInput = !!options.needsInput; // normalize value
     this.abbreviatedDesc = options.abbreviatedDesc;
-    this.icon = options.icon || "";
+    this.kind = options.kind || "other";
+    this.nodeType = options.nodeType || "other";
+    this.icon = computeIconHtml(options.icon, this.kind);
     this.boundHandler = this.eventHandler.bind(this);
     this.boundTerminalHandler = this.terminalEventHandler.bind(this);
   }

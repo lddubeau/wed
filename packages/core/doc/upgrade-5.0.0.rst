@@ -197,6 +197,14 @@ Miscelaneous changes
 * Use ``Editor.isReadonly`` on data nodes to test whether they are readonly. Do
   not search for the class ``_readonly`` on GUI nodes.
 
+* Wed no longer exports ``Action`` and associated classes directly. They are in
+  the ``action`` namespace. (This matters if you write modes.)
+
+* The ``kind`` and ``nodeType`` fields have been moved from ``Transformation``
+  to ``Action``. Moreover, ``Action`` sets a default ``icon`` on the basis of
+  ``kind`` like ``Transformation`` used to. (And transformation itself now
+  delegates the selection of a default icon to ``Action``.)
+
 Notable Bootstrap Changes
 =========================
 

@@ -8,13 +8,14 @@
 import mergeOptions from "merge-options";
 import { DefaultNameResolver, EName } from "salve";
 
-import { Action, BaseMode, CommonModeOptions, Decorator, EditorAPI, objectCheck,
+import { action, BaseMode, CommonModeOptions, Decorator, EditorAPI, objectCheck,
          transformation } from "wed";
 import { GenericDecorator } from "./generic-decorator";
 import { makeTagTr } from "./generic-tr";
 import { Metadata } from "./metadata";
 import { MetadataMultiversionReader } from "./metadata-multiversion-reader";
 
+import Action = action.Action;
 import Transformation = transformation.Transformation;
 import NamedTransformationData = transformation.NamedTransformationData;
 

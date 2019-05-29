@@ -7,13 +7,13 @@
 
 import { ObjectUnsubscribedError, Subject } from "rxjs";
 
-import { Action, ActionOptions, UnspecifiedAction } from "./action";
+import { Action, ActionKind, ActionNodeType, ActionOptions,
+         UnspecifiedAction } from "./action";
 import { DLoc } from "./dloc";
 import { isDocument, isText } from "./domtypeguards";
 import { Caret, firstDescendantOrSelf, indexOf,
          isWellFormedRange } from "./domutil";
 import { AbortTransformationException } from "./exceptions";
-import * as icon from "./gui/icon";
 import { EditorAPI } from "./mode-api";
 import { TreeUpdater } from "./tree-updater";
 
@@ -38,19 +38,7 @@ export type TransformationType =
   "delete-attribute" |
   "insert-text";
 
-/**
- * The transformation kind is used for the classification of transformations
- * when showing transformations to the user.
- */
-export type TransformationKind =
-  "add" |
-  "delete" |
-  "transform" |
-  "wrap" |
-  "unwrap" |
-  "other";
-
-const TYPE_TO_KIND: Record<TransformationType, TransformationKind> = {
+const TYPE_TO_KIND: Record<TransformationType, ActionKind> = {
   // Ideally the next line would be uncommented but TS goes off the rails
   // if that line is there. (Type inference gets stupid).
   // __proto__: null,
@@ -79,16 +67,7 @@ const TYPE_TO_KIND: Record<TransformationType, TransformationKind> = {
   "insert-text": "other",
 };
 
-/**
- * The transformation node type is used for the classification of
- * transformations when showing transformations to the user.
- */
-export type TransformationNodeType =
-  "other" |
-  "element" |
-  "attribute";
-
-const TYPE_TO_NODE_TYPE: Record<TransformationType, TransformationNodeType> = {
+const TYPE_TO_NODE_TYPE: Record<TransformationType, ActionNodeType> = {
   // Ideally the next line would be uncommented but TS goes off the rails
   // if that line is there. (Type inference gets stupid).
   // __proto__: null,
@@ -180,17 +159,6 @@ export interface NamedTransformationData extends TransformationData {
 export type TransformationHandler<Data extends TransformationData> =
   (editor: EditorAPI, data: Data) => void;
 
-function computeIconHtml(iconHtml: string | undefined,
-                         transformationType: TransformationType):
-string | undefined {
-  if (iconHtml !== undefined) {
-    return iconHtml;
-  }
-
-  const kind = TYPE_TO_KIND[transformationType];
-  return kind !== undefined ? icon.makeHTML(kind) : undefined;
-}
-
 export interface TransformationOptions extends ActionOptions {
   /**
    * Indicates whether this transformation needs to be treated as a kind of text
@@ -216,8 +184,6 @@ export class Transformation<Data extends TransformationData =
   TransformationData> extends Action<Data> {
   readonly handler: TransformationHandler<Data>;
   readonly transformationType: string;
-  readonly kind: TransformationKind;
-  readonly nodeType: TransformationNodeType;
   readonly treatAsTextInput: boolean;
 
   /**
@@ -245,8 +211,10 @@ export class Transformation<Data extends TransformationData =
     const actualOpts = options !== undefined ? options : {};
     super(origin, editor, desc, {
       abbreviatedDesc: actualOpts.abbreviatedDesc,
-      icon: computeIconHtml(actualOpts.icon, transformationType),
+      icon: actualOpts.icon,
       needsInput: actualOpts.needsInput,
+      kind: TYPE_TO_KIND[transformationType],
+      nodeType: TYPE_TO_NODE_TYPE[transformationType],
     });
 
     if (handler === undefined) {
@@ -255,8 +223,6 @@ export class Transformation<Data extends TransformationData =
 
     this.handler = handler;
     this.transformationType = transformationType;
-    this.kind = TYPE_TO_KIND[transformationType];
-    this.nodeType = TYPE_TO_NODE_TYPE[transformationType];
     this.treatAsTextInput = actualOpts.treatAsTextInput !== undefined ?
       actualOpts.treatAsTextInput : false;
   }

@@ -7,6 +7,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.wait import TimeoutException
 
 import selenic.util
+from selenic.util import Result, Condition
 
 from nose.tools import assert_equal, assert_true, \
     assert_not_equal  # pylint: disable=E0611
@@ -575,74 +576,29 @@ items_cleanup_re = re.compile(r"(?:^['\"]|['\"]$)")
 @then(ur"the context menu contains options of the (?:(?P<what>kind|type)s? "
       ur"(?P<items>.*?)|other (?P<other>kind|type))\.?")
 def step_impl(context, what=None, items=None, other=None):
-    if items:
-        expected = set([items_cleanup_re.sub('', i)
-                        for i in items_re.split(items)])
-    else:
-        expected = set()
-        expected.add("others")
+    util = context.util
+    expected = set((items_cleanup_re.sub('', i)
+                    for i in items_re.split(items)) if items else
+                   ("other", ))
 
     what = what or other
 
-    # We reuse this set for diagnosis purposes...
-    actual = set()
-
     def cond(driver):
-        links = driver.execute_script("""
-        var els =
-          document.querySelectorAll(".wed-context-menu .dropdown-menu a");
-        var ret = [];
-        for(var i = 0, el; (el = els[i]) !== undefined; ++i)
-            ret.push(el.textContent.trim());
-        return ret;
-        """)
+        actual = set(driver.execute_script("""
+        const attr = arguments[0];
+        return Object.keys(Array.from(
+          document.querySelectorAll(".wed-context-menu .dropdown-menu a"))
+            .reduce((acc, current) => {
+              acc[current.getAttribute(attr)] = 1;
+              return acc;
+            }, {}));
+        """, "data-kind" if what == "kind" else "data-node-type"))
 
-        actual.clear()
-        if what == "kind":
-            for link in links:
-                if link.startswith("Create new"):
-                    actual.add("add")
-                elif link.startswith("Delete "):
-                    actual.add("delete")
-                elif link.startswith("Element's documentation") or \
-                        link in ("Test draggable", "Test resizable",
-                                 "Test draggable resizable", "Test prompt"):
-                    actual.add("others")
-                elif link == "Test typeahead":
-                    actual.add("others")
-                elif link.startswith("Split "):
-                    # This is of kind transform in the code but for testing
-                    # purposes it is "others"
-                    actual.add("others")
-                elif link.startswith("Unwrap "):
-                    actual.add("unwrap")
-                elif link.startswith("Wrap "):
-                    actual.add("wrap")
-                else:
-                    raise Exception("can't analyse link: " + link)
-        else:
-            for link in links:
-                if link.find("Add @") != -1 or \
-                   link == "Delete this attribute":
-                    actual.add("attribute")
-                elif link.startswith("Element's documentation"):
-                    actual.add("others")
-                elif link.startswith("Create new") or\
-                        link.startswith("Delete ") or \
-                        link.startswith("Unwrap ") or \
-                        link.startswith("Wrap ") or \
-                        link.startswith("Split "):
-                    actual.add("element")
-                else:
-                    raise Exception("can't analyse link: " + link)
+        return Result(actual == expected, actual)
 
-        return actual == expected
-
-    try:
-        context.util.wait(cond)
-    except TimeoutException:
-        # This provides better diagnosis than a timeout error...
-        assert_equal(actual, expected)
+    result = Condition(util, cond).wait()
+    if not result:
+        assert_equal(result.payload, expected)
 
 
 FILTER_TO_INDEX = ["transform", "add", "delete", "wrap", "unwrap",

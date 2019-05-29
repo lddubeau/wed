@@ -8,20 +8,20 @@ import $ from "jquery";
 
 import * as browsers from "@wedxml/common/browsers";
 
-import { UnspecifiedAction, UnspecifiedActionInvocation } from "../action";
+import { ActionKind, ActionNodeType, UnspecifiedAction,
+         UnspecifiedActionInvocation } from "../action";
 import * as keyMod from "../key";
 import * as keyConstants from "../key-constants";
-import { NamedTransformationData, Transformation,
-         TransformationKind, TransformationNodeType } from "../transformation";
+import { NamedTransformationData } from "../transformation";
 import { ContextMenu, DismissCallback } from "./context-menu";
 import { makeHTML } from "./icon";
 
-const KINDS: TransformationKind[] =
+const KINDS: ActionKind[] =
   ["transform", "add", "delete", "wrap", "unwrap"];
 // This is in the order we want the filters to appear in.
 const KIND_FILTERS = KINDS.concat(["other"]);
 // This is in the sort order.
-const KIND_ORDER = (["other"] as TransformationKind[]).concat(KINDS);
+const KIND_ORDER = (["other"] as ActionKind[]).concat(KINDS);
 
 const TYPES = ["element", "attribute", "other"];
 
@@ -37,13 +37,13 @@ const exclamation = keyMod.makeKey("!");
 interface KeyToFilterKind {
   key: keyMod.Key;
   which: "kind";
-  filter: TransformationKind;
+  filter: ActionKind;
 }
 
 interface KeyToFilterType {
   key: keyMod.Key;
   which: "type";
-  filter: TransformationNodeType;
+  filter: ActionNodeType;
 }
 
 type KeyToFilter = KeyToFilterKind | KeyToFilterType;
@@ -66,8 +66,8 @@ interface MadeItem {
 }
 
 function compareItems(a: MadeItem, b: MadeItem): number {
-  const aKind = a.action instanceof Transformation ? a.action.kind : "other";
-  const bKind = b.action instanceof Transformation ? b.action.kind : "other";
+  const aKind = a.action.kind;
+  const bKind = b.action.kind;
 
   if (aKind !== bKind) {
     return KIND_ORDER.indexOf(aKind) - KIND_ORDER.indexOf(bKind);
@@ -87,7 +87,7 @@ function compareItems(a: MadeItem, b: MadeItem): number {
 }
 
 interface Filters {
-  kind: TransformationKind | null;
+  kind: ActionKind | null;
   // tslint:disable-next-line:no-reserved-keywords
   type: string | undefined | null;
 }
@@ -184,9 +184,8 @@ extends ContextMenu<UnspecifiedActionInvocation> {
       // tslint:disable-next-line:no-inner-html
       el.innerHTML = icon !== undefined ? icon : "";
 
-      if (action instanceof Transformation && action.kind !== undefined) {
-        el.setAttribute("data-kind", action.kind);
-      }
+      el.setAttribute("data-kind", action.kind);
+      el.setAttribute("data-node-type", action.nodeType);
 
       // We do it this way so that to avoid an HTML interpretation of
       // action.getDescriptionFor()`s return value.
@@ -311,7 +310,7 @@ extends ContextMenu<UnspecifiedActionInvocation> {
     return typeGroup;
   }
 
-  private makeKindHandler(kind: TransformationKind): () => void {
+  private makeKindHandler(kind: ActionKind): () => void {
     return () => {
       this.filters.kind = kind;
       this.refreshItemList();
@@ -480,33 +479,13 @@ extends ContextMenu<UnspecifiedActionInvocation> {
     const typeFilter = this.filters.type;
     const textFilter = this.actionTextFilter;
 
-    let kindMatch: (item: MadeItem) => boolean;
-    switch (kindFilter) {
-      case null:
-        kindMatch = () => true;
-        break;
-      case "other":
-        kindMatch = ({ action }) => !(action instanceof Transformation) ||
-          action.kind === "other";
-        break;
-      default:
-        kindMatch = ({ action }) => (action instanceof Transformation) &&
-          action.kind === kindFilter;
-    }
+    const kindMatch: (item: MadeItem) => boolean = kindFilter === null ?
+      () => true :
+      ({ action }) => action.kind === kindFilter;
 
-    let typeMatch: (item: MadeItem) => boolean;
-    switch (typeFilter) {
-      case null:
-        typeMatch = () => true;
-        break;
-      case "other":
-        typeMatch = ({ action }) => !(action instanceof Transformation) ||
-          action.nodeType === "other";
-        break;
-      default:
-        typeMatch = ({ action }) => (action instanceof Transformation) &&
-          action.nodeType === typeFilter;
-    }
+    const typeMatch: (item: MadeItem) => boolean = typeFilter === null ?
+      () => true :
+      ({ action }) => action.nodeType === typeFilter;
 
     let textMatch: (item: MadeItem) => boolean;
     if (textFilter !== "") {

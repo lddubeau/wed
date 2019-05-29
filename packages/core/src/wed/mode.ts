@@ -9,9 +9,10 @@
 
 import { DefaultNameResolver, EName } from "salve";
 
-import { Decorator, domtypeguards, domutil, EditorAPI, gui,
-         ModeValidator, UnspecifiedAction, WedOptions } from "wed";
+import { action, Decorator, domtypeguards, domutil, EditorAPI, gui,
+         ModeValidator, WedOptions } from "wed";
 
+import UnspecifiedAction = action.UnspecifiedAction;
 import Button = gui.button.Button;
 
 /**

@@ -10,6 +10,7 @@ import { EditorInstance, GrammarLoader, Options,
          Runtime } from "@wedxml/client-api";
 import * as tokens from "@wedxml/common/tokens";
 
+import * as action from "./wed/action";
 import * as convert from "./wed/convert";
 import * as domtypeguards from "./wed/domtypeguards";
 import * as domutil from "./wed/domutil";
@@ -26,6 +27,7 @@ import * as treeUpdater from "./wed/tree-updater";
 import * as util from "./wed/util";
 
 export {
+  action,
   convert,
   domutil,
   domtypeguards,
@@ -56,8 +58,6 @@ export function bindEditor(container: Container): void {
   container.bind(tokens.EDITOR_INSTANCE).to(Editor);
 }
 
-export { Action, ActionInvocation, UnspecifiedAction,
-         UnspecifiedActionInvocation } from "./wed/action";
 export { Decorator } from "./wed/decorator";
 export { DLoc, DLocRoot } from "./wed/dloc";
 export { DOMListener } from "./wed/domlistener";

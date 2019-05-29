@@ -127,31 +127,31 @@ Scenario: selecting an option by hitting ENTER when there is no option focused
 
 Scenario: filtering on operations that add content
   When the user uses the mouse to bring up the context menu on a placeholder
-  Then the context menu contains options of the kinds "add", "delete", "unwrap" and others
+  Then the context menu contains options of the kinds "add", "delete", "unwrap", "transform" and "other"
   When the user clicks on the filter to show only options of kind "add"
   Then the context menu contains options of the kind "add"
 
 Scenario: filtering on operations that delete content
   When the user uses the mouse to bring up the context menu on a placeholder
-  Then the context menu contains options of the kinds "add", "delete", "unwrap" and others
+  Then the context menu contains options of the kinds "add", "delete", "unwrap", "transform" and "other"
   When the user clicks on the filter to show only options of kind "delete"
   Then the context menu contains options of the kind "delete"
 
 Scenario: filtering on operations that unwrap content
   When the user uses the mouse to bring up the context menu on a placeholder
-  Then the context menu contains options of the kinds "add", "delete", "unwrap" and others
+  Then the context menu contains options of the kinds "add", "delete", "unwrap", "transform" and "other"
   When the user clicks on the filter to show only options of kind "unwrap"
   Then the context menu contains options of the kind "unwrap"
 
 Scenario: filtering on other operations
   When the user uses the mouse to bring up the context menu on a placeholder
-  Then the context menu contains options of the kinds "add", "delete", "unwrap" and others
+  Then the context menu contains options of the kinds "add", "delete", "unwrap", "transform" and "other"
   When the user clicks on the filter to show only options of kind other
   Then the context menu contains options of the other kind
 
 Scenario: filtering on operations that wrap content
   Given that the user has brought up the context menu over a selection
-  Then the context menu contains options of the kinds "delete", "wrap", "unwrap" and others
+  Then the context menu contains options of the kinds "add", "delete", "unwrap", "wrap", "transform" and "other"
   When the user clicks on the filter to show only options of kind "wrap"
   Then the context menu contains options of the kind "wrap"
 
@@ -165,14 +165,14 @@ Scenario: filtering on element names
 Scenario: filtering on operations for elements
   When the user brings up the context menu on the start label of an element
   And the context menu's filter field has focus
-  Then the context menu contains options of the types "element", "attribute" and others
+  Then the context menu contains options of the types "element", "attribute" and "other"
   When the user clicks on the filter to show only options of type "element"
   Then the context menu contains options of the type "element"
 
 Scenario: filtering on operations for attributes
   When the user brings up the context menu on the start label of an element
   And the context menu's filter field has focus
-  Then the context menu contains options of the types "element", "attribute" and others
+  Then the context menu contains options of the types "element", "attribute" and "other"
   When the user clicks on the filter to show only options of type "attribute"
   Then the context menu contains options of the type "attribute"
 
@@ -199,20 +199,20 @@ Scenario: ESCAPE resets the text filtering
 Scenario: ESCAPE resets the kind filtering
   When the user uses the mouse to bring up the context menu on a placeholder
   And the context menu's filter field has focus
-  Then the context menu contains options of the kinds "add", "delete", "unwrap" and others
+  Then the context menu contains options of the kinds "add", "delete", "unwrap", "transform" and "other"
   When the user clicks on the filter to show only options of kind "add"
   Then the context menu contains options of the kind "add"
   When the user types ESCAPE
-  Then the context menu contains options of the kinds "add", "delete", "unwrap" and others
+  Then the context menu contains options of the kinds "add", "delete", "unwrap", "transform" and "other"
 
 Scenario: ESCAPE resets the type filtering
   When the user brings up the context menu on the start label of an element
   And the context menu's filter field has focus
-  Then the context menu contains options of the types "element", "attribute" and others
+  Then the context menu contains options of the types "element", "attribute" and "other"
   When the user clicks on the filter to show only options of type "attribute"
   Then the context menu contains options of the type "attribute"
   When the user types ESCAPE
-  Then the context menu contains options of the types "element", "attribute" and others
+  Then the context menu contains options of the types "element", "attribute" and "other"
 
 Scenario: ESCAPE twice, when filtering, exits the menu
   When the user uses the mouse to bring up the context menu on a placeholder
