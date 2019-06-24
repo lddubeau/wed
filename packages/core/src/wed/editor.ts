@@ -2020,7 +2020,7 @@ in a way not supported by this version of wed.";
   private spanCopyHandler(): ClipboardEventHandling {
     const { caretManager } = this;
     const sel = caretManager.sel;
-    if (sel === undefined) {
+    if (sel === undefined || sel.collapsed) {
       return ClipboardEventHandling.NOOP;
     }
 

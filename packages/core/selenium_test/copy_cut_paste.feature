@@ -45,6 +45,12 @@ Scenario: span mode: copying attribute text
   | text/plain | rend_value |
 
 @not.with_browser=edge
+Scenario: span mode: erroneously copying with caret inside element label
+  Given a document containing a top level element, a p element, and text.
+  When the user clicks on the start label of the first element in "body"
+  And the user copies
+
+@not.with_browser=edge
 Scenario: unit mode: copying attributes
   Given a document for testing unit selection mode
   When the user switches to unit selection mode
