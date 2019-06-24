@@ -2392,13 +2392,9 @@ cannot be cut.`, { type: "danger" });
 
     // Handle the case where we are pasting only text.
     if (toPaste.childNodes.length === 1 && isText(toPaste.firstChild)) {
-      if (isAttr(caret.node)) {
-        this.spliceAttribute(caret, 0, toPaste.firstChild.data);
-      }
-      else {
-        ({ caret: newCaret } =
-         this.dataUpdater.insertText(caret, toPaste.firstChild.data));
-      }
+      this._insertText(this, {
+        text: toPaste.firstChild.data,
+      });
     }
     else {
       newCaret = this.pasteIntoElement(caret, toPaste);
