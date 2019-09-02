@@ -11,6 +11,7 @@ import * as browsers from "@wedxml/common/browsers";
 
 import { CaretMark, CaretSource } from "./caret-mark";
 import * as caretMovement from "./caret-movement";
+import { isRealComment, isRealPI } from "./convert";
 import { DLoc, DLocRange, DLocRoot } from "./dloc";
 import { isAttr, isElement, isText } from "./domtypeguards";
 import { childByClass, closestByClass, contains, dumpRange,
@@ -478,7 +479,7 @@ export class CaretManager implements GUIToDataConverter, CaretSource {
       }
       else {
         let topPg;
-        let check = (isText(node) ? node.parentNode : node) as Element;
+        let check = (isElement(node) ? node : node.parentNode) as Element;
         while (check !== null && check !== this.guiRootEl) {
           if ((check.classList.contains("_phantom") ||
                check.classList.contains("_gui"))) {
@@ -515,9 +516,9 @@ export class CaretManager implements GUIToDataConverter, CaretSource {
         this.makeCaret(dataNode, dataNode.childNodes.length);
     }
 
-    // If pointing to a node that is not a text node or a real element, we must
-    // find the previous text node or real element and return a position which
-    // points after it.
+    // If pointing to a node that is not a text node or a real XML construct, we
+    // must find the previous text node or real construct and return a position
+    // which points after it.
     const child = node.childNodes[offset];
     if (isElement(child) && !child.classList.contains("_real")) {
       const found = previousTextOrReal(child);
@@ -776,6 +777,8 @@ export class CaretManager implements GUIToDataConverter, CaretSource {
    *
    * - Inside attribute values.
    *
+   * - The start of the label.
+   *
    * This method is used by DOM event handlers (usually mouse events handlers)
    * to normalize the location of the caret to one of the valid locations listed
    * above.
@@ -803,7 +806,9 @@ export class CaretManager implements GUIToDataConverter, CaretSource {
     }
     else {
       // Find the element name and put it there.
-      node = label.getElementsByClassName("_element_name")[0];
+      const name = label.getElementsByClassName("_element_name")[0];
+      // Name is undefined in a label that is not made for an element.
+      node = name !== undefined ? name : label;
     }
 
     this.setCaret(node, offset);
@@ -950,10 +955,11 @@ export class CaretManager implements GUIToDataConverter, CaretSource {
     // caret location. So we normalize the location to point inside the text
     // node that contains the data.
     if (isElement(node)) {
-      if (node.classList.contains("_attribute_value")) {
-        const attr = getValueNode(node);
-        if (node !== attr) {
-          node = attr;
+      if (node.classList.contains("_attribute_value") ||
+          isRealComment(node) || isRealPI(node)) {
+        const val = getValueNode(node);
+        if (node !== val) {
+          node = val;
           loc = loc.make(node, offset);
         }
       }

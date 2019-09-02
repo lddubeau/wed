@@ -9,9 +9,9 @@ import selenic.util
 step_matcher("re")
 
 
-def get_labels_stats(driver):
+def get_element_label_stats(driver):
     return driver.execute_script("""
-    var $labels = jQuery(".wed-document ._label");
+    var $labels = jQuery(".wed-document .__el_label");
     return [$labels.length, $labels.filter(function () {
         return window.getComputedStyle(this, null).display != "none";
     }).length];
@@ -26,7 +26,7 @@ def step_impl(context, level):
     level = int(level)
     assert_equal(wedutil.get_label_visibility_level(util), level)
 
-    n_labels, n_displayed = get_labels_stats(driver)
+    n_labels, n_displayed = get_element_label_stats(driver)
     assert_true(n_labels)
     # Saving the labels themselves is pointless because redecoration
     # can destroy the elements that are now in the GUI.
@@ -69,24 +69,24 @@ When the user clicks the toolbar button "{}"
     util.wait(lambda *_: wedutil.get_label_visibility_level(util) == expected)
 
 
-@Then("no labels are visible")
+@Then("no element labels are visible")
 def step_impl(context):
     util = context.util
 
     def cond(*_):
-        n_labels, n_displayed = get_labels_stats(context.driver)
+        n_labels, n_displayed = get_element_label_stats(context.driver)
         assert_true(n_labels)
         return n_displayed == 0
 
     util.wait(cond)
 
 
-@Then("more labels are visible")
+@Then("more element labels are visible")
 def step_impl(context):
     util = context.util
 
     def cond(*_):
-        _, n_displayed = get_labels_stats(context.driver)
+        _, n_displayed = get_element_label_stats(context.driver)
         return n_displayed > context.number_of_visible_labels
 
     util.wait(cond)

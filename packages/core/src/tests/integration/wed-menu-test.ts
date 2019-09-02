@@ -15,7 +15,7 @@ import * as globalConfig from "../base-config";
 import { activateContextMenu, contextMenuHasOption, dataPath, EditorSetup,
          getAttributeValuesFor} from "../wed-test-util";
 
-const assert = chai.assert;
+const { assert, expect } = chai;
 
 describe("wed menus:", () => {
   let setup: EditorSetup;
@@ -63,7 +63,7 @@ describe("wed menus:", () => {
       assert.isUndefined(caretManager.getNormalizedCaret());
       activateContextMenu(editor, initial.parentNode as Element);
 
-      await delay(1);
+      await delay(2);
       // tslint:disable-next-line:no-any
       assert.isDefined((menuManager as any).currentDropdown,
                        "dropdown defined");
@@ -113,6 +113,25 @@ describe("wed menus:", () => {
       // Make sure the paragraph has rend="wrap".
       assert.equal(rend, "wrap");
       activateContextMenu(editor, p);
+    });
+
+    it("inside a comment", () => {
+      const body = editor.dataRoot.querySelector("body")!;
+      const comment = body.lastChild!;
+
+      expect(comment).to.have.property("nodeType").equal(Node.COMMENT_NODE);
+      activateContextMenu(editor, editor.fromDataNode(comment) as Element);
+      contextMenuHasOption(editor, /^Delete this comment/);
+    });
+
+    it("inside a pi", () => {
+      const body = editor.dataRoot.querySelector("body")!;
+      const pi = body.lastChild!.previousSibling!;
+
+      expect(pi).to.have.property("nodeType")
+        .equal(Node.PROCESSING_INSTRUCTION_NODE);
+      activateContextMenu(editor, editor.fromDataNode(pi) as Element);
+      contextMenuHasOption(editor, /^Delete this PI/);
     });
   });
 

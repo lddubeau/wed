@@ -5,6 +5,7 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 
+import { isRealComment, isRealPI } from "./convert";
 import { DLocRoot } from "./dloc";
 import { isElement, isText } from "./domtypeguards";
 import { closestByClass, indexOf, siblingByClass } from "./domutil";
@@ -139,13 +140,28 @@ export class GUIRoot extends DLocRoot {
     }
 
     const ret = [];
+
     while (node !== root) {
       let parent;
 
-      if (isElement(node) &&
-          !node.matches("._real, ._phantom_wrap, ._attribute_value")) {
-        throw new Error("only nodes of class ._real, ._phantom_wrap, and " +
-                        "._attribute_value are supported");
+      if (isElement(node)) {
+        if (!node.matches("._real, ._phantom_wrap, ._attribute_value")) {
+          throw new Error(`only elements of class ._real, ._phantom_wrap, and
+._attribute_value are supported`);
+        }
+      }
+      else {
+        const real = closestByClass(node, "_real", root);
+        if (!real) {
+          throw new Error("should have found a real parent!");
+        }
+
+        // If we are in a PI or comment, we have to skip up because these
+        // do not have children.
+        if (isRealPI(real) || isRealComment(real)) {
+          node = real;
+          continue;
+        }
       }
 
       const attrVal = closestByClass(node, "_attribute_value", root);

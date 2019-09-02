@@ -17,7 +17,7 @@ import TransformationData = transformation.TransformationData;
 import NamedTransformationData = transformation.NamedTransformationData;
 
 const { childByClass, indexOf } = domutil;
-const { isAttr, isElement } = domtypeguards;
+const { isAttr, isDocument, isElement } = domtypeguards;
 
 function errFilter(err: ErrorData): boolean {
   const errMsg = err.error.toString();
@@ -131,6 +131,33 @@ function executeInsert(editor: EditorAPI, data: NamedTransformationData): void {
   editor.caretManager.setCaret(caretNode, 0);
 }
 
+function executeInsertPI(editor: EditorAPI,
+                         data: NamedTransformationData): void {
+  const caret = editor.caretManager.getDataCaret();
+  if (caret === undefined) {
+    throw new Error("inserting without a defined caret!");
+  }
+
+  const { node } = caret;
+  const ownerDocument = isDocument(node) ? node : node.ownerDocument!;
+  const pi = ownerDocument.createProcessingInstruction(data.name, "");
+  editor.dataUpdater.insertAt(caret, pi);
+  editor.caretManager.setCaret(pi, 0);
+}
+
+function executeInsertComment(editor: EditorAPI): void {
+  const caret = editor.caretManager.getDataCaret();
+  if (caret === undefined) {
+    throw new Error("inserting without a defined caret!");
+  }
+
+  const { node } = caret;
+  const ownerDocument = isDocument(node) ? node : node.ownerDocument!;
+  const comment = ownerDocument.createComment("");
+  editor.dataUpdater.insertAt(caret, comment);
+  editor.caretManager.setCaret(comment, 0);
+}
+
 function executeUnwrap(editor: EditorAPI, data: TransformationData): void {
   const node = data.node;
   if (!isElement(node)) {
@@ -182,21 +209,12 @@ function executeWrapContent(editor: EditorAPI,
                 toWrap.childNodes.length, ename.ns, data.name);
 }
 
-function executeDeleteElement(editor: EditorAPI,
-                              data: TransformationData): void {
-  const node = data.node;
+function executeDeleteNode(editor: EditorAPI,
+                           data: TransformationData): void {
+  const node = data.node!;
 
-  if (!isElement(node)) {
-    throw new Error("node must be an element");
-  }
-
-  const parent = node.parentNode!;
-  const index = indexOf(parent.childNodes, node);
-  // If the node we start with is an Element, then the node in guiLoc is
-  // necessarily an Element too.
   if (!editor.isReadonly(node)) {
-    editor.dataUpdater.removeNode(node);
-    editor.caretManager.setCaret(parent, index);
+    editor.caretManager.setCaret(editor.dataUpdater.removeNode(node));
   }
 }
 
@@ -208,13 +226,8 @@ function executeDeleteParent(editor: EditorAPI,
     throw new Error("node must be an element");
   }
 
-  const parent = node.parentNode!;
-  const index = indexOf(parent.childNodes, node);
-  // If the node we start with is an Element, then the node in guiLoc is
-  // necessarily an Element too.
   if (!editor.isReadonly(node)) {
-    editor.dataUpdater.removeNode(node);
-    editor.caretManager.setCaret(parent, index);
+    editor.caretManager.setCaret(editor.dataUpdater.removeNode(node));
   }
 }
 
@@ -307,7 +320,7 @@ Record<string, Transformation<NamedTransformationData>> {
     new Transformation<NamedTransformationData>(WED_ORIGIN, forEditor,
                                                 "delete-element",
                                                 "Delete this element",
-                                                executeDeleteElement);
+                                                executeDeleteNode);
   ret["delete-parent"] =
     new Transformation<NamedTransformationData>(WED_ORIGIN, forEditor,
                                                 "delete-parent",
@@ -327,6 +340,22 @@ Record<string, Transformation<NamedTransformationData>> {
       editor.insertText(data.name);
     });
   ret.split = forEditor.splitNodeTr;
+  ret["insert-pi"] = new Transformation(
+    WED_ORIGIN, forEditor, "insert-pi", "Insert \"<name>\"",
+    executeInsertPI);
+  ret["delete-pi"] =
+    new Transformation<NamedTransformationData>(WED_ORIGIN, forEditor,
+                                                "delete-pi",
+                                                "Delete this PI",
+                                                executeDeleteNode);
+  ret["insert-comment"] = new Transformation(
+    WED_ORIGIN, forEditor, "insert-comment", "Insert comment",
+    executeInsertComment);
+  ret["delete-comment"] =
+    new Transformation<NamedTransformationData>(WED_ORIGIN, forEditor,
+                                                "delete-comment",
+                                                "Delete this comment",
+                                                executeDeleteNode);
 
   return ret;
 }

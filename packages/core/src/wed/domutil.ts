@@ -1634,6 +1634,56 @@ ProcessingInstruction[] {
   return pis;
 }
 
+/**
+ * Returns the node's "length". For nodes that contain child nodes
+ * (e.g. ``Element``), that's the number of child nodes. For nodes that don't
+ * have child nodes (e.g. ``Text``) but instead hold a string of data, that's
+ * the length of the string.
+ *
+ * @param node The node whose length we want.
+ *
+ * @returns The node's length.
+ */
+export function getNodeLength(node: Node | Attr): number {
+  if (isAttr(node)) {
+    return node.value.length;
+  }
+
+  switch (node.nodeType) {
+    case Node.TEXT_NODE:
+    case Node.CDATA_SECTION_NODE:
+    case Node.COMMENT_NODE:
+    case Node.PROCESSING_INSTRUCTION_NODE:
+      return (node as CharacterData).length;
+    case Node.DOCUMENT_NODE:
+    case Node.DOCUMENT_FRAGMENT_NODE:
+    case Node.ELEMENT_NODE:
+      return node.childNodes.length;
+    default:
+      throw new Error(`unexpected node type: ${node.nodeType}`);
+  }
+}
+
+/**
+ * Normalize an offset (index) into a node so that ``0 <= normalizedIndex <=
+ * length`` where ``normalizedIndex`` is the return value of this function and
+ * ``length`` is the length of ``node`` as provided by [[getNodeLength]].
+ *
+ * @param offset The offset to normalize.
+ *
+ * @param node The node to which the offset must be normalized.
+ *
+ * @returns The normalized offset.
+ */
+export function normalizeOffset(offset: number, node: Node | Attr): number {
+  if (offset <= 0) {
+    return 0;
+  }
+
+  const length = getNodeLength(node);
+  return offset > length ? length : offset;
+}
+
 //  LocalWords:  wed's URIs rect clientTop jquery util whitespace clientLeft cd
 //  LocalWords:  contenteditable abcd abfoocd insertIntoText Prepend scrollbars
 //  LocalWords:  deleteText jQuery getSelectionRange prev lastChild nodeType zA

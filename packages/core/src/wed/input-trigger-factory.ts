@@ -62,12 +62,7 @@ function splitNodeOn(editor: EditorAPI, data: SplitData): void {
         modified = true;
       }
       else if (offset !== -1) {
-        const [, end] = editor.dataUpdater.splitAt(node, text, offset);
-        // Continue with the 2nd half of the split
-        if (end === null) {
-          throw new Error("null end; we should not be getting that");
-        }
-        node = end;
+        node = editor.dataUpdater.splitAt(node, text, offset)[1];
         modified = true;
       }
     }

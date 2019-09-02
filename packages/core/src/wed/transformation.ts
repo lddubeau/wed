@@ -36,7 +36,11 @@ export type TransformationType =
   "unwrap" |
   "add-attribute" |
   "delete-attribute" |
-  "insert-text";
+  "insert-text" |
+  "insert-pi" |
+  "delete-pi" |
+  "insert-comment" |
+  "delete-comment";
 
 const TYPE_TO_KIND: Record<TransformationType, ActionKind> = {
   // Ideally the next line would be uncommented but TS goes off the rails
@@ -65,6 +69,10 @@ const TYPE_TO_KIND: Record<TransformationType, ActionKind> = {
   "add-attribute": "add",
   "delete-attribute": "delete",
   "insert-text": "other",
+  "insert-pi": "add",
+  "delete-pi": "delete",
+  "insert-comment": "add",
+  "delete-comment": "delete",
 };
 
 const TYPE_TO_NODE_TYPE: Record<TransformationType, ActionNodeType> = {
@@ -97,6 +105,10 @@ const TYPE_TO_NODE_TYPE: Record<TransformationType, ActionNodeType> = {
   "add-attribute": "attribute",
   "delete-attribute": "attribute",
   "insert-text": "other",
+  "insert-pi": "other",
+  "delete-pi": "other",
+  "insert-comment": "other",
+  "delete-comment": "other",
 };
 
 /**
@@ -119,6 +131,10 @@ const TYPE_TO_NODE_TYPE: Record<TransformationType, ActionNodeType> = {
  * add-attribute | node to which an attribute is added | attribute to add
  * delete-attribute | attribute to delete | attribute to delete
  * insert-text | node to which text is added | text to add
+ * insert-pi | undefined | name of pi to add
+ * delete-pi | pi to delete | name of pi to add
+ * insert-comment | undefined | undefined
+ * delete-pi | comment to delete | undefined
  */
 export interface TransformationData {
   /**
@@ -228,7 +244,7 @@ export class Transformation<Data extends TransformationData =
   }
 
   getDescriptionFor(data: Data): string {
-    if (data.name === undefined) {
+    if (data == null || data.name === undefined) {
       return this.desc;
     }
 

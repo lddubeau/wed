@@ -9,10 +9,12 @@ import $ from "jquery";
 
 import * as convert from "./convert";
 import { DLoc } from "./dloc";
-import { isText } from "./domtypeguards";
+import { isComment, isPI, isText } from "./domtypeguards";
 import { isAttr, linkTrees, mustGetMirror } from "./domutil";
 import { BeforeDeleteNodeEvent, InsertNodeAtEvent, SetAttributeNSEvent,
-         SetTextNodeValueEvent, TreeUpdater } from "./tree-updater";
+         SetCommentValueEvent, SetPIBodyEvent, SetTextNodeValueEvent,
+         TreeUpdater } from "./tree-updater";
+import { getValueNode } from "./wed-util";
 
 /**
  * Updates a GUI tree so that its data nodes (those nodes that are not
@@ -34,20 +36,26 @@ export class GUIUpdater extends TreeUpdater {
       guiTree.ownerDocument!.getElementsByClassName("wed-has-tooltip");
     this.treeUpdater.events.subscribe(ev => {
       switch (ev.name) {
-      case "InsertNodeAt":
-        this._insertNodeAtHandler(ev);
-        break;
-      case "SetTextNodeValue":
-        this._setTextNodeValueHandler(ev);
-        break;
-      case "BeforeDeleteNode":
-        this._beforeDeleteNodeHandler(ev);
-        break;
-      case "SetAttributeNS":
-        this._setAttributeNSHandler(ev);
-        break;
-      default:
-        // Do nothing...
+        case "InsertNodeAt":
+          this._insertNodeAtHandler(ev);
+          break;
+        case "SetTextNodeValue":
+          this._setTextNodeValueHandler(ev);
+          break;
+        case "BeforeDeleteNode":
+          this._beforeDeleteNodeHandler(ev);
+          break;
+        case "SetAttributeNS":
+          this._setAttributeNSHandler(ev);
+          break;
+        case "SetCommentValue":
+          this._setCommentValueHandler(ev);
+          break;
+        case "SetPIBody":
+          this._setPIBodyHandler(ev);
+          break;
+        default:
+          // Do nothing...
       }
     });
   }
@@ -79,6 +87,50 @@ export class GUIUpdater extends TreeUpdater {
       throw new Error("cannot find gui tree position");
     }
     this.setTextNodeValue(guiCaret.node as Text, ev.value);
+  }
+
+  /**
+   * Handles "SetCommentValue" events.
+   *
+   * @param ev The event.
+   */
+  private _setCommentValueHandler(ev: SetCommentValueEvent): void {
+    const guiCaret = this.fromDataLocation(ev.node, 0);
+    if (guiCaret === null) {
+      throw new Error("cannot find gui tree position");
+    }
+
+    // The caret either points to the text node inside the PI, or to the element
+    // which repesents the pi.
+    if (isText(guiCaret.node)) {
+      this.setTextNodeValue(guiCaret.node as Text, ev.value);
+    }
+    else {
+      this.insertNodeAt(guiCaret,
+                        guiCaret.node.ownerDocument!.createTextNode(ev.value));
+    }
+  }
+
+  /**
+   * Handles "SetPIBody" events.
+   *
+   * @param ev The event.
+   */
+  private _setPIBodyHandler(ev: SetPIBodyEvent):
+  void {
+    const guiCaret = this.fromDataLocation(ev.node, 0);
+    if (guiCaret === null) {
+      throw new Error("cannot find gui tree position");
+    }
+    // The caret either points to the text node inside the PI, or to the element
+    // which repesents the pi.
+    if (isText(guiCaret.node)) {
+      this.setTextNodeValue(guiCaret.node as Text, ev.value);
+    }
+    else {
+      this.insertNodeAt(guiCaret,
+                        guiCaret.node.ownerDocument!.createTextNode(ev.value));
+    }
   }
 
   /**
@@ -132,16 +184,15 @@ export class GUIUpdater extends TreeUpdater {
       return null;
     }
 
-    if (isText(node)) {
+    if (isText(node) || isPI(node) || isComment(node)) {
+      guiNode = getValueNode(guiNode as Element);
       return DLoc.mustMakeDLoc(this.tree, guiNode, offset);
     }
 
     if (isAttr(node)) {
       // The check for the node type is to avoid getting a location inside a
       // placeholder.
-      if (isText(guiNode.firstChild)) {
-        guiNode = guiNode.firstChild;
-      }
+      guiNode = getValueNode(guiNode as Element);
       return DLoc.mustMakeDLoc(this.tree, guiNode, offset);
     }
 

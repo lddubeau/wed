@@ -8,6 +8,7 @@ from selenium.webdriver.common.keys import Keys
 
 import wedutil
 import selenic.util
+from selenic.util import Condition, Result
 
 from selenium_test.util import get_element_parent_and_parent_text, \
     get_element_parent_and_selection_length
@@ -203,6 +204,24 @@ def step_impl(context, choice, element=None, order=None):
     else:
         raise ValueError("unexpected choice: " + choice)
 
+    context.clicked_element = button
+    assert_true("_label_clicked" not in button.get_attribute("class").split())
+    ActionChains(driver)\
+        .click(button)\
+        .perform()
+
+
+@when(ur'(?:the user )?clicks on the start label of the first '
+      ur'(?P<what>PI|comment)')
+def step_impl(context, what):
+    driver = context.driver
+    util = context.util
+
+    selector = {
+        "PI": "__pi_label",
+        "comment": "__comment_label",
+    }[what]
+    button = util.find_element((By.CSS_SELECTOR, ".__start_label." + selector))
     context.clicked_element = button
     assert_true("_label_clicked" not in button.get_attribute("class").split())
     ActionChains(driver)\
@@ -490,6 +509,34 @@ def step_impl(context):
     context.caret_screen_position = wedutil.caret_screen_pos(driver)
 
 
+# This step is not meant to test whether we can select things. So we
+# select directly.
+@when(u'the user selects the whole text of a (?P<kind>PI|comment)')
+def step_impl(context, kind):
+    driver = context.driver
+    util = context.util
+
+    driver.execute_script("""
+    const kind = arguments[0];
+    const doc = wed_editor.dataRoot;
+    const iterator = doc.createNodeIterator(doc,
+      kind === "PI" ? NodeFilter.SHOW_PROCESSING_INSTRUCTION :
+      NodeFilter.SHOW_COMMENT);
+    const found = iterator.nextNode();
+    if (found === null) {
+      throw new Error(`found no ${kind}`);
+    }
+    const caretManager = wed_editor.caretManager;
+    const dataStart = caretManager.makeCaret(found, 0);
+    const dataEnd = caretManager.makeCaret(found, found.data.length);
+    caretManager.setRange(dataStart, dataEnd);
+    """, kind)
+
+    context.expected_selection = util.get_selection_text()
+    context.selection_parent = None
+    context.caret_screen_position = wedutil.caret_screen_pos(driver)
+
+
 @when(u'the user selects the "(?P<what>.*?)" of the first title')
 def step_impl(context, what):
     driver = context.driver
@@ -704,6 +751,48 @@ def step_impl(context, mode):
 
     actual = driver.execute_script("return wed_editor.selectionMode;")
     assert_equal(actual, expect)
+
+
+@then(ur'the caret is in a (?P<what>comment|PI) with the text "(?P<text>.*)"')
+def step_impl(context, what, text):
+    def cond(driver):
+        result = context.driver.execute_script("""
+        const what = arguments[0];
+        if (wed_editor.caretManager.caret === undefined) {
+          return [false, "no GUI caret"];
+        }
+
+        const caret = wed_editor.caretManager.getDataCaret(true);
+        if (caret === undefined) {
+          return [false, "no caret"];
+        }
+
+        let { node } = caret;
+
+        let expectType = {
+          "comment": Node.COMMENT_NODE,
+          "PI": Node.PROCESSING_INSTRUCTION_NODE,
+        }[what];
+
+        if (expectType === undefined) {
+          return [false, `unexpected value for what: ${what}`];
+        }
+
+        if (node.nodeType !== expectType) {
+          return [false, `node is not a ${what}`];
+        }
+
+        return [true, node.data];
+        """, what)
+
+        return Result(result[0], result[1])
+
+    result = Condition(context.util, cond).wait()
+    assert_true(result, result.payload)
+    actual = result.payload
+
+    assert_equal(actual, text)
+
 
 step_matcher("parse")
 
@@ -924,3 +1013,74 @@ def step_impl(context):
     return [wed_editor.dataUpdater.nodeToPath(caret.node), caret.offset];
     """)
     assert_equal(context.caret_path, caret_path)
+
+
+@then(ur"the caret is in an element with the attributes")
+def step_impl(context):
+    def cond(driver):
+        result = context.driver.execute_script("""
+        if (wed_editor.caretManager.caret === undefined) {
+          return [false, "no GUI caret"];
+        }
+
+        const caret = wed_editor.caretManager.getDataCaret(true);
+        if (caret === undefined) {
+          return [false, "no caret"];
+        }
+
+        let { node } = caret;
+        if (node.ownerElement) {
+          node = node.ownerElement;
+        }
+        else if (node.nodeType === Node.TEXT_NODE) {
+          node = node.parentNode;
+        }
+
+        const actual = {};
+        for (let ix = 0; ix < node.attributes.length; ++ix) {
+          const attr = node.attributes[ix];
+          actual[attr.name] = {
+            ns: attr.namespaceURI === null ? "" : attr.namespaceURI,
+            value: attr.value,
+          }
+        }
+
+        return [true, actual];
+        """)
+
+        return Result(result[0], result[1])
+
+    result = Condition(context.util, cond).wait()
+    assert_true(result, result.payload)
+    actual = result.payload
+
+    expected = context.table.rows
+    assert_equal(len(actual), len(expected),
+                 "expected {} attributes, but found {}"
+                 .format(len(expected), actual.keys()))
+
+    for row in expected:
+        name = row["name"]
+        assert_true(name in actual,
+                    "expected {}, but did not find it".format(name))
+        attr = actual[name]
+        assert_equal(attr, {"ns": row["ns"], "value": row["value"]})
+
+
+@then(ur"the caret is in an element with no attributes")
+def step_impl(context):
+    actual = context.driver.execute_script("""
+    const caret = wed_editor.caretManager.getDataCaret(true);
+    if (caret === undefined) {
+      return [false, "no caret"];
+    }
+
+    let { node } = caret;
+    if (node.ownerElement) {
+      node = node.ownerElement;
+    }
+
+    return node.attributes.length;
+    """)
+
+    assert_equal(actual, 0, "the element should not have attributes")

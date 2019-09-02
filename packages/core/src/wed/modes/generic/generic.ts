@@ -10,6 +10,7 @@ import { DefaultNameResolver, EName } from "salve";
 
 import { action, BaseMode, CommonModeOptions, Decorator, EditorAPI, objectCheck,
          transformation } from "wed";
+import { InsertPI } from "./generic-actions";
 import { GenericDecorator } from "./generic-decorator";
 import { makeTagTr } from "./generic-tr";
 import { Metadata } from "./metadata";
@@ -49,7 +50,11 @@ class GenericMode<Options extends GenericModeOptions> extends
 BaseMode<Options> {
   protected resolver!: DefaultNameResolver;
   protected metadata!: Metadata;
-  protected tagTr!: Record<string, Transformation<NamedTransformationData>>;
+  protected readonly tagTr:
+  Record<string, Transformation<NamedTransformationData>>;
+  protected readonly insertPIAction: InsertPI;
+
+  readonly insertPITr: Transformation<NamedTransformationData>;
 
   /**
    * The template that [[checkOptions]] uses to check the options passed
@@ -63,6 +68,7 @@ BaseMode<Options> {
   constructor(editor: EditorAPI, options: Options) {
     super(editor, options);
 
+    this.insertPIAction = new InsertPI(editor);
     if (this.constructor === GenericMode) {
       // Set our metadata.
       this.wedOptions = mergeOptions({}, this.wedOptions);
@@ -79,6 +85,8 @@ BaseMode<Options> {
     // else it is up to the derived class to set it.
 
     this.wedOptions.attributes = "edit";
+    this.tagTr = makeTagTr(editor);
+    this.insertPITr = this.tagTr["insert-pi"];
   }
 
   async init(): Promise<void> {
@@ -88,7 +96,6 @@ BaseMode<Options> {
       this.options.autoinsert = true;
     }
 
-    this.tagTr = makeTagTr(this.editor);
     this.metadata = await this.makeMetadata();
 
     this.resolver = new DefaultNameResolver();
@@ -193,9 +200,14 @@ BaseMode<Options> {
 
     const ret = [];
     for (const ttype of transformationType) {
-      const val = this.tagTr[ttype];
-      if (val !== undefined) {
-        ret.push(val as unknown as Action<{}>);
+      if (ttype === "insert-pi") {
+        ret.push(this.insertPIAction);
+      }
+      else {
+        const val = this.tagTr[ttype];
+        if (val !== undefined) {
+          ret.push(val as unknown as Action<{}>);
+        }
       }
     }
 

@@ -9,8 +9,8 @@
 import { indexOf } from "./domutil";
 import { Editor } from "./editor";
 import { BeforeDeleteNodeEvent, InsertNodeAtEvent, SetAttributeNSEvent,
-         SetTextNodeValueEvent, TreeUpdater,
-         TreeUpdaterEvents } from "./tree-updater";
+         SetCommentValueEvent, SetPIBodyEvent, SetTextNodeValueEvent,
+         TreeUpdater } from "./tree-updater";
 import * as undo from "./undo";
 
 function getOuterHTML(node: Node | undefined | null): string {
@@ -77,11 +77,11 @@ class InsertNodeAtUndo extends undo.Undo {
 }
 
 /**
- * Undo operation for [["wed/tree-updater".SetTextNodeValueEvent]].
+ * Common class for those undo objects which set a node to some string values.
  *
  * @private
  */
-class SetTextNodeValueUndo extends undo.Undo {
+abstract class ValueUndo extends undo.Undo {
   private readonly nodePath: string;
   private readonly value: string;
   private readonly oldValue: string;
@@ -90,24 +90,24 @@ class SetTextNodeValueUndo extends undo.Undo {
    * @param treeUpdater The tree updater to use to perform undo or redo
    * operations.
    */
-  constructor(private readonly treeUpdater: TreeUpdater,
-              { node, value, oldValue }: SetTextNodeValueEvent) {
-    super("SetTextNodeValueUndo");
+  constructor(protected readonly treeUpdater: TreeUpdater,
+              name: string, node: Node, value: string, oldValue: string) {
+    super(name);
     this.value = value;
     this.oldValue = oldValue;
     this.nodePath = treeUpdater.nodeToPath(node);
   }
 
+  protected abstract update(node: Node, value: string): void;
+
   performUndo(): void {
-    // The node is necessarily a text node.
-    const node = this.treeUpdater.pathToNode(this.nodePath) as Text;
-    this.treeUpdater.setTextNodeValue(node, this.oldValue);
+    this.update(this.treeUpdater.pathToNode(this.nodePath)!,
+                this.oldValue);
   }
 
   performRedo(): void {
-    // The node is necessarily a text node.
-    const node = this.treeUpdater.pathToNode(this.nodePath) as Text;
-    this.treeUpdater.setTextNodeValue(node, this.value);
+    this.update(this.treeUpdater.pathToNode(this.nodePath)!,
+                this.value);
   }
 
   toString(): string {
@@ -115,6 +115,26 @@ class SetTextNodeValueUndo extends undo.Undo {
             " Node path: ", this.nodePath, "\n",
             " Value: ", this.value, "\n",
             " Old value: ", this.oldValue, "\n"].join("");
+  }
+}
+
+/**
+ * Undo operation for [["wed/tree-updater".SetTextNodeValueEvent]].
+ *
+ * @private
+ */
+class SetTextNodeValueUndo extends ValueUndo {
+  /**
+   * @param treeUpdater The tree updater to use to perform undo or redo
+   * operations.
+   */
+  constructor(treeUpdater: TreeUpdater,
+              { node, value, oldValue }: SetTextNodeValueEvent) {
+    super(treeUpdater, "SetTextNodeValueUndo", node, value, oldValue);
+  }
+
+  protected update(node: Node, value: string): void {
+    this.treeUpdater.setTextNodeValue(node as Text, value);
   }
 }
 
@@ -168,6 +188,46 @@ class DeleteNodeUndo extends undo.Undo {
 }
 
 /**
+ * Undo operation for [["wed/tree-updater".SetCommentValue]].
+ *
+ * @private
+ */
+class SetCommentValueUndo extends ValueUndo {
+  /**
+   * @param treeUpdater The tree updater to use to perform undo or redo
+   * operations.
+   */
+  constructor(treeUpdater: TreeUpdater,
+              { node, value, oldValue }: SetCommentValueEvent) {
+    super(treeUpdater, "SetCommentValueUndo", node, value, oldValue);
+  }
+
+  protected update(node: Node, value: string): void {
+    this.treeUpdater.setCommentValue(node as Comment, value);
+  }
+}
+
+/**
+ * Undo operation for [["wed/tree-updater".SetPIBody]].
+ *
+ * @private
+ */
+class SetPIBodyUndo extends ValueUndo {
+  /**
+   * @param treeUpdater The tree updater to use to perform undo or redo
+   * operations.
+   */
+  constructor(treeUpdater: TreeUpdater,
+              { node, value, oldValue }: SetPIBodyEvent) {
+    super(treeUpdater, "SetPIBodyEvent", node, value, oldValue);
+  }
+
+  protected update(node: Node, value: string): void {
+    this.treeUpdater.setPIBody(node as ProcessingInstruction, value);
+  }
+}
+
+/**
  * Undo operation for [["wed/tree-updater".SetAttributeNSEvent]].
  *
  * @private
@@ -217,22 +277,24 @@ class SetAttributeNSUndo extends undo.Undo {
 }
 
 type RecorderEvents = InsertNodeAtEvent | SetTextNodeValueEvent |
-  BeforeDeleteNodeEvent | SetAttributeNSEvent;
+  BeforeDeleteNodeEvent | SetAttributeNSEvent | SetCommentValueEvent |
+  SetPIBodyEvent;
 type RecorderEventNames = RecorderEvents["name"];
 
-type EventNameToHandler<N extends TreeUpdaterEvents["name"]> =
-  N extends RecorderEventNames ?
-  new (updater: TreeUpdater,
-       ev: Extract<RecorderEvents, { name: N }>) => undo.Undo : undefined;
+type EventNameToHandler<N extends RecorderEventNames> =
+  new (updater: TreeUpdater, ev: Extract<RecorderEvents,
+       { name: N }>) => undo.Undo;
 
-type HandlerMap =
-  { [k in TreeUpdaterEvents["name"]]: EventNameToHandler<k> };
+type HandlerMap = { [k: string]: undefined } &
+  { [k in RecorderEventNames]: EventNameToHandler<k> };
 
 const ctors: HandlerMap = Object.create(null);
 ctors.InsertNodeAt = InsertNodeAtUndo;
 ctors.SetTextNodeValue = SetTextNodeValueUndo;
 ctors.BeforeDeleteNode = DeleteNodeUndo;
 ctors.SetAttributeNS = SetAttributeNSUndo;
+ctors.SetCommentValue = SetCommentValueUndo;
+ctors.SetPIBody = SetPIBodyUndo;
 
 /**
  * Records undo operations.

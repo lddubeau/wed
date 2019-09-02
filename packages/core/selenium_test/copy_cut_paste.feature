@@ -51,6 +51,25 @@ Scenario: span mode: erroneously copying with caret inside element label
   And the user copies
 
 @not.with_browser=edge
+
+Scenario: span mode: copying PI text
+  Given a document containing a top level element, a p element, and text.
+  When the user selects the whole text of a PI
+  And the user copies
+  Then the clipboard contains
+  | type       | data             |
+  | text/xml   | <?pi fnord?> |
+
+@not.with_browser=edge
+Scenario: span mode: copying comment text
+  Given a document containing a top level element, a p element, and text.
+  When the user selects the whole text of a comment
+  And the user copies
+  Then the clipboard contains
+  | type       | data                      |
+  | text/xml   | <!-- a comment --> |
+
+@not.with_browser=edge
 Scenario: unit mode: copying attributes
   Given a document for testing unit selection mode
   When the user switches to unit selection mode
@@ -113,6 +132,70 @@ Scenario: unit mode: copy-adding elements
   Then the clipboard contains
   | type       | data |
   | text/xml   | <p xmlns="http://www.tei-c.org/ns/1.0" rend="rend_value" style="style_value">Blah</p><p xmlns="http://www.tei-c.org/ns/1.0" rend="abc">Blah</p> |
+
+@not.with_browser=edge
+Scenario: unit mode: copying PI
+  Given a document for testing unit selection mode
+  When the user switches to unit selection mode
+  Then the selection mode is unit
+  When the user clicks on the start label of the first PI
+  And the user copies
+  Then the clipboard contains
+  | type       | data |
+  | text/xml   | <?pi fnord?> |
+  When the user clicks on the start label of the first element in "body"
+  And the user copies
+  Then the clipboard contains
+  | type       | data |
+  | text/xml   | <p xmlns="http://www.tei-c.org/ns/1.0" rend="rend_value" style="style_value">Blah</p> |
+
+@not.with_browser=edge
+Scenario: unit mode: copying-adding PI
+  Given a document for testing unit selection mode
+  When the user switches to unit selection mode
+  Then the selection mode is unit
+  When the user clicks on the start label of the first element in "body"
+  And the user copies
+  Then the clipboard contains
+  | type       | data |
+  | text/xml   | <p xmlns="http://www.tei-c.org/ns/1.0" rend="rend_value" style="style_value">Blah</p> |
+  When the user clicks on the start label of the first PI
+  And the user copy-adds
+  Then the clipboard contains
+  | type       | data |
+  | text/xml   | <p xmlns="http://www.tei-c.org/ns/1.0" rend="rend_value" style="style_value">Blah</p><?pi fnord?> |
+
+@not.with_browser=edge
+Scenario: unit mode: copying comment
+  Given a document for testing unit selection mode
+  When the user switches to unit selection mode
+  Then the selection mode is unit
+  When the user clicks on the start label of the first comment
+  And the user copies
+  Then the clipboard contains
+  | type       | data |
+  | text/xml   | <!-- a comment --> |
+  When the user clicks on the start label of the first element in "body"
+  And the user copies
+  Then the clipboard contains
+  | type       | data |
+  | text/xml   | <p xmlns="http://www.tei-c.org/ns/1.0" rend="rend_value" style="style_value">Blah</p> |
+
+@not.with_browser=edge
+Scenario: unit mode: copying-adding comment
+  Given a document for testing unit selection mode
+  When the user switches to unit selection mode
+  Then the selection mode is unit
+  When the user clicks on the start label of the first element in "body"
+  And the user copies
+  Then the clipboard contains
+  | type       | data |
+  | text/xml   | <p xmlns="http://www.tei-c.org/ns/1.0" rend="rend_value" style="style_value">Blah</p> |
+  When the user clicks on the start label of the first comment
+  And the user copy-adds
+  Then the clipboard contains
+  | type       | data |
+  | text/xml   | <p xmlns="http://www.tei-c.org/ns/1.0" rend="rend_value" style="style_value">Blah</p><!-- a comment --> |
 
 @not.with_browser=edge
 Scenario: unit mode: copy-adding elements after attributes does not mix elements and attributes
@@ -277,6 +360,44 @@ Scenario: unit mode: cutting elements
   And the caret is in an element with the attributes
   | name   | ns | value |
   | sample |    |       |
+
+@not.with_browser=edge
+Scenario: unit mode: cutting PIs
+  Given a document for testing unit selection mode
+  When the user switches to unit selection mode
+  Then the selection mode is unit
+  When the user clicks on the start label of the first PI
+  Then the caret is in a PI with the text "fnord"
+  When the user cuts
+  Then the clipboard contains
+  | type     | data         |
+  | text/xml | <?pi fnord?> |
+  And the caret is in a comment with the text " a comment "
+  When the user clicks on the start label of the first PI
+  Then the caret is in a PI with the text "something"
+  When the user cuts
+  Then the clipboard contains
+  | type       | data             |
+  | text/xml   | <?pi something?> |
+
+@not.with_browser=edge
+Scenario: unit mode: cutting comments
+  Given a document for testing unit selection mode
+  When the user switches to unit selection mode
+  Then the selection mode is unit
+  When the user clicks on the start label of the first comment
+  Then the caret is in a comment with the text " a comment "
+  When the user cuts
+  Then the clipboard contains
+  | type     | data              |
+  | text/xml | <!-- a comment --> |
+  And the caret is in a PI with the text "something"
+  When the user clicks on the start label of the first comment
+  Then the caret is in a comment with the text " comment content "
+  When the user cuts
+  Then the clipboard contains
+  | type     | data                     |
+  | text/xml | <!-- comment content --> |
 
 @not.with_browser=edge
 Scenario: unit mode: cut-adding elements

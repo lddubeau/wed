@@ -201,6 +201,7 @@ def step_impl(context):
 
 @given(u"wait {x} seconds")
 @when(u"wait {x} seconds")
+@then(u"wait {x} seconds")
 def step_impl(context, x):
     import time
     time.sleep(float(x))
@@ -320,7 +321,7 @@ def open_simple_doc(context):
 def open_simple_doc(context):
     load_and_wait_for_editor(
         context,
-        text="lib/tests/wed_test_data/unit_selection.xml")
+        text="lib/tests/wed_test_data/unit_selection_converted.xml")
 
 
 @when(ur"the user scrolls the window (?P<choice>completely down|down "

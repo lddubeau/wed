@@ -1252,6 +1252,103 @@ _xmlns_http\\:\\/\\/mangalamresearch\\.org\\/ns\\/btw-storage._real._el \
       });
     });
   });
+
+  describe("getNodeLength", () => {
+    it("with element", () => {
+      const p = sourceDoc.querySelector("body>p:nth-of-type(2)") as HTMLElement;
+      expect(domutil.getNodeLength(p)).to.equal(5);
+    });
+
+    it("with document", () => {
+      expect(domutil.getNodeLength(sourceDoc)).to.equal(1);
+    });
+
+    it("with document fragment", () => {
+      const f = sourceDoc.createDocumentFragment();
+      f.appendChild(sourceDoc.createElement("q"));
+      expect(domutil.getNodeLength(f)).to.equal(1);
+    });
+
+    it("with text", () => {
+      expect(domutil.getNodeLength(sourceDoc.createTextNode("123")))
+        .to.equal(3);
+    });
+
+    it("with pi", () => {
+      expect(domutil.getNodeLength(sourceDoc
+                                   .createProcessingInstruction("a", "123")))
+        .to.equal(3);
+    });
+
+    it("with comment", () => {
+      expect(domutil.getNodeLength(sourceDoc
+                                   .createComment("123")))
+        .to.equal(3);
+    });
+
+    it("with cdata", () => {
+      expect(domutil.getNodeLength(sourceDoc
+                                   .createCDATASection("123")))
+        .to.equal(3);
+    });
+  });
+
+  describe("normalizeOffset", () => {
+    it("with element", () => {
+      const p = sourceDoc.querySelector("body>p:nth-of-type(2)") as HTMLElement;
+      expect(domutil.normalizeOffset(6, p)).to.equal(5);
+      expect(domutil.normalizeOffset(5, p)).to.equal(5);
+      expect(domutil.normalizeOffset(4, p)).to.equal(4);
+      expect(domutil.normalizeOffset(-1, p)).to.equal(0);
+    });
+
+    it("with document", () => {
+      expect(domutil.normalizeOffset(2, sourceDoc)).to.equal(1);
+      expect(domutil.normalizeOffset(1, sourceDoc)).to.equal(1);
+      expect(domutil.normalizeOffset(-1, sourceDoc)).to.equal(0);
+    });
+
+    it("with document fragment", () => {
+      const f = sourceDoc.createDocumentFragment();
+      f.appendChild(sourceDoc.createElement("q"));
+      expect(domutil.normalizeOffset(2, f)).to.equal(1);
+      expect(domutil.normalizeOffset(1, f)).to.equal(1);
+      expect(domutil.normalizeOffset(0, f)).to.equal(0);
+      expect(domutil.normalizeOffset(-1, f)).to.equal(0);
+    });
+
+    it("with text", () => {
+      const node = sourceDoc.createTextNode("123");
+      expect(domutil.normalizeOffset(4, node)).to.equal(3);
+      expect(domutil.normalizeOffset(3, node)).to.equal(3);
+      expect(domutil.normalizeOffset(2, node)).to.equal(2);
+      expect(domutil.normalizeOffset(-1, node)).to.equal(0);
+    });
+
+    it("with pi", () => {
+      const node = sourceDoc.createProcessingInstruction("a", "123");
+      expect(domutil.normalizeOffset(4, node)).to.equal(3);
+      expect(domutil.normalizeOffset(3, node)).to.equal(3);
+      expect(domutil.normalizeOffset(2, node)).to.equal(2);
+      expect(domutil.normalizeOffset(-1, node)).to.equal(0);
+    });
+
+    it("with comment", () => {
+      const node = sourceDoc.createComment("123");
+      expect(domutil.normalizeOffset(4, node)).to.equal(3);
+      expect(domutil.normalizeOffset(3, node)).to.equal(3);
+      expect(domutil.normalizeOffset(2, node)).to.equal(2);
+      expect(domutil.normalizeOffset(-1, node)).to.equal(0);
+    });
+
+    it("with cdata", () => {
+      const node = sourceDoc.createCDATASection("123");
+      expect(domutil.normalizeOffset(4, node)).to.equal(3);
+      expect(domutil.normalizeOffset(3, node)).to.equal(3);
+      expect(domutil.normalizeOffset(2, node)).to.equal(2);
+      expect(domutil.normalizeOffset(-1, node)).to.equal(0);
+    });
+  });
 });
 
 //  LocalWords:  jquery domutil nextCaretPosition domroot chai isNotNull html

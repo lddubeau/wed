@@ -7,12 +7,12 @@ Background: a simple document.
 Scenario: Decreasing the label visiblity level.
   When the user clicks on the start label of an element
   And decreases the label visibility level
-  Then no labels are visible
+  Then no element labels are visible
 
 Scenario: Increasing the label visiblity level.
   When the user clicks on the start label of an element
   And increases the label visibility level
-  Then more labels are visible
+  Then more element labels are visible
 
 Scenario: Increasing the label visibility level when a caret is set.
   When the user scrolls the editor pane completely down

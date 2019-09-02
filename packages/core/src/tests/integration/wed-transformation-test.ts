@@ -12,6 +12,7 @@ import { caretCheck, dataPath, EditorSetup, getAttributeNamesFor,
          getAttributeValuesFor, getElementNameFor } from "../wed-test-util";
 
 const assert = chai.assert;
+const expect = chai.expect;
 
 describe("wed transformation:", () => {
   let setup: EditorSetup;
@@ -283,6 +284,121 @@ describe("wed transformation:", () => {
       ["insert"], "biblFull", p.firstChild!, 0);
 
     trs[0].execute({ node: undefined, name: "biblFull" });
+  });
+
+  it("inserts comments in text", () => {
+    const initial = editor.dataRoot.querySelectorAll("body>p")[4];
+
+    // Make sure we are looking at the right thing.
+    expect(initial).to.have.property("childNodes").be.lengthOf(1);
+    expect(initial).to.have.nested.property("firstChild.textContent")
+      .equal("abcdefghij");
+
+    const trs = editor.modeTree.getMode(initial)
+      .getContextualActions(["insert-comment"], "", initial.firstChild!, 3);
+    caretManager.setCaret(initial.firstChild!, 3);
+
+    trs[0].execute({});
+
+    expect(initial).to.have.property("childNodes").be.lengthOf(3);
+    expect(initial).to.have.property("outerHTML").equal(
+      `<p xmlns="http://www.tei-c.org/ns/1.0">abc<!---->defghij</p>`);
+  });
+
+  it("inserts comments in element", () => {
+    const initial = editor.dataRoot.querySelectorAll("body>p")[4];
+
+    // Make sure we are looking at the right thing.
+    expect(initial).to.have.property("childNodes").be.lengthOf(1);
+    expect(initial).to.have.nested.property("firstChild.textContent")
+      .equal("abcdefghij");
+
+    const trs = editor.modeTree.getMode(initial)
+      .getContextualActions(["insert-comment"], "", initial, 0);
+    caretManager.setCaret(initial, 0);
+
+    trs[0].execute({});
+
+    expect(initial).to.have.property("childNodes").be.lengthOf(2);
+    expect(initial).to.have.property("outerHTML").equal(
+      `<p xmlns="http://www.tei-c.org/ns/1.0"><!---->abcdefghij</p>`);
+  });
+
+  it("inserts PIs in text", () => {
+    const initial = editor.dataRoot.querySelectorAll("body>p")[4];
+
+    // Make sure we are looking at the right thing.
+    expect(initial).to.have.property("childNodes").be.lengthOf(1);
+    expect(initial).to.have.nested.property("firstChild.textContent")
+      .equal("abcdefghij");
+
+    const trs = editor.modeTree.getMode(initial)
+      .getContextualActions(["insert-pi"], "", initial.firstChild!, 3);
+    caretManager.setCaret(initial.firstChild!, 3);
+
+    trs[0].execute({ name: "foo" });
+
+    expect(initial).to.have.property("childNodes").be.lengthOf(3);
+    expect(initial).to.have.property("outerHTML").equal(
+      `<p xmlns="http://www.tei-c.org/ns/1.0">abc<?foo ?>defghij</p>`);
+  });
+
+  it("inserts PIs in element", () => {
+    const initial = editor.dataRoot.querySelectorAll("body>p")[4];
+
+    // Make sure we are looking at the right thing.
+    expect(initial).to.have.property("childNodes").be.lengthOf(1);
+    expect(initial).to.have.nested.property("firstChild.textContent")
+      .equal("abcdefghij");
+
+    const trs = editor.modeTree.getMode(initial)
+      .getContextualActions(["insert-pi"], "", initial, 0);
+    caretManager.setCaret(initial, 0);
+
+    trs[0].execute({ name: "foo" });
+
+    expect(initial).to.have.property("childNodes").be.lengthOf(2);
+    expect(initial).to.have.property("outerHTML").equal(
+      `<p xmlns="http://www.tei-c.org/ns/1.0"><?foo ?>abcdefghij</p>`);
+  });
+
+  it("delete comment", () => {
+    const body = editor.dataRoot.querySelector("body")!;
+    const comment = body.lastChild!;
+
+    expect(comment).to.have.property("nodeType").equal(Node.COMMENT_NODE);
+    expect(comment).to.have.property("parentNode").equal(body);
+    const initialChildCount = body.childNodes.length;
+
+    const trs = editor.modeTree.getMode(comment)
+      .getContextualActions(["delete-comment"], "", comment, 0);
+    caretManager.setCaret(comment, 0);
+
+    trs[0].execute({ node: comment });
+
+    expect(body).to.have.property("childNodes").be.
+      lengthOf(initialChildCount - 1);
+    expect(comment).to.have.property("parentNode").be.null;
+  });
+
+  it("delete pi", () => {
+    const body = editor.dataRoot.querySelector("body")!;
+    const pi = body.lastChild!.previousSibling!;
+
+    expect(pi).to.have.property("nodeType")
+      .equal(Node.PROCESSING_INSTRUCTION_NODE);
+    expect(pi).to.have.property("parentNode").equal(body);
+    const initialChildCount = body.childNodes.length;
+
+    const trs = editor.modeTree.getMode(pi)
+      .getContextualActions(["delete-pi"], "", pi, 0);
+    caretManager.setCaret(pi, 0);
+
+    trs[0].execute({ node: pi });
+
+    expect(body).to.have.property("childNodes").be.
+      lengthOf(initialChildCount - 1);
+    expect(pi).to.have.property("parentNode").be.null;
   });
 
   it("the editor emits transformation events", done => {

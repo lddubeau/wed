@@ -12,20 +12,14 @@ supported by wed.
 
 Known limitations:
 
-* Wed does not load documents containing XML comments (``<!-- ... -->``).
-
-* Wed does not load documents that include processing instructions. (The ``<?xml
-  ...>`` at the very top of documents is not a processing instruction, but an
-  XML declaration, which wed handles just fine.)
-
-* Wed loads CData sections but convert them all to text. See
+* Wed loads CData sections but converts them all to text. See
   :ref:`problem_with_cdata` for details.
 
 * Wed supports most of Relax NG, with a few limitations. See the `salve
   <https://github.com/mangalam-research/salve/>`_ package for details.
 
 * Wed does not currently support ordering attributes according to some
-  preference. (The order is alphabetic.)
+  arbitrary preference. (The order is alphabetic.)
 
 * Wed does not currently support multiline values in attributes.
 

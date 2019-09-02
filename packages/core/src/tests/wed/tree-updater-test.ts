@@ -255,6 +255,39 @@ adjacent text nodes");
 <p><quote>quoted</quote><quote>quoted2</quote><quote>quoted3</quote>\
 </p></body></text>`, "after");
       });
+
+      it("splits a comment", () => {
+        const p = doc.querySelectorAll("body>p")[4];
+        const comment = p.childNodes[1] as Comment;
+        expect(comment).to.have.property("nodeType").equal(Node.COMMENT_NODE);
+        const top = doc.getElementsByTagName("text")[0];
+
+        const [first, second] = tu.splitAt(top, comment, 2);
+        expect(first).to.have.property("outerHTML").equal(`\
+<text ${TEINS}><body><p>blah</p><p>before <quote>quoted</quote> between \
+<quote>quoted2</quote> after</p><p><quote>quoted</quote><quote>quoted2</quote>\
+<quote>quoted3</quote></p><p><quoted>blah</quoted>blah</p><p>Paragraph with \
+<!-- a--></p></body></text>`);
+        expect(second).to.have.property("outerHTML").equal(`\
+<text ${TEINS}><body><p><!-- comment --> and a <?pi body?>.</p></body></text>`);
+      });
+
+      it("splits a processing instruction", () => {
+        const p = doc.querySelectorAll("body>p")[4];
+        const pi = p.childNodes[3] as ProcessingInstruction;
+        expect(pi).to.have.property("nodeType")
+          .equal(Node.PROCESSING_INSTRUCTION_NODE);
+        const top = doc.getElementsByTagName("text")[0];
+
+        const [first, second] = tu.splitAt(top, pi, 2);
+        expect(first).to.have.property("outerHTML").equal(`\
+<text ${TEINS}><body><p>blah</p><p>before <quote>quoted</quote> between \
+<quote>quoted2</quote> after</p><p><quote>quoted</quote><quote>quoted2</quote>\
+<quote>quoted3</quote></p><p><quoted>blah</quoted>blah</p><p>Paragraph with \
+<!-- a comment --> and a <?pi bo?></p></body></text>`);
+        expect(second).to.have.property("outerHTML").equal(`\
+<text ${TEINS}><body><p><?pi dy?>.</p></body></text>`);
+      });
     });
 
     it("does the right thing if spliting at end an element", () => {

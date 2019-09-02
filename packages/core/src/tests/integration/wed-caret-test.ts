@@ -473,7 +473,7 @@ span selection mode`,
        });
 
     it("does not move when at start of document", () => {
-      const initial = firstGUI(childByClass(editor.guiRoot, "TEI")!)!;
+      const initial = editor.guiRoot;
       caretManager.setCaret(initial, 0);
       caretCheck(editor, initial, 0, "initial");
       caretManager.move("left");

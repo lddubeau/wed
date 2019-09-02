@@ -9,7 +9,8 @@ import { Action, ActionInvocation, UnspecifiedAction,
          UnspecifiedActionInvocation } from "../action";
 import { CaretManager } from "../caret-manager";
 import { DLoc } from "../dloc";
-import { isAttr, isElement } from "../domtypeguards";
+import { isAttr, isComment, isDocument, isElement, isPI,
+         isText } from "../domtypeguards";
 import { closestByClass, isNotDisplayed, mustGetMirror } from "../domutil";
 import { Editor } from "../editor";
 import { ContextMenuHandler } from "../mode-api";
@@ -69,8 +70,12 @@ export class EditingMenuManager {
   private readonly doc: HTMLDocument;
   private currentTypeahead: TypeaheadPopup | undefined;
 
-  readonly boundStartLabelContextMenuHandler: ContextMenuHandler;
-  readonly boundEndLabelContextMenuHandler: ContextMenuHandler;
+  readonly boundElementStartLabelContextMenuHandler: ContextMenuHandler;
+  readonly boundElementEndLabelContextMenuHandler: ContextMenuHandler;
+  readonly boundPIStartLabelContextMenuHandler: ContextMenuHandler;
+  readonly boundPIEndLabelContextMenuHandler: ContextMenuHandler;
+  readonly boundCommentStartLabelContextMenuHandler: ContextMenuHandler;
+  readonly boundCommentEndLabelContextMenuHandler: ContextMenuHandler;
 
   /**
    * @param editor The editor for which the manager is created.
@@ -81,10 +86,18 @@ export class EditingMenuManager {
     this.guiRoot = editor.guiRoot;
     this.dataRoot = editor.dataRoot;
     this.doc = this.guiRoot.ownerDocument!;
-    this.boundStartLabelContextMenuHandler =
-      this.startLabelContextMenuHandler.bind(this);
-    this.boundEndLabelContextMenuHandler =
-      this.endLabelContextMenuHandler.bind(this);
+    this.boundElementStartLabelContextMenuHandler =
+      this.elementStartLabelContextMenuHandler.bind(this);
+    this.boundElementEndLabelContextMenuHandler =
+      this.elementEndLabelContextMenuHandler.bind(this);
+    this.boundPIStartLabelContextMenuHandler =
+      this.piStartLabelContextMenuHandler.bind(this);
+    this.boundPIEndLabelContextMenuHandler =
+      this.piEndLabelContextMenuHandler.bind(this);
+    this.boundCommentStartLabelContextMenuHandler =
+      this.commentStartLabelContextMenuHandler.bind(this);
+    this.boundCommentEndLabelContextMenuHandler =
+      this.commentEndLabelContextMenuHandler.bind(this);
   }
 
   /**
@@ -97,9 +110,9 @@ export class EditingMenuManager {
    *
    * @returns To be interpreted the same way as for all DOM event handlers.
    */
-  startLabelContextMenuHandler(wedEv: JQuery.TriggeredEvent,
-                               ev: JQuery.MouseEventBase): boolean {
-    return this.labelContextMenuHandler(true, wedEv, ev);
+  elementStartLabelContextMenuHandler(wedEv: JQuery.TriggeredEvent,
+                                      ev: JQuery.MouseEventBase): boolean {
+    return this.elementLabelContextMenuHandler(true, wedEv, ev);
   }
 
   /**
@@ -112,9 +125,9 @@ export class EditingMenuManager {
    *
    * @returns To be interpreted the same way as for all DOM event handlers.
    */
-  endLabelContextMenuHandler(wedEv: JQuery.TriggeredEvent,
-                             ev: JQuery.MouseEventBase): boolean {
-    return this.labelContextMenuHandler(false, wedEv, ev);
+  elementEndLabelContextMenuHandler(wedEv: JQuery.TriggeredEvent,
+                                    ev: JQuery.MouseEventBase): boolean {
+    return this.elementLabelContextMenuHandler(false, wedEv, ev);
   }
 
   /**
@@ -129,9 +142,10 @@ export class EditingMenuManager {
    *
    * @returns To be interpreted the same way as for all DOM event handlers.
    */
-  private labelContextMenuHandler(atStart: boolean,
-                                  wedEv: JQuery.TriggeredEvent,
-                                  ev: JQuery.MouseEventBase): boolean {
+  // tslint:disable-next-line:max-func-body-length
+  private elementLabelContextMenuHandler(atStart: boolean,
+                                         wedEv: JQuery.TriggeredEvent,
+                                         ev: JQuery.MouseEventBase): boolean {
     const editor = this.editor;
     const guiNode = wedEv.target;
     const invocations: UnspecifiedActionInvocation[] = [];
@@ -191,6 +205,17 @@ export class EditingMenuManager {
         treeCaret = treeCaret.makeWithOffset(treeCaret.offset + 1);
       }
 
+      for (const tr of mode.getContextualActions(["insert-comment",
+                                                  "insert-pi"],
+                                                 "",
+                                                 treeCaret.node,
+                                                 treeCaret.offset)) {
+        invocations.push(
+          new LocalizedActionInvocation(tr,
+                                        { moveCaretTo: treeCaret },
+                                        atStart));
+      }
+
       if (!topNode) {
         for (const { tr, name } of
              this.getElementTransformationsAt(treeCaret, "insert")) {
@@ -227,6 +252,164 @@ export class EditingMenuManager {
   }
 
   /**
+   * Context menu handler for the start labels of PIs decorated by
+   * [[Decorator.piDecorator]].
+   *
+   * @param wedEv The DOM event that wed generated to trigger this handler.
+   *
+   * @param ev The DOM event that wed received.
+   *
+   * @returns To be interpreted the same way as for all DOM event handlers.
+   */
+  piStartLabelContextMenuHandler(wedEv: JQuery.TriggeredEvent,
+                                 ev: JQuery.MouseEventBase): boolean {
+    return this.piLabelContextMenuHandler(true, wedEv, ev);
+  }
+
+  /**
+   * Context menu handler for the end labels of PIs decorated by
+   * [[Decorator.piDecorator]].
+   *
+   * @param wedEv The DOM event that wed generated to trigger this handler.
+   *
+   * @param ev The DOM event that wed received.
+   *
+   * @returns To be interpreted the same way as for all DOM event handlers.
+   */
+  piEndLabelContextMenuHandler(wedEv: JQuery.TriggeredEvent,
+                               ev: JQuery.MouseEventBase): boolean {
+    return this.piLabelContextMenuHandler(false, wedEv, ev);
+  }
+
+  /**
+   * Context menu handler for the labels of PIs decorated by
+   * [[Decorator.piDecorator]].
+   *
+   * @param atStart Whether or not this event is for the start label.
+   *
+   * @param wedEv The DOM event that wed generated to trigger this handler.
+   *
+   * @param ev The DOM event that wed received.
+   *
+   * @returns To be interpreted the same way as for all DOM event handlers.
+   */
+  private piLabelContextMenuHandler(_atStart: boolean,
+                                    wedEv: JQuery.TriggeredEvent,
+                                    ev: JQuery.MouseEventBase): boolean {
+    const editor = this.editor;
+    const guiNode = wedEv.target;
+    const invocations: UnspecifiedActionInvocation[] = [];
+    const mode = editor.modeTree.getMode(guiNode);
+
+    function pushInvocations(transformationType: string[] | string,
+                             name: string, node: Node, offset?: number): void {
+      const data = { name, node };
+      for (const tr of mode.getContextualActions(transformationType, name, node,
+                                                 offset)) {
+        invocations.push(new ActionInvocation(tr, data));
+      }
+    }
+
+    const real = closestByClass(guiNode, "_real", editor.guiRoot);
+    if (real === null) {
+      throw new Error("cannot find real parent");
+    }
+
+    const pi = editor.toDataNode(real)! as ProcessingInstruction;
+
+    pushInvocations("delete-pi", pi.target, pi, 0);
+
+    // There's no menu to display, so let the event bubble up.
+    if (invocations.length === 0) {
+      return true;
+    }
+
+    this.setupContextMenu(ActionContextMenu, invocations,
+                          real.classList.contains("_readonly"), ev);
+    return false;
+  }
+
+  /**
+   * Context menu handler for the start labels of PIs decorated by
+   * [[Decorator.piDecorator]].
+   *
+   * @param wedEv The DOM event that wed generated to trigger this handler.
+   *
+   * @param ev The DOM event that wed received.
+   *
+   * @returns To be interpreted the same way as for all DOM event handlers.
+   */
+  commentStartLabelContextMenuHandler(wedEv: JQuery.TriggeredEvent,
+                                      ev: JQuery.MouseEventBase): boolean {
+    return this.commentLabelContextMenuHandler(true, wedEv, ev);
+  }
+
+  /**
+   * Context menu handler for the end labels of PIs decorated by
+   * [[Decorator.piDecorator]].
+   *
+   * @param wedEv The DOM event that wed generated to trigger this handler.
+   *
+   * @param ev The DOM event that wed received.
+   *
+   * @returns To be interpreted the same way as for all DOM event handlers.
+   */
+  commentEndLabelContextMenuHandler(wedEv: JQuery.TriggeredEvent,
+                                    ev: JQuery.MouseEventBase): boolean {
+    return this.commentLabelContextMenuHandler(false, wedEv, ev);
+  }
+
+  /**
+   * Context menu handler for the labels of PIs decorated by
+   * [[Decorator.piDecorator]].
+   *
+   * @param atStart Whether or not this event is for the start label.
+   *
+   * @param wedEv The DOM event that wed generated to trigger this handler.
+   *
+   * @param ev The DOM event that wed received.
+   *
+   * @returns To be interpreted the same way as for all DOM event handlers.
+   */
+  private commentLabelContextMenuHandler(_atStart: boolean,
+                                         wedEv: JQuery.TriggeredEvent,
+                                         ev: JQuery.MouseEventBase): boolean {
+    const editor = this.editor;
+    const guiNode = wedEv.target;
+    const invocations: UnspecifiedActionInvocation[] = [];
+    const mode = editor.modeTree.getMode(guiNode);
+
+    function pushInvocations(transformationType: string[] | string,
+                             name: string | undefined, node: Node,
+                             offset?: number): void {
+      const data = { name, node };
+      for (const tr of mode.getContextualActions(transformationType,
+                                                 name !== undefined ? name : "",
+                                                 node, offset)) {
+        invocations.push(new ActionInvocation(tr, data));
+      }
+    }
+
+    const real = closestByClass(guiNode, "_real", editor.guiRoot);
+    if (real === null) {
+      throw new Error("cannot find real parent");
+    }
+
+    const comment = editor.toDataNode(real)! as Comment;
+
+    pushInvocations("delete-comment", undefined, comment, 0);
+
+    // There's no menu to display, so let the event bubble up.
+    if (invocations.length === 0) {
+      return true;
+    }
+
+    this.setupContextMenu(ActionContextMenu, invocations,
+                          real.classList.contains("_readonly"), ev);
+    return false;
+  }
+
+  /**
    * This is the default menu handler called when the user right-clicks in the
    * contents of a document or uses the keyboard shortcut.
    *
@@ -250,10 +433,20 @@ export class EditingMenuManager {
     if (!isElement(guiCaret.node)) {
       guiCaret = guiCaret.getLocationInParent();
     }
-    const menuItems = this.getMenuItemsForElementContent(
-      guiCaret.node as HTMLElement,
-      guiCaret.offset,
-      !sel.collapsed);
+    let menuItems: UnspecifiedActionInvocation[] = [];
+    if (isDocument(caret.node) || isElement(caret.node) || isText(caret.node)) {
+      menuItems =
+        this.getMenuItemsForElementContent(guiCaret.node as HTMLElement,
+                                           guiCaret.offset,
+                                           !sel.collapsed);
+    }
+    else if (isPI(caret.node)) {
+      menuItems = this.getMenuItemsForPIContent(guiCaret.node as HTMLElement);
+    }
+    else if (isComment(caret.node)) {
+      menuItems =
+        this.getMenuItemsForCommentContent(guiCaret.node as HTMLElement);
+    }
 
     // There's no menu to display, so let the event bubble up.
     if (menuItems.length === 0) {
@@ -395,10 +588,15 @@ export class EditingMenuManager {
       // either. However, it could be a Document, which happens if the edited
       // document is empty.
       const dataNode = treeCaret.node as Element;
-      const tagName = dataNode.tagName;
       const mode = this.modeTree.getMode(dataNode);
-
       menuItems.push(...this.makeCommonItems(dataNode));
+
+      for (const action of mode.getContextualActions(["insert-comment",
+                                                      "insert-pi"],
+                                                     "", treeCaret.node,
+                                                     treeCaret.offset)) {
+        menuItems.push(new ActionInvocation(action, null));
+      }
 
       const trs = this.getElementTransformationsAt(treeCaret,
                                                    wrap ? "wrap" : "insert");
@@ -410,6 +608,7 @@ export class EditingMenuManager {
       }
 
       if (dataNode !== this.dataRoot.firstChild && dataNode !== this.dataRoot) {
+        const { tagName } = dataNode;
         const actions = mode.getContextualActions(
           ["unwrap", "delete-parent", "split"], tagName, dataNode, 0);
         for (const action of actions) {
@@ -440,6 +639,58 @@ export class EditingMenuManager {
           new ActionInvocation(action,
                                { node: transformationNode, name: sepFor }));
       }
+    }
+
+    return menuItems;
+  }
+
+  private getMenuItemsForPIContent(real: HTMLElement):
+  UnspecifiedActionInvocation[] {
+    const { caretManager } = this;
+    // tslint:disable-next-line:no-any
+    const menuItems: UnspecifiedActionInvocation[] = [];
+
+    const treeCaret = caretManager.toDataLocation(real, 0);
+    if (treeCaret === undefined) {
+      throw new Error("cannot find tree caret");
+    }
+
+    const dataNode = treeCaret.node;
+    menuItems.push(...this.makeCommonItems(dataNode));
+
+    const mode = this.modeTree.getMode(dataNode);
+
+    for (const action of mode.getContextualActions(["delete-pi"], "",
+                                                   dataNode, 0)) {
+      menuItems.push(new ActionInvocation(action, {
+        node: dataNode,
+      }));
+    }
+
+    return menuItems;
+  }
+
+  private getMenuItemsForCommentContent(real: HTMLElement):
+  UnspecifiedActionInvocation[] {
+    const { caretManager } = this;
+    // tslint:disable-next-line:no-any
+    const menuItems: UnspecifiedActionInvocation[] = [];
+
+    const treeCaret = caretManager.toDataLocation(real, 0);
+    if (treeCaret === undefined) {
+      throw new Error("cannot find tree caret");
+    }
+
+    const dataNode = treeCaret.node;
+    menuItems.push(...this.makeCommonItems(dataNode));
+
+    const mode = this.modeTree.getMode(dataNode);
+
+    for (const action of mode.getContextualActions(["delete-comment"], "",
+                                                   dataNode, 0)) {
+      menuItems.push(new ActionInvocation(action, {
+        node: dataNode,
+      }));
     }
 
     return menuItems;

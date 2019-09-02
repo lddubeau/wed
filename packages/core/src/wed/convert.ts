@@ -13,6 +13,9 @@ const XML1_NAMESPACE: string = "http://www.w3.org/XML/1998/namespace";
 // tslint:disable-next-line: no-http-string
 const XMLNS_NAMESPACE: string = "http://www.w3.org/2000/xmlns/";
 
+export const REAL_CLASS = "_real";
+export const REAL_SELECTOR = `.${REAL_CLASS}`;
+
 function normalizeNS(ns: string | null): string {
   if (ns === null) {
     ns = "";
@@ -440,6 +443,45 @@ export function sanitizeXML(node: Node): void {
   // adjacent to Text and converted to Text are merged with the adjacent Text,
   // or removed if they were empty.
   node.normalize();
+}
+
+/**
+ * Determine whether an element in the GUI tree actually is the mirror node of a
+ * real XML element in the data tree.
+ *
+ * @param element The element to test.
+ *
+ * @returns A boolean indicating whether ``element`` is the mirror node an
+ * actual XML element.
+ */
+export function isRealElement(element: Element): boolean {
+  return element.matches("._real._el");
+}
+
+/**
+ * Determine whether an element in the GUI tree actually is the mirror node of
+ * an XML processing instruction in the data tree.
+ *
+ * @param element The element to test.
+ *
+ * @returns A boolean indicating whether ``element`` is the mirror node an
+ * actual XML processing instruction.
+ */
+export function isRealPI(element: Element): boolean {
+  return element.matches("._real._pi");
+}
+
+/**
+ * Determine whether an element in the GUI tree actually is the mirror node of
+ * an XML comment in the data tree.
+ *
+ * @param element The element to test.
+ *
+ * @returns A boolean indicating whether ``element`` is the mirror node an
+ * actual XML comment.
+ */
+export function isRealComment(element: Element): boolean {
+  return element.matches("._real._comment");
 }
 
 //  LocalWords:  MPL subtree tagName localName xmlns normalizeNS namespaceURI

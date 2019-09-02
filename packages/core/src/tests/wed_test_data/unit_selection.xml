@@ -18,6 +18,10 @@
       <p rend="abc">Blah</p>
       <div sample="">
       </div>
+      <?pi fnord?>
+      <!-- a comment -->
+      <?pi something?>
+      <!-- comment content -->
     </body>
   </text>
 </TEI>

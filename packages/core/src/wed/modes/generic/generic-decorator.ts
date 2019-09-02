@@ -4,9 +4,14 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import { Decorator, domtypeguards, EditorAPI, Mode, util } from "wed";
+import { convert, Decorator, domtypeguards, EditorAPI, Mode } from "wed";
 
-const { isElement, isText } = domtypeguards;
+import isElement = domtypeguards.isElement;
+import isText = domtypeguards.isText;
+// tslint:disable-next-line:import-name
+import REAL_SELECTOR = convert.REAL_SELECTOR;
+import isRealComment = convert.isRealComment;
+import isRealPI = convert.isRealPI;
 
 import { Metadata } from "./metadata";
 
@@ -36,64 +41,92 @@ export class GenericDecorator extends Decorator {
   addHandlers(): void {
     this.domlistener.addHandler(
       "included-element",
-      util.classFromOriginalName("*", {}),
-      ({ root, element: el }) => {
-        // Skip elements which would already have been removed from the
-        // tree. Unlikely but...
-        if (!root.contains(el)) {
-          return;
-        }
-
-        this.elementDecorator(root as Element, el);
-
-        const klass = this.getAdditionalClasses(el);
-        if (klass.length > 0) {
-          el.className += ` ${klass}`;
-        }
+      REAL_SELECTOR,
+      ({ root, element }) => {
+        this.decorateGUIElement(root as Element, element);
       });
 
     const redecorate = (root: Element, child: Node, parent: Element) => {
         if (isText(child) || (isElement(child) &&
                               (child.classList.contains("_real") ||
                                child.classList.contains("_phantom_wrap")))) {
-          this.elementDecorator(root, parent);
+          this.decorateGUIElement(root, parent);
         }
     };
 
     this.domlistener.addHandler(
       "added-child",
-      util.classFromOriginalName("*", {}),
+      REAL_SELECTOR,
       ({ root, child }) => {
         redecorate(root as Element, child, child.parentNode as Element);
       });
 
     this.domlistener.addHandler(
       "removed-child",
-      util.classFromOriginalName("*", {}),
+      REAL_SELECTOR,
       ({ root, parent, child }) => {
         redecorate(root as Element, child, parent);
       });
 
     this.domlistener.addHandler("text-changed",
-                                util.classFromOriginalName("*", {}),
+                                REAL_SELECTOR,
                                 ({ root, node }) => {
-                                  this.elementDecorator(
+                                  this.decorateGUIElement(
                                     root as Element,
                                     node.parentNode! as Element);
                                 });
 
     this.domlistener.addHandler("attribute-changed",
-                                util.classFromOriginalName("*", {}),
+                                REAL_SELECTOR,
                                 ({ root, element: el}) => {
-                                  this.elementDecorator(root as Element, el);
+                                  this.decorateGUIElement(root as Element, el);
                                 });
+  }
+
+  decorateGUIElement(root: Element, el: Element): void {
+    // Skip elements which would already have been removed from the
+    // tree. Unlikely but...
+    if (!root.contains(el)) {
+      return;
+    }
+
+    if (isRealPI(el)) {
+      this.piDecorator(root, el);
+    }
+    else if (isRealComment(el)) {
+      this.commentDecorator(root, el);
+    }
+    else {
+      this.elementDecorator(root, el);
+
+      const klass = this.getAdditionalClasses(el);
+      if (klass.length > 0) {
+        el.className += ` ${klass}`;
+      }
+    }
   }
 
   elementDecorator(root: Element, el: Element): void {
     const { editor: { editingMenuManager } } = this;
-    super.elementDecorator(root, el, 1,
-                           editingMenuManager.boundStartLabelContextMenuHandler,
-                           editingMenuManager.boundEndLabelContextMenuHandler);
+    super.elementDecorator(
+      root, el, 1,
+      editingMenuManager.boundElementStartLabelContextMenuHandler,
+      editingMenuManager.boundElementEndLabelContextMenuHandler);
+  }
+
+  piDecorator(root: Element, el: Element): void {
+    const { editor: { editingMenuManager } } = this;
+    super.piDecorator(root, el,
+                      editingMenuManager.boundPIStartLabelContextMenuHandler,
+                      editingMenuManager.boundPIEndLabelContextMenuHandler);
+  }
+
+  commentDecorator(root: Element, el: Element): void {
+    const { editor: { editingMenuManager } } = this;
+    super.commentDecorator(
+      root, el,
+      editingMenuManager.boundCommentStartLabelContextMenuHandler,
+      editingMenuManager.boundCommentEndLabelContextMenuHandler);
   }
 
   /**

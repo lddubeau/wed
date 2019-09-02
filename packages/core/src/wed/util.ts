@@ -129,7 +129,7 @@ export function classFromOriginalName(name: string,
 string {
   // Special case if we want to match all
   if (name === "*") {
-    return "._real";
+    return "._real._el";
   }
 
   let [prefix, localName] = name.split(":");
@@ -147,7 +147,7 @@ string {
   // We do not output `.${escapeCSSClass(name)}` because that's redundant for a
   // search.
   return `._local_${escapeCSSClass(localName)}\
-._xmlns_${escapeCSSClass(ns)}._real`;
+._xmlns_${escapeCSSClass(ns)}._real._el`;
 }
 
 let nextID = 0;

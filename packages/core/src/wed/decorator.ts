@@ -7,6 +7,7 @@
 
 import $ from "jquery";
 
+import { isRealElement} from "./convert";
 import { DLoc } from "./dloc";
 import { DOMListener } from "./domlistener";
 import { isAttr } from "./domtypeguards";
@@ -120,7 +121,7 @@ export abstract class Decorator implements DecoratorAPI {
     let first = true;
     child = el.firstElementChild;
     while (child !== null) {
-      if (child.classList.contains("_real")) {
+      if (isRealElement(child)) {
         if (!first) {
           this.guiUpdater.insertBefore(el, sepNode.cloneNode(true) as Element,
                                        child);
@@ -131,6 +132,41 @@ export abstract class Decorator implements DecoratorAPI {
       }
       child = child.nextElementSibling;
     }
+  }
+
+  makeStartLabel(doc: Document, cls: string,
+                 contextMenuHandler: ContextMenuHandler | undefined,
+                 html: string): HTMLElement {
+    const label = doc.createElement("span");
+    label.className =
+      `_gui _phantom __start_label _start_wrapper ${cls} _label`;
+    const inner = doc.createElement("span");
+    inner.className = "_phantom";
+    // tslint:disable-next-line:no-inner-html
+    inner.innerHTML = html;
+    label.appendChild(inner);
+
+    $(label).on("wed-context-menu",
+                contextMenuHandler !== undefined ? contextMenuHandler : false);
+
+    return label;
+  }
+
+  makeEndLabel(doc: Document, cls: string,
+               contextMenuHandler: ContextMenuHandler | undefined,
+               html: string): HTMLElement {
+    const label = doc.createElement("span");
+    label.className = `_gui _phantom __end_label _end_wrapper ${cls} _label`;
+    const inner = doc.createElement("span");
+    inner.className = "_phantom";
+    // tslint:disable-next-line:no-inner-html
+    inner.innerHTML = html;
+    label.appendChild(inner);
+
+    $(label).on("wed-context-menu",
+                contextMenuHandler !== undefined ? contextMenuHandler : false);
+
+    return label;
   }
 
   // tslint:disable-next-line:max-func-body-length
@@ -183,6 +219,7 @@ export abstract class Decorator implements DecoratorAPI {
       el.removeChild(remove);
     }
 
+    cls += " __el_label";
     let attributesHTML = "";
     let hiddenAttributes = false;
     const attributeHandling = this.editor.modeTree.getAttributeHandling(el);
@@ -216,37 +253,105 @@ ${domutil.textToHTML(attributes.getNamedItem(name)!.value)}</span>"</span>`;
     if (hiddenAttributes) {
       cls += " _autohidden_attributes";
     }
-    const pre = doc.createElement("span");
-    pre.className = `_gui _phantom __start_label _start_wrapper ${cls} _label`;
-    const prePh = doc.createElement("span");
-    prePh.className = "_phantom";
-    // tslint:disable-next-line:no-inner-html
-    prePh.innerHTML = `&nbsp;<span class='_phantom _element_name'>${origName}\
-</span>${attributesHTML}<span class='_phantom _greater_than'> >&nbsp;</span>`;
-    pre.appendChild(prePh);
+
+    const pre = this.makeStartLabel(doc, cls, preContextHandler, `\
+&nbsp;<span class='_phantom _element_name'>${origName}\
+</span>${attributesHTML}<span class='_phantom _greater_than'> >&nbsp;</span>`);
     this.guiUpdater.insertNodeAt(el, 0, pre);
 
-    const post = doc.createElement("span");
-    post.className = `_gui _phantom __end_label _end_wrapper ${endCls} _label`;
-    const postPh = doc.createElement("span");
-    postPh.className = "_phantom";
-    // tslint:disable-next-line:no-inner-html
-    postPh.innerHTML = `<span class='_phantom _less_than'>&nbsp;&lt; </span>\
-<span class='_phantom _element_name'>${origName}</span>&nbsp;`;
-    post.appendChild(postPh);
+    const post = this.makeEndLabel(doc, endCls, postContextHandler, `\
+<span class='_phantom _less_than'>&nbsp;&lt; </span>\
+<span class='_phantom _element_name'>${origName}</span>&nbsp;`);
     this.guiUpdater.insertBefore(el, post, null);
-
-    // Setup a handler so that clicking one label highlights it and the other
-    // label.
-    $(pre).on("wed-context-menu",
-              preContextHandler !== undefined ? preContextHandler : false);
-
-    $(post).on("wed-context-menu",
-               postContextHandler !== undefined ? postContextHandler : false);
 
     if (dataCaret != null) {
       tryToSetDataCaret(this.editor, dataCaret);
     }
+  }
+
+  piDecorator(_root: Element, pi: Element,
+              preContextHandler: ContextMenuHandler | undefined,
+              postContextHandler: ContextMenuHandler | undefined): void {
+    if (this.editor.modeTree.getMode(pi) !== this.mode) {
+      // The element is not governed by this mode.
+      return;
+    }
+
+    const dataNode = domutil.mustGetMirror(pi) as ProcessingInstruction;
+    const origName = dataNode.target;
+    // _[name]_label is used locally to make the function idempotent.
+    const nameCls = `_${origName}_label`;
+
+    // We must grab a list of nodes to remove before we start removing them
+    // because an element that has a placeholder in it is going to lose the
+    // placeholder while we are modifying it. This could throw off the scan.
+    const toRemove = domutil.childrenByClass(pi, nameCls);
+    for (const remove of toRemove) {
+      //
+      // This is really a workaround for a problem with how the decorator
+      // works. We should use this.guiUpdater.removeChild. However, when this
+      // removal merges text nodes, it causes elementDecorator to be reentered
+      // and this causes problems.
+      //
+      // The decoration code should be revamped to listen on the data tree
+      // rather than listen on the GUI tree.
+      //
+      // Listening on the GUI tree may be desirable sometimes but it should not
+      // be the default wed behavior.
+      //
+      pi.removeChild(remove);
+    }
+
+    const doc = pi.ownerDocument!;
+
+    const cls = `__pi_label ${nameCls}`;
+    const pre = this.makeStartLabel(doc, cls, preContextHandler, `\
+&nbsp;<span class='_phantom _amp'> &lt;&amp;&nbsp;</span>\
+<span class='_phantom _pi_name'>${origName}</span>`);
+    this.guiUpdater.insertNodeAt(pi, 0, pre);
+
+    const post = this.makeEndLabel(doc, cls, postContextHandler, `\
+<span class='_phantom _amp'>&nbsp;&amp;> </span>\
+<span class='_phantom _element_name'>${origName}</span>&nbsp;`);
+    this.guiUpdater.insertBefore(pi, post, null);
+  }
+
+  commentDecorator(_root: Element, comment: Element,
+                   preContextHandler: ContextMenuHandler | undefined,
+                   postContextHandler: ContextMenuHandler | undefined): void {
+    if (this.editor.modeTree.getMode(comment) !== this.mode) {
+      // The element is not governed by this mode.
+      return;
+    }
+
+    // We must grab a list of nodes to remove before we start removing them
+    // because an element that has a placeholder in it is going to lose the
+    // placeholder while we are modifying it. This could throw off the scan.
+    const toRemove = domutil.childrenByClass(comment, "_label");
+    for (const remove of toRemove) {
+      //
+      // This is really a workaround for a problem with how the decorator
+      // works. We should use this.guiUpdater.removeChild. However, when this
+      // removal merges text nodes, it causes elementDecorator to be reentered
+      // and this causes problems.
+      //
+      // The decoration code should be revamped to listen on the data tree
+      // rather than listen on the GUI tree.
+      //
+      // Listening on the GUI tree may be desirable sometimes but it should not
+      // be the default wed behavior.
+      //
+      comment.removeChild(remove);
+    }
+
+    const doc = comment.ownerDocument!;
+
+    const cls = "__comment_label";
+    const pre = this.makeStartLabel(doc, cls, preContextHandler, "--");
+    this.guiUpdater.insertNodeAt(comment, 0, pre);
+
+    const post = this.makeEndLabel(doc, cls, postContextHandler, "--");
+    this.guiUpdater.insertBefore(comment, post, null);
   }
 
   /**

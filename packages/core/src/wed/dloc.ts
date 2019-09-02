@@ -6,8 +6,8 @@
  */
 import $ from "jquery";
 import { isAttr, isDocument, isElement } from "./domtypeguards";
-import { Caret, comparePositions, contains, indexOf, rangeFromPoints,
-         RangeInfo } from "./domutil";
+import { Caret, comparePositions, contains, getNodeLength, indexOf,
+         rangeFromPoints, RangeInfo } from "./domutil";
 
 export type ValidRoots = Document | Element;
 
@@ -118,26 +118,6 @@ attribute`);
     }
 
     return parent.getAttributeNode(attribute.slice(1));
-  }
-}
-
-function getTestLength(node: Node | Attr): number {
-  if (isAttr(node)) {
-    return node.value.length;
-  }
-
-  switch (node.nodeType) {
-    case Node.TEXT_NODE:
-    case Node.CDATA_SECTION_NODE:
-    case Node.COMMENT_NODE:
-    case Node.PROCESSING_INSTRUCTION_NODE:
-      return (node as Text).length;
-    case Node.DOCUMENT_NODE:
-    case Node.DOCUMENT_FRAGMENT_NODE:
-    case Node.ELEMENT_NODE:
-      return node.childNodes.length;
-    default:
-      throw new Error(`unexpected node type: ${node.nodeType}`);
   }
 }
 
@@ -268,7 +248,7 @@ export class DLoc {
       throw new Error("node not in root");
     }
 
-    const testLength = getTestLength(node);
+    const testLength = getNodeLength(node);
     if (offset > testLength) {
       if (normalize) {
         offset = testLength;
@@ -476,7 +456,7 @@ export class DLoc {
     // We do not check that offset is greater than 0 as this would be
     // done while constructing the object.
     return this.root.contains(isAttr(node) ? node.ownerElement! : node) &&
-      this.offset <= getTestLength(node);
+      this.offset <= getNodeLength(node);
   }
 
   /**
@@ -490,7 +470,7 @@ export class DLoc {
   normalizeOffset(): DLoc {
     const node = this.node;
 
-    const testLength = getTestLength(node);
+    const testLength = getNodeLength(node);
     if (this.offset > testLength) {
       return this.make(node, testLength);
     }

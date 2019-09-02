@@ -9,15 +9,15 @@ import mergeOptions from "merge-options";
 import { EName, ValidationError } from "salve";
 import { ErrorData } from "salve-dom";
 
-import { action, Decorator, domutil, EditorAPI, gui, GUISelector,
+import { action as action_, Decorator, domutil, EditorAPI, gui, GUISelector,
          inputTriggerFactory, key, keyConstants, ModeValidator, objectCheck,
          transformation, WED_ORIGIN } from "wed";
 import { GenericModeOptions,
          Mode as GenericMode } from "wed/modes/generic/generic";
 import { GenericDecorator } from "wed/modes/generic/generic-decorator";
 
-import Action = action.Action;
-import UnspecifiedAction = action.UnspecifiedAction;
+import Action = action_.Action;
+import UnspecifiedAction = action_.UnspecifiedAction;
 import Template = objectCheck.Template;
 import Button = gui.button.Button;
 import ContextMenu = gui.contextMenu.ContextMenu;
@@ -120,8 +120,8 @@ export class TestDecorator extends GenericDecorator {
       // There's no super.super syntax we can use here.
       Decorator.prototype.elementDecorator.call(
         this, root, el, level,
-        editingMenuManager.boundStartLabelContextMenuHandler,
-        editingMenuManager.boundEndLabelContextMenuHandler);
+        editingMenuManager.boundElementStartLabelContextMenuHandler,
+        editingMenuManager.boundElementEndLabelContextMenuHandler);
     }
 
     if (isRef) {
@@ -364,7 +364,7 @@ class PromptAction extends Action<{}> {
     }).then(result => {
       return this.editor.prompt({
         title: "You said",
-        defaultValue: result,
+        value: result === null ? "nothing" : result,
       });
     });
   }

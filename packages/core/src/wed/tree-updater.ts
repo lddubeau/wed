@@ -81,10 +81,11 @@ export type TreeUpdaterEvents = ChangedEvent | BeforeInsertNodeAtEvent |
   InsertNodeAtEvent | SetTextNodeValueEvent | BeforeDeleteNodeEvent |
   DeleteNodeEvent | SetAttributeNSEvent | SetCommentValueEvent | SetPIBodyEvent;
 
-export type InsertableAtom = string | Element | Text | DocumentFragment;
+export type InsertableAtom = string | Element | Text | ProcessingInstruction
+  | Comment | DocumentFragment;
 export type Insertable = InsertableAtom | InsertableAtom[] | NodeList;
 
-export type SplitResult = [Node | null, Node | null];
+export type SplitResult = [Node, Node];
 
 /**
  * Records the results of inserting text into the tree.
@@ -233,7 +234,8 @@ export class TreeUpdater {
         throw new Error(`unexpected node type: ${parent.nodeType}`);
       }
     }
-    else if (isElement(what) || isDocumentFragment(what)) {
+    else if (isComment(what) || isPI(what) || isElement(what) ||
+             isDocumentFragment(what)) {
       switch (parent.nodeType) {
       case Node.TEXT_NODE:
         this.insertIntoText(parent as Text, index, what);
@@ -296,26 +298,21 @@ export class TreeUpdater {
       throw new Error("split location is not inside top");
     }
 
-    const clonedTop = top.cloneNode(true);
-    const clonedNode = domutil.correspondingNode(top, clonedTop, node);
-
-    const pair = this._splitAt(clonedTop, clonedNode, index);
-    const [ first, second ] = pair;
-
     const parent = top.parentNode;
     if (parent === null) {
       throw new Error("called with detached top");
     }
+
+    const clonedTop = top.cloneNode(true);
+    const clonedNode = domutil.correspondingNode(top, clonedTop, node);
+
+    index = domutil.normalizeOffset(index, node);
+
+    const pair = this._splitAt(clonedTop, clonedNode, index);
     const at = indexOf(parent.childNodes, top);
     this.deleteNode(top);
-
-    if (first !== null) {
-      this.insertNodeAt(parent, at, first);
-    }
-
-    if (second !== null) {
-      this.insertNodeAt(parent, at + 1, second);
-    }
+    this.insertNodeAt(parent, at, pair[0]);
+    this.insertNodeAt(parent, at + 1, pair[1]);
     return pair;
   }
 
@@ -337,40 +334,20 @@ export class TreeUpdater {
     // from the DOM tree.
     const stop = node === top;
 
-    const parent = node.parentNode;
+    let clone: Node | undefined;
     if (isText(node)) {
-      if (index === 0) {
-        if (stop) {
-          return [null, node];
-        }
+      if (stop) {
+        // We cannot get here because we check in splitAt that the node to be
+        // split and the top node are not the same and a text node.
+        throw new Error("we cannot stop at a text node");
       }
-      else if (index === node.length) {
-        if (stop) {
-          return [node, null];
-        }
-      }
-      else {
-        const textAfter = node.data.slice(index);
+      if (index !== 0 && index !== node.length) {
+        clone = node.ownerDocument!.createTextNode(node.data.slice(index));
         node.deleteData(index, node.length - index);
-        if (parent !== null) {
-          parent.insertBefore(parent.ownerDocument!.createTextNode(textAfter),
-                              node.nextSibling);
-        }
-
-        if (stop) {
-          return [node, node.nextSibling];
-        }
       }
     }
     else if (isElement(node)) {
-      if (index < 0) {
-        index = 0;
-      }
-      else if (index > node.childNodes.length) {
-        index = node.childNodes.length;
-      }
-
-      const clone = node.cloneNode(true);
+      clone = node.cloneNode(true);
       // Remove all nodes at index and after.
       while (node.childNodes[index] !== undefined) {
         node.removeChild(node.childNodes[index]);
@@ -380,7 +357,18 @@ export class TreeUpdater {
       while (index-- !== 0) {
         clone.removeChild(clone.firstChild!);
       }
+    }
+    else if (isPI(node) || isComment(node)) {
+      clone = node.cloneNode(true);
+      (clone as CharacterData).data = node.data.slice(index);
+      node.deleteData(index, node.length - index);
+    }
+    else {
+      throw new Error(`unexpected node type: ${node.nodeType}`);
+    }
 
+    const parent = node.parentNode;
+    if (clone !== undefined) {
       if (parent !== null) {
         parent.insertBefore(clone, node.nextSibling);
       }
@@ -388,9 +376,6 @@ export class TreeUpdater {
       if (stop) {
         return [node, clone];
       }
-    }
-    else {
-      throw new Error(`unexpected node type: ${node.nodeType}`);
     }
 
     if (parent === null) {
@@ -413,7 +398,7 @@ export class TreeUpdater {
    *
    * @throws {Error} If ``beforeThis`` is not a child of ``parent``.
    */
-  insertBefore(parent: Element, toInsert: Element | Text,
+  insertBefore(parent: Element, toInsert: Insertable,
                beforeThis: Node | null): void {
     // Convert it to an insertAt operation.
     const index = beforeThis == null ? parent.childNodes.length :

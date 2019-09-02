@@ -78,6 +78,7 @@ export { WED_ORIGIN } from "@wedxml/common";
 import * as actionContextMenu_ from "./wed/gui/action-context-menu";
 import * as button_ from "./wed/gui/button";
 import * as contextMenu_ from "./wed/gui/context-menu";
+import * as icon_ from "./wed/gui/icon";
 import * as modal_ from "./wed/gui/modal";
 import * as tooltip_ from "./wed/gui/tooltip";
 import * as typeaheadPopup_ from "./wed/gui/typeahead-popup";
@@ -86,6 +87,7 @@ export namespace gui {
   export import actionContextMenu = actionContextMenu_;
   export import button = button_;
   export import contextMenu = contextMenu_;
+  export import icon = icon_;
   export import modal = modal_;
   export import tooltip = tooltip_;
   export import typeaheadPopup = typeaheadPopup_;

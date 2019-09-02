@@ -14,7 +14,7 @@ import * as globalConfig from "../base-config";
 import { caretCheck, dataPath, EditorSetup,
          getAttributeValuesFor } from "../wed-test-util";
 
-const assert = chai.assert;
+const { assert, expect } = chai;
 
 describe("wed typing:", () => {
   let setup: EditorSetup;
@@ -23,20 +23,28 @@ describe("wed typing:", () => {
   let ps: NodeListOf<Element>;
   let guiRoot: Element;
   let titles: HTMLCollectionOf<Element>;
+  let comment: Comment;
+  let pi: ProcessingInstruction;
 
-  before(() => {
+  before(async () => {
     setup = new EditorSetup(`${dataPath}/wed_test_data/source_converted.xml`,
                             globalConfig.config,
                             document);
     ({ editor } = setup);
-    return setup.init().then(() => {
-      // tslint:disable-next-line:no-any
-      (editor.validator as any)._validateUpTo(editor.dataRoot, -1);
-      caretManager = editor.caretManager;
-      guiRoot = editor.guiRoot;
-      ps = guiRoot.querySelectorAll(".body .p");
-      titles = guiRoot.getElementsByClassName("title");
-    });
+    await setup.init();
+
+    // tslint:disable-next-line:no-any
+    (editor.validator as any)._validateUpTo(editor.dataRoot, -1);
+    caretManager = editor.caretManager;
+    guiRoot = editor.guiRoot;
+    ps = guiRoot.querySelectorAll(".body .p");
+    titles = guiRoot.getElementsByClassName("title");
+    const body = editor.dataRoot.querySelector("body")!;
+    comment = body.lastChild as Comment;
+    expect(comment).to.have.property("nodeType").equal(Node.COMMENT_NODE);
+    pi = comment.previousSibling as ProcessingInstruction;
+    expect(pi).to.have.property("nodeType")
+      .equal(Node.PROCESSING_INSTRUCTION_NODE);
   });
 
   afterEach(() => {
@@ -184,6 +192,109 @@ describe("wed typing:", () => {
     // Check that the data is also modified
     const dataNode = editor.toDataNode(initial) as Attr;
     assert.equal(dataNode.value, "blahrend_value");
+  });
+
+  it("typing text in a comment inserts text", () => {
+    caretManager.setCaret(comment, 0);
+    expect(comment).to.have.property("data").equal(" comment content ");
+    editor.type("blah");
+
+    expect(comment).to.have.property("data").equal("blah comment content ");
+    const guiLoc = caretManager.mustFromDataLocation(comment, 4);
+    caretCheck(editor, guiLoc.node, guiLoc.offset,
+               "caret after text insertion");
+  });
+
+  it("typing DELETE in a comment deletes text", () => {
+    caretManager.setCaret(comment, 0);
+    expect(comment).to.have.property("data").equal(" comment content ");
+    editor.type(keyConstants.DELETE);
+
+    expect(comment).to.have.property("data").equal("comment content ");
+    const guiLoc = caretManager.mustFromDataLocation(comment, 0);
+    caretCheck(editor, guiLoc.node, guiLoc.offset, "caret after text deletion");
+  });
+
+  it("typing DELETE at end of comment is a no-op", () => {
+    caretManager.setCaret(comment, comment.data.length);
+    expect(comment).to.have.property("data").equal(" comment content ");
+    editor.type(keyConstants.DELETE);
+
+    expect(comment).to.have.property("data").equal(" comment content ");
+    const guiLoc = caretManager.mustFromDataLocation(comment,
+                                                     comment.data.length);
+    caretCheck(editor, guiLoc.node, guiLoc.offset, "caret after text deletion");
+  });
+
+  it("typing BACKSPACE in a comment deletes text", () => {
+    caretManager.setCaret(comment, 4);
+    expect(comment).to.have.property("data").equal(" comment content ");
+    editor.type(keyConstants.BACKSPACE);
+
+    expect(comment).to.have.property("data").equal(" coment content ");
+    const guiLoc = caretManager.mustFromDataLocation(comment, 3);
+    caretCheck(editor, guiLoc.node, guiLoc.offset, "caret after text deletion");
+  });
+
+  it("typing BACKSPACE at the start of a comment is a no-op", () => {
+    caretManager.setCaret(comment, 0);
+    expect(comment).to.have.property("data").equal(" comment content ");
+    editor.type(keyConstants.BACKSPACE);
+
+    expect(comment).to.have.property("data").equal(" comment content ");
+    const guiLoc = caretManager.mustFromDataLocation(comment, 0);
+    caretCheck(editor, guiLoc.node, guiLoc.offset, "caret after text deletion");
+  });
+
+  it("typing text in a PI inserts text", () => {
+    caretManager.setCaret(pi, 0);
+    expect(pi).to.have.property("data").equal("something");
+    editor.type("blah");
+
+    expect(pi).to.have.property("data").equal("blahsomething");
+    const guiLoc = caretManager.mustFromDataLocation(pi, 4);
+    caretCheck(editor, guiLoc.node, guiLoc.offset,
+               "caret after text insertion");
+  });
+
+  it("typing DELETE in a pi deletes text", () => {
+    caretManager.setCaret(pi, 0);
+    expect(pi).to.have.property("data").equal("something");
+    editor.type(keyConstants.DELETE);
+
+    expect(pi).to.have.property("data").equal("omething");
+    const guiLoc = caretManager.mustFromDataLocation(pi, 0);
+    caretCheck(editor, guiLoc.node, guiLoc.offset, "caret after text deletion");
+  });
+
+  it("typing DELETE at end of pi is a no-op", () => {
+    caretManager.setCaret(pi, pi.data.length);
+    expect(pi).to.have.property("data").equal("something");
+    editor.type(keyConstants.DELETE);
+
+    expect(pi).to.have.property("data").equal("something");
+    const guiLoc = caretManager.mustFromDataLocation(pi, pi.data.length);
+    caretCheck(editor, guiLoc.node, guiLoc.offset, "caret after text deletion");
+  });
+
+  it("typing BACKSPACE in a pi deletes text", () => {
+    caretManager.setCaret(pi, 4);
+    expect(pi).to.have.property("data").equal("something");
+    editor.type(keyConstants.BACKSPACE);
+
+    expect(pi).to.have.property("data").equal("somthing");
+    const guiLoc = caretManager.mustFromDataLocation(pi, 3);
+    caretCheck(editor, guiLoc.node, guiLoc.offset, "caret after text deletion");
+  });
+
+  it("typing BACKSPACE at the start of a pi is a no-op", () => {
+    caretManager.setCaret(pi, 0);
+    expect(pi).to.have.property("data").equal("something");
+    editor.type(keyConstants.BACKSPACE);
+
+    expect(pi).to.have.property("data").equal("something");
+    const guiLoc = caretManager.mustFromDataLocation(pi, 0);
+    caretCheck(editor, guiLoc.node, guiLoc.offset, "caret after text deletion");
   });
 
   it("typing multiple spaces in an attribute normalizes the space", () => {

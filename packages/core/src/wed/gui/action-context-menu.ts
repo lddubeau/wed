@@ -25,6 +25,8 @@ const KIND_ORDER = (["other"] as ActionKind[]).concat(KINDS);
 
 const TYPES = ["element", "attribute", "other"];
 
+const NODE_TYPE_ORDER = ["other", "element", "attribute"];
+
 const plus = keyMod.makeKey("+");
 const minus = keyMod.makeKey("-");
 const period = keyMod.makeKey(".");
@@ -65,16 +67,25 @@ interface MadeItem {
   item: HTMLElement;
 }
 
-function compareItems(a: MadeItem, b: MadeItem): number {
-  const aKind = a.action.kind;
-  const bKind = b.action.kind;
+function compareItems({ action: aAction, item: aItem }: MadeItem,
+                      { action: bAction, item: bItem }: MadeItem): number {
+  const aNodeType = aAction.nodeType;
+  const bNodeType = bAction.nodeType;
+
+  if (aNodeType !== bNodeType) {
+    return NODE_TYPE_ORDER.indexOf(aNodeType) -
+      NODE_TYPE_ORDER.indexOf(bNodeType);
+  }
+
+  const aKind = aAction.kind;
+  const bKind = bAction.kind;
 
   if (aKind !== bKind) {
     return KIND_ORDER.indexOf(aKind) - KIND_ORDER.indexOf(bKind);
   }
 
-  const aText = a.item.textContent!;
-  const bText = b.item.textContent!;
+  const aText = aItem.textContent!;
+  const bText = bItem.textContent!;
   if (aText === bText) {
     return 0;
   }

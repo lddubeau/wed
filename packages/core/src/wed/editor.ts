@@ -27,10 +27,10 @@ import { Action } from "./action";
 import { CaretChange, CaretManager } from "./caret-manager";
 import * as caretMovement from "./caret-movement";
 import { Clipboard, containsClipboardAttributeCollection } from "./clipboard";
-import { sanitizeXML } from "./convert";
+import { isRealElement, sanitizeXML } from "./convert";
 import { DLoc, DLocRoot } from "./dloc";
 import * as domlistener from "./domlistener";
-import { isAttr, isElement, isText } from "./domtypeguards";
+import { isAttr, isComment, isElement, isPI, isText } from "./domtypeguards";
 import * as domutil from "./domutil";
 // tslint:disable-next-line:no-duplicate-imports
 import { closest, closestByClass, htmlToElements, indexOf } from "./domutil";
@@ -551,11 +551,10 @@ export class Editor implements EditorAPI {
         treatAsTextInput: true,
       });
     this.deleteCharTr = new Transformation<DeleteCharTransformationData>(
-      WED_ORIGIN, this, "delete", "Insert text", this._deleteChar.bind(this),
+      WED_ORIGIN, this, "delete", "Delete text", this._deleteChar.bind(this),
       {
         treatAsTextInput: true,
       });
-
     this.mergeWithPreviousHomogeneousSiblingTr =
       new Transformation(
         WED_ORIGIN, this, "merge-with-previous", "Merge <name> with previous",
@@ -935,7 +934,7 @@ export class Editor implements EditorAPI {
     this.closeAllTooltips();
 
     const { caretManager } = this;
-    const caret = caretManager.getDataCaret(true);
+    let caret = caretManager.getDataCaret(true);
     if (caret === undefined) {
       return;
     }
@@ -947,7 +946,11 @@ export class Editor implements EditorAPI {
     }
 
     let { text } = data;
-    if (!isAttr(dataNode)) {
+    if (isAttr(dataNode)) {
+      // Modifying an attribute...
+      this.spliceAttribute(caret, 0, text);
+    }
+    else if (isElement(dataNode) || isText(dataNode)) {
       text = this.compensateForAdjacentSpaces(text, caret);
       if (text === "") {
         return;
@@ -956,9 +959,10 @@ export class Editor implements EditorAPI {
       const { caret: newCaret } = this.dataUpdater.insertText(caret, text);
       caretManager.setCaret(newCaret, { textEdit: true });
     }
-    else {
-      // Modifying an attribute...
-      this.spliceAttribute(caret, 0, text);
+    else if (isPI(dataNode) || isComment(dataNode)) {
+      caret = caretManager.getDataCaret()!;
+      this.spliceCharacterData(caret.node as CharacterData, caret.offset, 0,
+                               text);
     }
   }
 
@@ -978,38 +982,63 @@ export class Editor implements EditorAPI {
                       data: DeleteCharTransformationData): void {
     const { key } = data;
     const { caretManager } = this;
-    let caret = caretManager.getDataCaret()!;
+    let { node, offset } = caretManager.getDataCaret()!;
+    if (isPI(node) || isComment(node)) {
+      switch (key) {
+        case keyConstants.BACKSPACE:
+          if (offset === 0) {
+            return;
+          }
+
+          this.spliceCharacterData(node as CharacterData, offset - 1, 1, "");
+          break;
+        case keyConstants.DELETE:
+          if (offset >= node.length) {
+            return;
+          }
+
+          this.spliceCharacterData(node as CharacterData, offset, 1, "");
+          break;
+        default:
+          throw new Error(`cannot handle deleting with key ${key}`);
+      }
+
+      return;
+    }
+
     switch (key) {
       case keyConstants.BACKSPACE: {
         // If the container is not a text node, we may still be just behind a
         // text node from which we can delete. Handle this.
-        if (!isText(caret.node)) {
-          const last = caret.node.childNodes[caret.offset - 1];
-          // tslint:disable-next-line:no-any
-          const length: number | undefined = (last as any).length;
-          caret = caret.make(last, length);
+        if (!isText(node)) {
+          const last = node.childNodes[offset - 1];
+          ({ node, offset } =
+           // tslint:disable-next-line:no-any
+           caretManager.makeCaret(last, (last as any).length)!);
 
-          if (!isText(caret.node)) {
+          if (!isText(node)) {
             return;
           }
         }
 
         // At start of text, nothing to delete.
-        if (caret.offset === 0) {
+        if (offset === 0) {
           return;
         }
 
-        caret = caret.makeWithOffset(caret.offset - 1);
+        offset--;
         break;
       }
       case keyConstants.DELETE: {
         // If the container is not a text node, we may still be just AT a text
         // node from which we can delete. Handle this.
-        if (!isText(caret.node)) {
-          caret = caret.make(caret.node.childNodes[caret.offset], 0);
-          if (!isText(caret.node)) {
+        if (!isText(node)) {
+          node = node.childNodes[offset];
+          if (!isText(node)) {
             return;
           }
+
+          offset = 0;
         }
 
         break;
@@ -1018,10 +1047,12 @@ export class Editor implements EditorAPI {
         throw new Error(`cannot handle deleting with key ${key}`);
     }
 
+    const caret = caretManager.makeCaret(node, offset)!;
+
     // We need to grab the parent and offset before we do the transformation,
     // because the node may be removed from its tree.
-    const parent = caret.node.parentNode!;
-    const offset = indexOf(parent.childNodes, caret.node);
+    const parent = node.parentNode!;
+    offset = indexOf(parent.childNodes, node);
     this.dataUpdater.deleteText(caret, 1);
     // Don't set the caret inside a node that has been deleted.
     if (caret.node.parentNode !== null) {
@@ -1034,11 +1065,11 @@ export class Editor implements EditorAPI {
 
   private spliceAttribute(caret: DLoc, count: number, add: string): void {
     let { offset } = caret;
-    const node = caret.node as Attr;
     if (offset < 0) {
       return;
     }
 
+    const node = caret.node as Attr;
     // We ignore changes to protected attributes.
     if (this.isAttrProtected(node)) {
       return;
@@ -1091,6 +1122,46 @@ export class Editor implements EditorAPI {
     }
 
     this.caretManager.setCaret(moveTo, offset, { textEdit: true });
+  }
+
+  private spliceCharacterData(node: CharacterData, offset: number,
+                              count: number, add: string): void {
+    if (offset < 0) {
+      return;
+    }
+
+    let val = node.data;
+    if (offset > val.length) {
+      return;
+    }
+
+    if (offset === val.length && count > 0) {
+      return;
+    }
+
+    if (this.normalizeEnteredSpaces) {
+      if (add[0] === " " && val[offset - 1] === " ") {
+        add = add.slice(1);
+      }
+
+      if (add[add.length - 1] === " " && val[offset + count] === " ") {
+        add = add.slice(-1);
+      }
+    }
+
+    val = val.slice(0, offset) + add + val.slice(offset + count);
+    offset += add.length;
+    switch (node.nodeType) {
+      case Node.PROCESSING_INSTRUCTION_NODE:
+        this.dataUpdater.setPIBody(node as ProcessingInstruction, val);
+        break;
+      case Node.COMMENT_NODE:
+        this.dataUpdater.setCommentValue(node as Comment, val);
+        break;
+      default:
+        throw new Error(`cannot handle node type: ${node.nodeType}`);
+    }
+    this.caretManager.setCaret(node, offset, { textEdit: true });
   }
 
   insertTransientPlaceholderAt(loc: DLoc): Element {
@@ -1412,7 +1483,7 @@ export class Editor implements EditorAPI {
     const childChange = (child: Node) => {
       if (isText(child) ||
           (isElement(child) &&
-           (child.classList.contains("_real") ||
+           (isRealElement(child) ||
             child.classList.contains("_phantom_wrap")))) {
         this.validator.resetTo(child);
       }
@@ -1462,18 +1533,20 @@ export class Editor implements EditorAPI {
       "._label",
       ({ element }) => {
         const cl = element.classList;
-        let found: number | undefined;
-        for (let i = 0; i < cl.length && found === undefined; ++i) {
+        for (let i = 0; i < cl.length; ++i) {
           if (cl[i].lastIndexOf("_label_level_", 0) === 0) {
-            found = Number(cl[i].slice(13));
+            if (Number(cl[i].slice(13)) > this.currentLabelLevel) {
+              cl.add("_invisible");
+            }
+
+            return;
           }
         }
-        if (found === undefined) {
-          throw new Error("unable to get level");
-        }
-        if (found > this.currentLabelLevel) {
-          cl.add("_invisible");
-        }
+
+        //
+        // It is possible to get here and not have found any level. Some labels
+        // (e.g. those for PIs do not have levels.)
+        //
       });
 
     // If an element is edited and contains a placeholder, delete the
@@ -1527,8 +1600,9 @@ export class Editor implements EditorAPI {
         else if (ph !== undefined && !ph.classList.contains("_transient")) {
           const { caret } = caretManager;
           // Move the caret out of the placeholder if needed...
+          const real = closestByClass(ph, "_real", this.guiRoot)!;
           const move = caret !== undefined && ph.contains(caret.node) ?
-            caret.make(ph) : undefined;
+            caretManager.makeCaret(this.toDataNode(real), 0) : undefined;
           this.guiUpdater.removeNode(ph);
           if (move !== undefined) {
             caretManager.setCaret(move, { textEdit: true });
@@ -2166,7 +2240,16 @@ cannot be cut.`, { type: "danger" });
       throw new Error("malformed range");
     }
 
-    const [startCaret, endCaret] = sel.mustAsDataCarets();
+    if (sel.collapsed) {
+      return;
+    }
+
+    const dataCarets = sel.asDataCarets();
+    if (dataCarets === undefined) {
+      return;
+    }
+
+    const [startCaret, endCaret] = dataCarets;
     const { clipboard } = this;
     let span: Node[] | string;
     if (isAttr(startCaret.node)) {
@@ -2221,8 +2304,8 @@ cannot be cut.`, { type: "danger" });
       }
     }
     else {
-      const el = isElement(node) ? node : node.parentNode as Element;
-      const next = el.nextElementSibling;
+      const el = isText(node) ? node.parentNode! : node;
+      const next = el.nextSibling;
       const parent = el.parentNode;
       this.dataUpdater.removeNode(el);
       clipboard.putUnit(el, add);
@@ -2344,7 +2427,9 @@ cannot be cut.`, { type: "danger" });
     }
 
     const caret = this.caretManager.getDataCaret();
-    if (!containsClipboardAttributeCollection(top) && caret === undefined) {
+    if (caret === undefined ||
+        (containsClipboardAttributeCollection(top) &&
+         !(isElement(caret.node) || isAttr(caret.node)))) {
       notify(`Cannot paste the content here.`, { type: "danger" });
       return;
     }
@@ -2367,8 +2452,7 @@ cannot be cut.`, { type: "danger" });
         const child = caret.node.childNodes[caret.offset];
         const after = child != null ? child.nextSibling : null;
         // tslint:disable-next-line:no-any
-        this.dataUpdater.insertBefore(caret.node as Element, frag as any,
-                                      child);
+        this.dataUpdater.insertBefore(caret.node as Element, frag, child);
         newCaret = caret.makeWithOffset(after !== null ?
                                         indexOf(caret.node.childNodes, after) :
                                         caret.node.childNodes.length);
@@ -2380,10 +2464,20 @@ cannot be cut.`, { type: "danger" });
     return newCaret;
   }
 
+  private pasteIntoCharacterData(caret: DLoc, toPaste: Element): DLoc {
+    const frag = document.createDocumentFragment();
+    while (toPaste.firstChild !== null) {
+      frag.appendChild(toPaste.firstChild);
+    }
+    const [, second] = this.dataUpdater.splitAt(caret.node, caret);
+    this.dataUpdater.insertBefore(second.parentNode as Element, frag, second);
+    return caret.make(second);
+  }
+
   private paste(_editor: EditorAPI, data: PasteTransformationData): void {
     const toPaste = data.to_paste;
     const dataClone = toPaste.cloneNode(true);
-    let caret = this.caretManager.getDataCaret();
+    const caret = this.caretManager.getDataCaret();
     if (caret === undefined) {
       throw new Error("trying to paste without a caret");
     }
@@ -2391,19 +2485,27 @@ cannot be cut.`, { type: "danger" });
     let newCaret: DLoc | undefined;
 
     // Handle the case where we are pasting only text.
+    const { node } = caret;
     if (toPaste.childNodes.length === 1 && isText(toPaste.firstChild)) {
       this._insertText(this, {
         text: toPaste.firstChild.data,
       });
     }
-    else {
+    else if (isText(node) || isElement(node)) {
       newCaret = this.pasteIntoElement(caret, toPaste);
     }
+    else if (isPI(node) || isComment(node)) {
+      newCaret = this.pasteIntoCharacterData(caret, toPaste);
+    }
+
     if (newCaret !== undefined) {
       this.caretManager.setCaret(newCaret);
-      caret = newCaret;
     }
-    this.$guiRoot.trigger("wed-post-paste", [data.e, caret, dataClone]);
+    else {
+      newCaret = caret;
+    }
+
+    this.$guiRoot.trigger("wed-post-paste", [data.e, newCaret, dataClone]);
   }
 
   private pasteUnit(_editor: EditorAPI, data: PasteTransformationData): void {
@@ -2415,6 +2517,7 @@ cannot be cut.`, { type: "danger" });
     }
 
     const { node } = caret;
+    let newCaret: DLoc | undefined;
     if (containsClipboardAttributeCollection(top)) {
       let el: Element;
       if (isElement(node)) {
@@ -2422,9 +2525,6 @@ cannot be cut.`, { type: "danger" });
       }
       else if (isAttr(node)) {
         el = node.ownerElement!;
-      }
-      else if (isText(node)) {
-        el = node.parentNode as Element;
       }
       else {
         throw new Error(`unexpected node type: ${node.nodeType}`);
@@ -2443,9 +2543,20 @@ cannot be cut.`, { type: "danger" });
     else if (isAttr(node)) {
       this.spliceAttribute(caret, 0, top.firstChild!.textContent!);
     }
+    else if (isText(node) || isElement(node)) {
+      newCaret = this.pasteIntoElement(caret, top);
+    }
+    else if (isPI(node) || isComment(node)) {
+      newCaret = this.pasteIntoCharacterData(caret, top);
+    }
     else {
-      const newCaret = this.pasteIntoElement(caret, top);
+      throw new Error(`unexpected node type: ${node.nodeType}`);
+    }
+
+    if (newCaret !== undefined) {
       this.caretManager.setCaret(newCaret);
+    }
+    else {
       caret = newCaret;
     }
 
@@ -2692,7 +2803,7 @@ cannot be cut.`, { type: "danger" });
 
       // Reminder: if the caret is currently inside a placeholder getCaret will
       // return a caret value just in front of the placeholder.
-      caret = this.caretManager.getDataCaret();
+      caret = this.caretManager.getDataCaret()!;
 
       // A place holder could be in a place that does not allow text. If so,
       // then do not allow entering regular text in this location.
@@ -2700,13 +2811,14 @@ cannot be cut.`, { type: "danger" });
         let textPossible = false;
 
         if ((placeholder.parentNode as HTMLElement)
-            .classList.contains("_attribute_value")) {
+            .classList.contains("_attribute_value") ||
+            isPI(caret.node) || isComment(caret.node)) {
           textPossible = true;
         }
         else {
           // Maybe throwing an exception could stop this loop early but that
           // would have to be tested.
-          this.validator.possibleAt(caret!).forEach(({ name }) => {
+          this.validator.possibleAt(caret).forEach(({ name }) => {
             if (name === "text") {
               textPossible = true;
             }
@@ -3194,7 +3306,7 @@ cannot be cut.`, { type: "danger" });
 
     // Get tooltips from the current mode
     const real = closestByClass(label, "_real", root);
-    if (real === null) {
+    if (real === null || !isRealElement(real)) {
       return;
     }
 
@@ -3805,7 +3917,7 @@ cannot be cut.`, { type: "danger" });
    * @param el The element at which the location should point.
    */
   private setLocationTo(el: Element): void {
-    const real = closestByClass(el, "_real", this.guiRoot);
+    const real = el.closest("._real._el");
     if (!real) {
       return;
     }

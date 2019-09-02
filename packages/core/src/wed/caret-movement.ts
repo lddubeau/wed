@@ -7,6 +7,7 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 
+import { isRealElement } from "./convert";
 import { DLoc } from "./dloc";
 import { isDocument, isElement, isText } from "./domtypeguards";
 import { Caret, childByClass, closest, closestByClass,
@@ -44,33 +45,6 @@ function moveOutOfPlaceholder(pos: DLoc, root: Element | Document,
   }
 
   return pos;
-}
-
-/**
- * Determines what should be used as the "container" for caret movement
- * purposes. The "container" is the element within which caret movements are
- * constrained. (The caret cannot move out of it.)
- *
- * @param docRoot The root element of the document being edited by wed.
- *
- * @returns A container that can be used by the caret movement functions.
- */
-function determineContainer(docRoot: Document | Element): Element {
-  let container = docRoot.firstChild;
-
-  if (!isElement(container)) {
-    throw new Error("docRoot does not contain an element");
-  }
-
-  // This takes care of the special case where we have an empty document that
-  // contains only a placeholder. In such case, setting the container to
-  // docRoot.firstChild will have a perverse effect of setting the container to
-  // be **inside** the current pos.
-  if (container.classList.contains("_placeholder")) {
-    container = docRoot as Element;
-  }
-
-  return container as Element;
 }
 
 /**
@@ -446,13 +420,11 @@ export function positionRight(pos: DLoc | undefined | null,
   // If we are in a placeholder node, immediately move out of it.
   pos = moveOutOfPlaceholder(pos, root, true);
 
-  const container = determineContainer(docRoot);
-
   // tslint:disable-next-line:strict-boolean-expressions no-constant-condition
   while (true) {
     const guiBefore = closestByClass(pos.node, "_gui", root);
 
-    const nextCaret = nextCaretPosition(pos.toArray(), container);
+    const nextCaret = nextCaretPosition(pos.toArray(), docRoot);
     if (nextCaret === null) {
       pos = null;
       break;
@@ -463,9 +435,9 @@ export function positionRight(pos: DLoc | undefined | null,
     const closestGUI = closest(node, "._gui:not(._invisible)", root);
     if (closestGUI !== null) {
       const startLabel = closestGUI.classList.contains("__start_label");
-      if (startLabel &&
-          moveInAttributes(closestByClass(closestGUI, "_real", root)!,
-                           modeTree)) {
+      const real = closestByClass(closestGUI, "_real", root)!;
+      const realIsRealElement = isRealElement(real);
+      if (startLabel && realIsRealElement && moveInAttributes(real, modeTree)) {
         if (closestByClass(node, "_attribute_value", root) !== null) {
           // We're in an attribute value, stop here.
           break;
@@ -496,9 +468,10 @@ export function positionRight(pos: DLoc | undefined | null,
         continue;
       }
       pos = pos.make(
-        // If in a label, normalize to element name. If in another kind of gui
-        // element, normalize to start of the element.
-        (startLabel || closestByClass(node, "_label", closestGUI) !== null) ?
+        // If in an element label, normalize to element name. If in another kind
+        // of gui element, normalize to start of the element.
+        (realIsRealElement &&
+         (startLabel || closestByClass(node, "_label", closestGUI) !== null)) ?
           (node as Element).getElementsByClassName("_element_name")[0] :
           closestGUI, 0);
       // ... stop here.
@@ -585,13 +558,11 @@ export function positionLeft(pos: DLoc | undefined | null,
   // If we are in a placeholder node, immediately move out of it.
   pos = moveOutOfPlaceholder(pos, root, false);
 
-  const container = determineContainer(docRoot);
-
   // tslint:disable-next-line:strict-boolean-expressions no-constant-condition
   while (true) {
     let elName = closestByClass(pos.node, "_element_name", root);
     const wasInName = (pos.node === elName) && (pos.offset === 0);
-    const prevCaret = prevCaretPosition(pos.toArray(), container);
+    const prevCaret = prevCaretPosition(pos.toArray(), docRoot);
     if (prevCaret === null) {
       pos = null;
       break;
@@ -603,9 +574,10 @@ export function positionLeft(pos: DLoc | undefined | null,
     const closestGUI = closest(node, "._gui:not(._invisible)", root);
     if (closestGUI !== null) {
       const startLabel = closestGUI.classList.contains("__start_label");
-      if (startLabel && !wasInName &&
-          moveInAttributes(closestByClass(closestGUI, "_real", root)!,
-                           modeTree)) {
+      const real = closestByClass(closestGUI, "_real", root)!;
+      const realIsRealElement = isRealElement(real);
+      if (startLabel && !wasInName && realIsRealElement &&
+          moveInAttributes(real, modeTree)) {
         if (closestByClass(node, "_attribute_value", closestGUI) !== null) {
           // We're in an attribute value, stop here.
           break;
@@ -663,10 +635,11 @@ export function positionLeft(pos: DLoc | undefined | null,
 
       if (!wasInName) {
         pos = pos.make(
-          // If we are in any label, normalize to the element name, otherwise
-          // normalize to the first position in the gui element.
-          (startLabel ||
-           closestByClass(node, "_label", closestGUI) !== null) ?
+          // If we are in any element label, normalize to the element name,
+          // otherwise normalize to the first position in the gui element.
+          (realIsRealElement &&
+           (startLabel ||
+            closestByClass(node, "_label", closestGUI) !== null)) ?
               closestGUI.getElementsByClassName("_element_name")[0]
             : closestGUI,
           0);
