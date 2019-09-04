@@ -61,6 +61,7 @@ import { CutUnitTransformationData, DocumentationActionData, EditorAPI ,
 import { ModeTree } from "./mode-tree";
 import * as onbeforeunload from "./onbeforeunload";
 import * as onerror from "./onerror";
+import { PasteMode, PasteModeChangeReason } from "./paste-mode";
 import * as preferences from "./preferences";
 import { SelectionMode, SelectionModeChange } from "./selection-mode";
 import { StockModals } from "./stock-modals";
@@ -262,6 +263,7 @@ export class Editor implements EditorAPI {
   private readonly inputField: HTMLInputElement;
   private readonly $inputField: JQuery;
   private readonly clipboard: Clipboard;
+  private readonly pasteMode: PasteMode = new PasteMode();
   private readonly caretLayer: Layer;
   private readonly errorLayer: ErrorLayer;
   private readonly wedLocationBar: HTMLElement;
@@ -596,6 +598,21 @@ export class Editor implements EditorAPI {
     $(this.window).on("popstate.wed", () => {
       if (document.location.hash === "") {
         this.guiRoot.scrollTop = 0;
+      }
+    });
+
+    this.pasteMode.events.subscribe(ev => {
+      if (ev.reason === PasteModeChangeReason.USE) {
+        return;
+      }
+
+      if (ev.pasteMode.asText) {
+        notify(ev.pasteMode.sticky ?
+               "All pastes will paste content as text, until you turn it off." :
+               "The next paste will paste content as text.");
+      }
+      else {
+        notify("All pastes will paste content as XML if possible.");
       }
     });
   }
@@ -2318,30 +2335,41 @@ cannot be cut.`, { type: "danger" });
   }
 
   private pasteHandler(e: JQueryEventObject): boolean {
+    try {
+      this._pasteHandler(e);
+    }
+    finally {
+      this.pasteMode.use();
+    }
+
+    return false;
+  }
+
+  private _pasteHandler(e: JQueryEventObject): void {
     const caret = this.caretManager.getDataCaret(true);
-    if (caret === undefined) {
-      return false;
+    if (caret === undefined ||
+        // We do not operate on elements that are readonly.
+        this.isReadonly(caret.node)) {
+      return;
     }
 
-    // We do not operate on elements that are readonly.
-    if (this.isReadonly(caret.node)) {
-      return false;
-    }
-
-    const { clipboard } = this;
-    switch (clipboard.mode) {
+    const { clipboard: { mode } } = this;
+    switch (mode) {
       case SelectionMode.SPAN:
         this.spanPasteHandler(e);
         break;
       case SelectionMode.UNIT:
-        this.unitPasteHandler(e);
+        if (this.pasteMode.asText) {
+          this.spanPasteHandler(e);
+        }
+        else {
+          this.unitPasteHandler(e);
+        }
         break;
       default:
-        const q: never = clipboard.mode;
+        const q: never = mode;
         throw new Error(`unexpected selection mode: ${q}`);
     }
-
-    return false;
   }
 
   private clipboardToElement(data: DataTransfer): Element | null{
@@ -2398,13 +2426,15 @@ cannot be cut.`, { type: "danger" });
     // tslint:disable-next-line:no-any
     const cd = (e.originalEvent as any).clipboardData as DataTransfer;
 
-    // If we are in an attribute then the clipboard has to be pasted as text. It
-    // cannot be parsed as XML and insert Elements or other nodes into the
-    // attribute value.
-    let data = isAttr(caret.node) ? null : this.clipboardToElement(cd);
-    if (data === null) {
-      const text = this.normalizeEnteredText(cd.getData("text/plain"));
-      if (text == null || text === "") {
+    // We test isAttr because if we are in an attribute then the clipboard has
+    // to be pasted as text. It cannot be parsed as XML and insert Elements or
+    // other nodes into the attribute value.
+    let data = this.clipboardToElement(cd);
+    if (this.pasteMode.asText || isAttr(caret.node) || data === null) {
+      const text = data === null ?
+        this.normalizeEnteredText(cd.getData("text/plain")) :
+        data.innerHTML;
+      if (text === "") {
         return;
       }
 
@@ -2706,6 +2736,10 @@ cannot be cut.`, { type: "danger" });
              keyConstants.CUT.matchesEvent(e) ||
              keyConstants.PASTE.matchesEvent(e)) {
       return true;
+    }
+    else if (keyConstants.PASTE_AS_TEXT.matchesEvent(e)) {
+      this.pasteMode.next();
+      return terminate();
     }
     else if (keyConstants.COPY_ADD.matchesEvent(e)) {
       if (this.selectionMode === SelectionMode.UNIT) {

@@ -1253,6 +1253,39 @@ the third paragraph, and paste, then the paragraph will be changed to::
 
 It will not get two ``n`` attributes.
 
+Paste Modes
+-----------
+
+The span and unit modes described above affect copy and cut. When pasting, the
+paste operation remembers the mode of the cut and copy operations and acts
+accordingly.
+
+Independently of the span and unit modes, paste has its own modes of operation:
+
+* In the default mode, as explained above, it checks whether the pasted data is
+  well-formed XML, and if it is, it will insert the data into the document
+  as XML.
+
+* In the "as text" mode, the paste operation inserts the data as text,
+  **irrespective of whether it could be interpreted as well-formed XML**.
+
+The "as text" mode can be non-sticky or sticky. When it is non-sticky, the "as
+text" mode is lost as soon as a paste operation is performed. When it is sticky,
+the "as text" mode remains in effect until explicitly turned off.
+
+The key combination ``Ctrl-Shift-v`` cycles between the following states, in
+order:
+
+* default mode,
+
+* "as text" mode (not sticky),
+
+* "as text" mode (sticky),
+
+* default mode
+
+* ...
+
 Undo and Redo
 =============
 
@@ -1292,6 +1325,7 @@ keys name. For instance, ``SPACE`` is the space bar on the keyboard.
  :kbd:`Ctrl-x`        :kbd:`Cmd-x`        `Cut <Cut, Copy and Paste_>`_ content.
  :kbd:`Ctrl-Shift-x`  :kbd:`Cmd-Shift-x`  `Cut-add <Cut, Copy and Paste_>`_ content.
  :kbd:`Ctrl-v`        :kbd:`Cmd-v`        `Paste <Cut, Copy and Paste_>`_ content.
+ :kbd:`Ctrl-Shift-v`  :kbd:`Cmd-Shift-v`  Cycle the `paste mode <Paste Modes_>`_.
  :kbd:`Ctrl-s`        :kbd:`Cmd-s`        `Save <Saving_>`_ content.
  :kbd:`Ctrl-f`        :kbd:`Cmd-f`        `Quick search <Quick Search_>`_ forward.
  :kbd:`Ctrl-b`        :kbd:`Cmd-b`        `Quick search <Quick Search_>`_ backwards.

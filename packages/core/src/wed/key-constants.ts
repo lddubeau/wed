@@ -29,6 +29,7 @@ export const CUT = key.makeCtrlEqKey("X", false);
 export const COPY_ADD = key.makeCtrlEqKey("C", true);
 export const CUT_ADD = key.makeCtrlEqKey("X", true);
 export const PASTE = key.makeCtrlEqKey("V", false);
+export const PASTE_AS_TEXT = key.makeCtrlEqKey("V", true);
 export const DEVELOPMENT = key.makeCtrlEqKey(192, false); // Cmd or Ctrl-`
 export const QUICKSEARCH_FORWARD = key.makeCtrlEqKey("F", false);
 export const QUICKSEARCH_BACKWARDS = key.makeCtrlEqKey("B", false);

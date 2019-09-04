@@ -117,8 +117,9 @@ export function caretCheck(editor: Editor, container: Node,
 
 export function dataCaretCheck(editor: Editor, container: Node,
                                offset: number, msg: string): void {
-  const dataCaret = editor.caretManager.getDataCaret()!;
-  expect(dataCaret.toArray(), msg).to.deep.equal([container, offset]);
+  const caret = editor.caretManager.getDataCaret()!;
+  expect(caret, msg).to.have.property("node").equal(container);
+  expect(caret, msg).to.have.property("offset").equal(offset);
 }
 
 export function dataSelectionCheck(editor: Editor, start: DLoc,
@@ -319,6 +320,7 @@ export class EditorSetup {
     // will still be visible, but that's not an issue.
     editor.caretManager.clearSelection();
     editor.selectionMode = SelectionMode.SPAN;
+    (editor as any).pasteMode.reset();
     this.server.reset();
     errorCheck();
     // Immediately destroy all notifications to prevent interfering with other

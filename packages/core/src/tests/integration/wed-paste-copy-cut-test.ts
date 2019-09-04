@@ -5,7 +5,7 @@
  */
 import * as browsers from "@wedxml/common/browsers";
 
-import { domtypeguards, SelectionMode } from "wed";
+import { domtypeguards, keyConstants, SelectionMode } from "wed";
 import { CaretManager } from "wed/caret-manager";
 import { Clipboard } from "wed/clipboard";
 import { Editor } from "wed/editor";
@@ -38,6 +38,15 @@ describe("wed paste-copy-cut:", () => {
   let comment: Comment;
   let pi: ProcessingInstruction;
 
+  beforeEach(() => {
+    const body = editor.dataRoot.querySelector("body")!;
+    comment = body.lastChild as Comment;
+    expect(comment).to.have.property("nodeType").equal(Node.COMMENT_NODE);
+    pi = comment.previousSibling as ProcessingInstruction;
+    expect(pi).to.have.property("nodeType")
+      .equal(Node.PROCESSING_INSTRUCTION_NODE);
+  });
+
   afterEach(() => {
     setup.reset();
     document.designMode = "off";
@@ -60,13 +69,28 @@ describe("wed paste-copy-cut:", () => {
     (editor.validator as any)._validateUpTo(editor.dataRoot, -1);
     caretManager = editor.caretManager;
 
-    const body = editor.dataRoot.querySelector("body")!;
-    comment = body.lastChild as Comment;
-    expect(comment).to.have.property("nodeType").equal(Node.COMMENT_NODE);
-    pi = comment.previousSibling as ProcessingInstruction;
-    expect(pi).to.have.property("nodeType")
-      .equal(Node.PROCESSING_INSTRUCTION_NODE);
   }
+
+  describe("", () => {
+    before(() => setupEditor(`${dataPath}/wed_test_data/source_converted.xml`));
+
+    it("the PASTE_AS_TEXT keybinding switches the paste mode", () => {
+      editor.type(keyConstants.PASTE_AS_TEXT);
+      let messages = document.querySelectorAll("[data-notify=message]");
+      expect(messages[messages.length - 1]).to.have.property("textContent")
+        .equal("The next paste will paste content as text.");
+
+      editor.type(keyConstants.PASTE_AS_TEXT);
+      messages = document.querySelectorAll("[data-notify=message]");
+      expect(messages[messages.length - 1]).to.have.property("textContent")
+        .equal("All pastes will paste content as text, until you turn it off.");
+
+      editor.type(keyConstants.PASTE_AS_TEXT);
+      messages = document.querySelectorAll("[data-notify=message]");
+      expect(messages[messages.length - 1]).to.have.property("textContent")
+        .equal("All pastes will paste content as XML if possible.");
+    });
+  });
 
   describe("span mode", function span(): void {
     before(() => setupEditor(`${dataPath}/wed_test_data/source_converted.xml`));
@@ -139,7 +163,27 @@ describe("wed paste-copy-cut:", () => {
       dataCaretCheck(editor, p.childNodes[2], 6, "final position");
     });
 
-    it("pastes invalid xml", () => {
+    it("pastes XML as text", () => {
+      (editor as any).pasteMode.next();
+      const p = editor.dataRoot.querySelector("body>p")!;
+      const initial = p.firstChild!;
+      caretManager.setCaret(initial, 0);
+      const initialValue = p.textContent!;
+
+      const toPaste = `Blah <term xmlns="http://www.tei-c.org/ns/1.0">blah\
+</term> blah.`;
+      // Synthetic event
+      const event = makeFakePasteEvent({
+        types: ["text/html", "text/plain"],
+        // We add the zero-width space for the heck of it.  It will be stripped.
+        getData: () => `${toPaste}\u200B`,
+      });
+      editor.$guiRoot.trigger(event);
+      assert.equal(p.textContent, toPaste + initialValue);
+      dataCaretCheck(editor, p.firstChild!, toPaste.length, "final position");
+    });
+
+    it("pastes invalid XML", () => {
       const p = editor.dataRoot.querySelector("body>p")!;
       const initial = p.firstChild!;
       caretManager.setCaret(initial, 0);
@@ -408,6 +452,23 @@ unit_selection_converted.xml`));
       expect(initial).to.have.property("value")
         .equal(`${initialValue[0]}foo${initialValue.slice(1)}`);
       dataCaretCheck(editor, initial, 4, "final position");
+    });
+
+    it("pasting as text into a pi", () => {
+      (editor as any).pasteMode.next();
+      caretManager.setCaret(pi, 1);
+      const initialValue = pi.data;
+
+      const foo = editor.dataRoot.createElement("foo");
+      foo.textContent = "blah";
+
+      const toPaste = paste(foo);
+      const caret = caretManager.getDataCaret()!;
+      const { node } = caret;
+      expect(node).to.have.property("data")
+        .equal(initialValue[0] + toPaste + initialValue.slice(1));
+      expect(node).to.have.property("nodeType")
+        .equal(Node.PROCESSING_INSTRUCTION_NODE);
     });
   });
 });
