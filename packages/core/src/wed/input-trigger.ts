@@ -4,7 +4,6 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import { DLoc } from "./dloc";
 import { isElement, isText } from "./domtypeguards";
 import { closest, getMirror, mustGetMirror } from "./domutil";
 import { GUISelector } from "./gui-selector";
@@ -204,11 +203,9 @@ export class InputTrigger {
    *
    * @param e The original DOM event that wed received.
    *
-   * @param caret The data caret.
-   *
    * @param data The data that the user wants to insert.
    */
-  private pasteHandler(_wedEvent: Event, e: JQuery.TriggeredEvent, caret: DLoc,
+  private pasteHandler(_wedEvent: Event, e: JQuery.TriggeredEvent,
                        data: Element): void {
     if (this.editor.undoingOrRedoing()) {
       return;
@@ -227,7 +224,7 @@ export class InputTrigger {
       return;
     }
 
-    const { node } = caret;
+    const { node } = this.editor.caretManager.getDataCaret()!;
     if (this.editor.modeTree.getMode(node) !== this.mode) {
       // Outside our jurisdiction.
       return;

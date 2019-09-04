@@ -2506,13 +2506,13 @@ cannot be cut.`, { type: "danger" });
 
   private paste(_editor: EditorAPI, data: PasteTransformationData): void {
     const toPaste = data.to_paste;
+    // We clone the pasted data because the act of inserting the data into the
+    // data tree may alter it (e.g. text node normalization).
     const dataClone = toPaste.cloneNode(true);
     const caret = this.caretManager.getDataCaret();
     if (caret === undefined) {
       throw new Error("trying to paste without a caret");
     }
-
-    let newCaret: DLoc | undefined;
 
     // Handle the case where we are pasting only text.
     const { node } = caret;
@@ -2522,32 +2522,26 @@ cannot be cut.`, { type: "danger" });
       });
     }
     else if (isText(node) || isElement(node)) {
-      newCaret = this.pasteIntoElement(caret, toPaste);
+      this.caretManager.setCaret(this.pasteIntoElement(caret, toPaste));
     }
     else if (isPI(node) || isComment(node)) {
-      newCaret = this.pasteIntoCharacterData(caret, toPaste);
+      this.caretManager.setCaret(this.pasteIntoCharacterData(caret, toPaste));
     }
 
-    if (newCaret !== undefined) {
-      this.caretManager.setCaret(newCaret);
-    }
-    else {
-      newCaret = caret;
-    }
-
-    this.$guiRoot.trigger("wed-post-paste", [data.e, newCaret, dataClone]);
+    this.$guiRoot.trigger("wed-post-paste", [data.e, dataClone]);
   }
 
   private pasteUnit(_editor: EditorAPI, data: PasteTransformationData): void {
     const top = data.to_paste;
+    // We clone the pasted data because the act of inserting the data into the
+    // data tree may alter it (e.g. text node normalization).
     const dataClone = top.cloneNode();
-    let caret = this.caretManager.getDataCaret(true);
+    const caret = this.caretManager.getDataCaret(true);
     if (caret === undefined) {
       throw new Error("trying to paste without a caret");
     }
 
     const { node } = caret;
-    let newCaret: DLoc | undefined;
     if (containsClipboardAttributeCollection(top)) {
       let el: Element;
       if (isElement(node)) {
@@ -2574,23 +2568,16 @@ cannot be cut.`, { type: "danger" });
       this.spliceAttribute(caret, 0, top.firstChild!.textContent!);
     }
     else if (isText(node) || isElement(node)) {
-      newCaret = this.pasteIntoElement(caret, top);
+      this.caretManager.setCaret(this.pasteIntoElement(caret, top));
     }
     else if (isPI(node) || isComment(node)) {
-      newCaret = this.pasteIntoCharacterData(caret, top);
+      this.caretManager.setCaret(this.pasteIntoCharacterData(caret, top));
     }
     else {
       throw new Error(`unexpected node type: ${node.nodeType}`);
     }
 
-    if (newCaret !== undefined) {
-      this.caretManager.setCaret(newCaret);
-    }
-    else {
-      caret = newCaret;
-    }
-
-    this.$guiRoot.trigger("wed-post-paste", [data.e, caret, dataClone]);
+    this.$guiRoot.trigger("wed-post-paste", [data.e, dataClone]);
   }
 
   private keydownHandler(e: JQueryKeyEventObject): void {
