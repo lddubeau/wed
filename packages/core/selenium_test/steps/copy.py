@@ -3,12 +3,12 @@ from nose.tools import assert_equal  # pylint: disable=E0611
 import wedutil
 
 
-@when(u'the user copies')
+@when('the user copies')
 def step_impl(context):
     wedutil.copy(context.util)
 
 
-@when(u'the user copy-adds')
+@when('the user copy-adds')
 def step_impl(context):
     wedutil.copy_add(context.util)
 
@@ -58,7 +58,7 @@ def get_clipboard(driver, util):
     """)
 
 
-@then(u'the clipboard contains')
+@then('the clipboard contains')
 def step_impl(context):
     driver = context.driver
     util = context.util
@@ -73,7 +73,7 @@ def step_impl(context):
                      .replace("\\s", " "))
 
 
-@then(u'the clipboard is empty')
+@then('the clipboard is empty')
 def step_impl(context):
     driver = context.driver
     util = context.util

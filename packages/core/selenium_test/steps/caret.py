@@ -11,7 +11,7 @@ import selenic.util
 from selenic.util import Condition, Result
 
 from selenium_test.util import get_element_parent_and_parent_text, \
-    get_element_parent_and_selection_length
+    get_element_parent_and_selection_length, scroll_into_view
 
 # Don't complain about redefined functions
 # pylint: disable=E0102
@@ -43,15 +43,15 @@ def select_text(context, start, end):
         .perform()
 
 
-@when(u"an element's label has been clicked")
+@when("an element's label has been clicked")
 def step_impl(context):
-    context.execute_steps(u"""
+    context.execute_steps("""
     When the user clicks on an element's label
     Then the label changes to show it is selected
     """)
 
 
-@when(u"the user clicks on text")
+@when("the user clicks on text")
 def step_impl(context):
     driver = context.driver
     util = context.util
@@ -63,13 +63,7 @@ def step_impl(context):
     var range = title.ownerDocument.createRange();
     range.setStart(text, 0);
     range.setEnd(text, 1);
-    // Just returning does not work with IEDriver...
-    // return range.getBoundingClientRect();
-    var rect = range.getBoundingClientRect();
-    var ret = {};
-    for (var x in rect)
-        ret[x] = rect[x];
-    return ret;
+    return range.getBoundingClientRect();
     """, element)
 
     last_click = {"left": round(rect["left"]) + 2,
@@ -84,7 +78,7 @@ def step_impl(context):
     context.last_click = last_click
 
 
-@then(u"the caret is at the last click's position\.?")
+@then("the caret is at the last click's position\.?")
 def step_impl(context):
     driver = context.driver
 
@@ -95,24 +89,24 @@ def step_impl(context):
                                                5), "")
 
 
-@then(ur"the caret is at the last position before the focus was lost\.?")
+@then(r"the caret is at the last position before the focus was lost\.?")
 def step_impl(context):
     context.util.wait(lambda driver:
                       context.caret_screen_position_before_focus_loss ==
                       wedutil.caret_screen_pos(driver))
 
 
-@then(u"the selection is the same as before the focus was lost")
+@then("the selection is the same as before the focus was lost")
 def step_impl(context):
     util = context.util
 
     assert_equal(util.get_selection_text(), context.expected_selection)
 
 
-@when(u"the user clicks on "
-      u"(?P<what>an element's label|the end label of an element|"
-      u'the end label of the last paragraph|'
-      u'the end label of the first "addrLine" element)')
+@when("the user clicks on "
+      "(?P<what>an element's label|the end label of an element|"
+      'the end label of the last paragraph|'
+      'the end label of the first "addrLine" element)')
 def step_impl(context, what):
     driver = context.driver
     util = context.util
@@ -150,9 +144,9 @@ def step_impl(context, what):
     context.context_menu_for = None
 
 
-@when(u"the user clicks on "
-      u"(?P<what>|the start label of an element which has )"
-      u"an attribute value that takes completions")
+@when("the user clicks on "
+      "(?P<what>|the start label of an element which has )"
+      "an attribute value that takes completions")
 def step_impl(context, what):
     util = context.util
     driver = context.driver
@@ -166,7 +160,7 @@ def step_impl(context, what):
         .perform()
 
 
-@when(u"the user clicks on an attribute value")
+@when("the user clicks on an attribute value")
 def step_impl(context):
     util = context.util
     driver = context.driver
@@ -178,9 +172,9 @@ def step_impl(context):
         .perform()
 
 
-@when(ur'(?:the user )?clicks on the start label of (?P<choice>an element|'
-      ur'the first "(?P<element>.*?)" element in "body"|'
-      ur'the (?P<order>first|second) element in "body")')
+@when(r'(?:the user )?clicks on the start label of (?P<choice>an element|'
+      r'the first "(?P<element>.*?)" element in "body"|'
+      r'the (?P<order>first|second) element in "body")')
 def step_impl(context, choice, element=None, order=None):
     driver = context.driver
     util = context.util
@@ -197,7 +191,7 @@ def step_impl(context, choice, element=None, order=None):
             (By.CSS_SELECTOR,
              ".body>._real._el .__start_label ._element_name"))[ix]
     elif element is not None:
-        element = element.replace(":", ur"\:")
+        element = element.replace(":", r"\:")
         button = util.find_element((By.CSS_SELECTOR,
                                     ".body .__start_label._" + element +
                                     "_label"))
@@ -206,13 +200,16 @@ def step_impl(context, choice, element=None, order=None):
 
     context.clicked_element = button
     assert_true("_label_clicked" not in button.get_attribute("class").split())
+
+    scroll_into_view(driver, button)
+
     ActionChains(driver)\
         .click(button)\
         .perform()
 
 
-@when(ur'(?:the user )?clicks on the start label of the first '
-      ur'(?P<what>PI|comment)')
+@when(r'(?:the user )?clicks on the start label of the first '
+      r'(?P<what>PI|comment)')
 def step_impl(context, what):
     driver = context.driver
     util = context.util
@@ -224,14 +221,15 @@ def step_impl(context, what):
     button = util.find_element((By.CSS_SELECTOR, ".__start_label." + selector))
     context.clicked_element = button
     assert_true("_label_clicked" not in button.get_attribute("class").split())
+    scroll_into_view(driver, button)
     ActionChains(driver)\
         .click(button)\
         .perform()
 
 
-@when(ur'the user clicks on '
-      ur'(?P<choice>the (?P<attribute>first|second) attribute of the first '
-      ur'element in "body")')
+@when(r'the user clicks on '
+      r'(?P<choice>the (?P<attribute>first|second) attribute of the first '
+      r'element in "body")')
 def step_impl(context, choice, attribute=None):
     driver = context.driver
     util = context.util
@@ -252,13 +250,13 @@ def step_impl(context, choice, attribute=None):
         .perform()
 
 
-@then(u'the label changes to show it is selected')
+@then('the label changes to show it is selected')
 def step_impl(context):
     button = context.clicked_element
     assert_true("_label_clicked" in button.get_attribute("class").split())
 
 
-@then(u'the caret is in the element name in the label')
+@then('the caret is in the element name in the label')
 def step_impl(context):
     util = context.util
     button = context.clicked_element
@@ -272,7 +270,7 @@ _CHOICE_TO_ARROW = {
 }
 
 
-@when(u"(?:the user )?hits the (?P<choice>right|left|down) arrow")
+@when("(?:the user )?hits the (?P<choice>right|left|down) arrow")
 def step_impl(context, choice):
     driver = context.driver
 
@@ -285,13 +283,13 @@ def step_impl(context, choice):
         .perform()
 
 
-@then(u'the label of the element that has the context menu is selected.?')
+@then('the label of the element that has the context menu is selected.?')
 def step_impl(context):
     trigger = context.context_menu_trigger
     assert_true("_label_clicked" in trigger.el.get_attribute("class").split())
 
 
-@then(u'no label is selected')
+@then('no label is selected')
 def step_impl(context):
     util = context.util
     util.wait_until_not(EC.presence_of_element_located(
@@ -299,8 +297,8 @@ def step_impl(context):
 
 
 # This is also our default for when a mechanism is not specified.
-@when(u'the user selects text(?P<direction>(?:| backwards))'
-      ur'(?: with the mouse)?\.?')
+@when('the user selects text(?P<direction>(?:| backwards))'
+      r'(?: with the mouse)?\.?')
 def step_impl(context, direction):
     driver = context.driver
     util = context.util
@@ -338,47 +336,43 @@ def step_impl(context, direction):
     context.caret_screen_position = wedutil.caret_screen_pos(driver)
 
 
-@when(u'the user selects text(?P<direction>.*?) with the keyboard')
+@when('the user selects text(?P<direction>.*?) with the keyboard')
 def step_impl(context, direction):
     direction = direction.strip()
     driver = context.driver
     util = context.util
 
-    if direction == "":
-        keys = (
-            # From the label to before the first letter and then past the
-            # first letter.
-            [Keys.ARROW_RIGHT] * 2 +
-            # This moves two caracters to the right with shift down.
-            [Keys.SHIFT] + [Keys.ARROW_RIGHT] * 2 + [Keys.SHIFT])
-    elif direction == "backwards":
-        keys = (
-            # From the label to before the first letter and then past the
-            # first letter, and then two more to the right.
-            [Keys.ARROW_RIGHT] * (2 + 2) +
-            # This moves two caracters to the left with shift down.
-            [Keys.SHIFT] + [Keys.ARROW_LEFT] * 2 + [Keys.SHIFT])
-    else:
-        raise ValueError("unexpected direction: " + direction)
-
     element, _, parent_text = get_element_parent_and_parent_text(
         driver, ".__start_label._title_label")
 
-    ActionChains(driver)\
-        .click(element)\
-        .perform()
+    chain = ActionChains(driver).click(element)
 
-    util.send_keys(element, keys)
+    if direction == "":
+        chain = chain \
+            .send_keys([Keys.ARROW_RIGHT] * 2) \
+            .key_down(Keys.SHIFT) \
+            .send_keys([Keys.ARROW_RIGHT] * 2)
+    elif direction == "backwards":
+        chain = chain \
+            .send_keys([Keys.ARROW_RIGHT] * (2 + 2)) \
+            .key_down(Keys.SHIFT) \
+            .send_keys([Keys.ARROW_LEFT] * 2)
+    else:
+        raise ValueError("unexpected direction: " + direction)
+
+    chain\
+        .key_up(Keys.SHIFT)\
+        .perform()
 
     assert_true(util.is_something_selected(), "something must be selected")
 
     context.expected_selection = parent_text[1:3]
 
 
-@when(u'the user selects the whole text of '
-      u'(?P<what>an element|the first title element|'
-      u'the first paragraph in "body"|'
-      u'a readonly element with the text "abc")')
+@when('the user selects the whole text of '
+      '(?P<what>an element|the first title element|'
+      'the first paragraph in "body"|'
+      'a readonly element with the text "abc")')
 def step_impl(context, what):
     driver = context.driver
     util = context.util
@@ -402,24 +396,22 @@ def step_impl(context, what):
     element, parent, length = \
         get_element_parent_and_selection_length(driver, selector)
 
-    ActionChains(driver)\
-        .click(element) \
-        .perform()
+    chain = ActionChains(driver).click(element)
 
     if selector.find("__end_label") != -1:
-        util.send_keys(element,
-                       # From the label to after the text
-                       [Keys.ARROW_LEFT] +
-                       # This select the whole text of the element.
-                       [Keys.SHIFT] + [Keys.ARROW_LEFT] * length +
-                       [Keys.SHIFT])
+        chain = chain\
+            .send_keys(Keys.ARROW_LEFT)\
+            .key_down(Keys.SHIFT)\
+            .send_keys([Keys.ARROW_LEFT] * length)
     else:
-        util.send_keys(element,
-                       # From the label to before the first letter.
-                       [Keys.ARROW_RIGHT] +
-                       # This select the whole text of the element.
-                       [Keys.SHIFT] + [Keys.ARROW_RIGHT] * length +
-                       [Keys.SHIFT])
+        chain = chain\
+            .send_keys(Keys.ARROW_RIGHT)\
+            .key_down(Keys.SHIFT)\
+            .send_keys([Keys.ARROW_RIGHT] * length)
+
+    chain\
+        .key_up(Keys.SHIFT)\
+        .perform()
 
     assert_true(util.is_something_selected(), "something must be selected")
     text = util.get_selection_text()
@@ -434,7 +426,7 @@ def step_impl(context, what):
 
 # This step is not meant to test whether we can select things. So we
 # select directly.
-@when(u'the user selects the whole text of an attribute')
+@when('the user selects the whole text of an attribute')
 def step_impl(context):
     driver = context.driver
     util = context.util
@@ -458,8 +450,8 @@ def step_impl(context):
 
 # This step is not meant to test whether we can select things. So we
 # select directly.
-@when(u'the user selects the whole text of a readonly attribute with '
-      u'the text "x"')
+@when('the user selects the whole text of a readonly attribute with '
+      'the text "x"')
 def step_impl(context):
     driver = context.driver
     util = context.util
@@ -482,8 +474,8 @@ def step_impl(context):
     context.caret_screen_position = wedutil.caret_screen_pos(driver)
 
 
-@when(u'the user selects the whole contents of the first paragraph in '
-      ur'"body"')
+@when('the user selects the whole contents of the first paragraph in '
+      r'"body"')
 def step_impl(context):
     driver = context.driver
     util = context.util
@@ -511,7 +503,7 @@ def step_impl(context):
 
 # This step is not meant to test whether we can select things. So we
 # select directly.
-@when(u'the user selects the whole text of a (?P<kind>PI|comment)')
+@when('the user selects the whole text of a (?P<kind>PI|comment)')
 def step_impl(context, kind):
     driver = context.driver
     util = context.util
@@ -537,13 +529,18 @@ def step_impl(context, kind):
     context.caret_screen_position = wedutil.caret_screen_pos(driver)
 
 
-@when(u'the user selects the "(?P<what>.*?)" of the first title')
+@when('the user selects the "(?P<what>.*?)" of the first title')
 def step_impl(context, what):
     driver = context.driver
     util = context.util
 
     parent = util.find_element((By.CSS_SELECTOR, ".title"))
     label = parent.find_element_by_css_selector(".__start_label._title_label")
+
+    # We need to find the text inside the title element
+    text = util.get_text_excluding_children(parent)
+    start_index = text.find(what)
+    assert_true(start_index >= 0, "should have found the text")
 
     if label.is_displayed():
         ActionChains(driver) \
@@ -555,21 +552,19 @@ def step_impl(context, what):
             .click() \
             .perform()
 
-    # We need to find the text inside the title element
-    text = util.get_text_excluding_children(parent)
-    start_index = text.find(what)
-    assert_true(start_index >= 0, "should have found the text")
     if start_index > 0:
-        util.send_keys(parent,
-                       # Move the caret to the start of the selection
-                       # we want.
-                       [Keys.ARROW_RIGHT] * (start_index +
-                                             1 if label.is_displayed() else 0))
+        # Move the caret to the start of the selection we want.
+        ActionChains(driver)\
+            .send_keys([Keys.ARROW_RIGHT] *
+                       (start_index + 1 if label.is_displayed() else 0)) \
+            .perform()
 
     start = wedutil.caret_selection_pos(driver)
-    util.send_keys(parent,
-                   # Move to the end of the selection we want.
-                   [Keys.ARROW_RIGHT] * len(what))
+
+    # Move to the end of the selection we want.
+    ActionChains(driver)\
+        .send_keys([Keys.ARROW_RIGHT] * len(what)) \
+        .perform()
     end = wedutil.caret_selection_pos(driver)
 
     # We don't want to be too close to the edge to handle a problem when
@@ -598,7 +593,7 @@ def step_impl(context, what):
     context.element_to_test_for_text = parent
 
 
-@then(u'the text "abcd" is selected')
+@then('the text "abcd" is selected')
 def step_impl(context):
     util = context.util
 
@@ -606,7 +601,7 @@ def step_impl(context):
     assert_equal(text, "abcd", "expected selection")
 
 
-@then(ur"the selection is restored to what it was before the context menu "
+@then(r"the selection is restored to what it was before the context menu "
       "appeared\.?")
 def step_impl(context):
     util = context.util
@@ -615,7 +610,7 @@ def step_impl(context):
               context.expected_selection)
 
 
-@when(ur"the user selects text on (?P<what>an element's label|phantom text)")
+@when(r"the user selects text on (?P<what>an element's label|phantom text)")
 def step_impl(context, what):
     driver = context.driver
     label = what == "an element's label"
@@ -643,7 +638,7 @@ def step_impl(context, what):
     select_text(context, start, end)
 
 
-@given(ur"there is a paragraph that spans multiple lines")
+@given(r"there is a paragraph that spans multiple lines")
 def step_impl(context):
     driver = context.driver
 
@@ -710,14 +705,14 @@ def step_impl(context):
     assert_equal(len(labels), 1, "the end label should be clicked")
 
 
-@when(ur"the user clicks on a gui control that contains only text")
+@when(r"the user clicks on a gui control that contains only text")
 def step_impl(context):
     driver = context.driver
     button = driver.find_element_by_class_name("_gui_test")
     button.click()
 
 
-@then(ur'the current (?:element|attribute) has the text "(?P<expected>.*?)"')
+@then(r'the current (?:element|attribute) has the text "(?P<expected>.*?)"')
 def step_impl(context, expected):
     driver = context.driver
     text = driver.execute_script("""
@@ -727,7 +722,7 @@ def step_impl(context, expected):
     assert_equal(text, expected)
 
 
-@when(ur"the user switches to (?P<mode>unit|span) selection mode")
+@when(r"the user switches to (?P<mode>unit|span) selection mode")
 def step_impl(context, mode):
     driver = context.driver
 
@@ -740,7 +735,7 @@ def step_impl(context, mode):
     button.click()
 
 
-@then(ur"the selection mode is (?P<mode>unit|span)")
+@then(r"the selection mode is (?P<mode>unit|span)")
 def step_impl(context, mode):
     driver = context.driver
 
@@ -753,7 +748,7 @@ def step_impl(context, mode):
     assert_equal(actual, expect)
 
 
-@then(ur'the caret is in a (?P<what>comment|PI) with the text "(?P<text>.*)"')
+@then(r'the caret is in a (?P<what>comment|PI) with the text "(?P<text>.*)"')
 def step_impl(context, what, text):
     def cond(driver):
         result = context.driver.execute_script("""
@@ -798,7 +793,7 @@ step_matcher("parse")
 
 
 # This is also our default for when a mechanism is not specified.
-@when(u'the user selects text and ends on an element label')
+@when('the user selects text and ends on an element label')
 def step_impl(context):
     driver = context.driver
     util = context.util
@@ -831,15 +826,15 @@ def step_impl(context):
     context.caret_screen_position = wedutil.caret_screen_pos(driver)
 
 
-@then(u'the text is selected')
+@then('the text is selected')
 def step_impl(context):
     util = context.util
 
     assert_equal(util.get_selection_text(), context.expected_selection)
 
 
-@when(u"the user clicks on the editor's scrollbar so that the click "
-      u"does not move the editor's contents")
+@when("the user clicks on the editor's scrollbar so that the click "
+      "does not move the editor's contents")
 def step_impl(context):
     driver = context.driver
     util = context.util
@@ -882,54 +877,54 @@ def step_impl(context):
 
     ActionChains(driver)\
         .click(element)\
+        .send_keys([Keys.ARROW_RIGHT] * 3)\
+        .key_down(Keys.SHIFT)\
+        .send_keys([Keys.ARROW_RIGHT] * 9)\
+        .key_up(Keys.SHIFT)\
         .perform()
-
-    # On IE, sending the keys to the element itself does not work.
-    send_to = element if driver.name != "internet explorer" else \
-        util.find_element((By.CSS_SELECTOR, ".wed-document"))
-
-    util.send_keys(send_to,
-                   # From the label to before the first letter and then past
-                   # the first letter.
-                   [Keys.ARROW_RIGHT] * 3 +
-                   # This moves 9 caracters to the right with shift down.
-                   [Keys.SHIFT] + [Keys.ARROW_RIGHT] * 9 + [Keys.SHIFT])
 
     assert_true(util.is_something_selected(), "something must be selected")
 
     context.selection_parent = parent
 
 
-@when(ur'the user clicks on uneditable text whose parent does not contain "A"')
+@when(r'the user clicks on uneditable text whose grandparent does not '
+      r'contain "A"')
 def step_impl(context):
     driver = context.driver
 
-    el, _, parent_text = get_element_parent_and_parent_text(driver, ".ref")
+    el, parent_text = driver.execute_script("""
+    var button = document.querySelector(".ref ._text._start_wrapper");
+    button.scrollIntoView();
+    return [button, button.parentNode.parentNode.textContent];
+    """)
 
     ActionChains(driver)\
-        .move_to_element_with_offset(el, 1, 1)\
-        .click()\
+        .click(el)\
         .perform()
 
     assert_true(parent_text.find("A") == -1)
 
 
-@then(u'the uneditable text\'s parent contains "A"')
+@then('the uneditable text\'s grandparent contains "A"')
 def step_impl(context):
     driver = context.driver
 
-    _, _, parent_text = get_element_parent_and_parent_text(driver, ".ref")
+    el, parent_text = driver.execute_script("""
+    var button = document.querySelector(".ref ._text._start_wrapper");
+    return [button, button.parentNode.parentNode.textContent];
+    """)
 
     assert_true(parent_text.find("A") != -1)
 
 
-@then(ur"no text is selected")
+@then(r"no text is selected")
 def step_impl(context):
     util = context.util
     assert_false(util.is_something_selected(), "nothing must be selected")
 
 
-@when(ur"the user clicks outside the editor pane")
+@when(r"the user clicks outside the editor pane")
 def step_impl(context):
     body = context.driver.find_element_by_tag_name("body")
     ActionChains(context.driver) \
@@ -938,7 +933,7 @@ def step_impl(context):
         .perform()
 
 
-@when(ur"the user clicks in the middle of a piece of text")
+@when(r"the user clicks in the middle of a piece of text")
 def step_impl(context):
     util = context.util
     driver = context.driver
@@ -967,8 +962,8 @@ def step_impl(context):
         .perform()
 
 
-@when(ur'the user clicks in the text of a readonly element with '
-      ur'the text "abc"')
+@when(r'the user clicks in the text of a readonly element with '
+      r'the text "abc"')
 def step_impl(context):
     util = context.util
     driver = context.driver
@@ -986,8 +981,8 @@ def step_impl(context):
     assert_equal(text, "abc")
 
 
-@when(ur'the user clicks in the text of a readonly attribute with '
-      ur'the text "x"')
+@when(r'the user clicks in the text of a readonly attribute with '
+      r'the text "x"')
 def step_impl(context):
     util = context.util
     driver = context.driver
@@ -1005,7 +1000,7 @@ def step_impl(context):
     assert_equal(text, "x")
 
 
-@then(ur"the caret is set next to the clicked location")
+@then(r"the caret is set next to the clicked location")
 def step_impl(context):
     driver = context.driver
     caret_path = driver.execute_script("""
@@ -1015,7 +1010,7 @@ def step_impl(context):
     assert_equal(context.caret_path, caret_path)
 
 
-@then(ur"the caret is in an element with the attributes")
+@then(r"the caret is in an element with the attributes")
 def step_impl(context):
     def cond(driver):
         result = context.driver.execute_script("""
@@ -1057,7 +1052,7 @@ def step_impl(context):
     expected = context.table.rows
     assert_equal(len(actual), len(expected),
                  "expected {} attributes, but found {}"
-                 .format(len(expected), actual.keys()))
+                 .format(len(expected), list(actual.keys())))
 
     for row in expected:
         name = row["name"]
@@ -1067,7 +1062,7 @@ def step_impl(context):
         assert_equal(attr, {"ns": row["ns"], "value": row["value"]})
 
 
-@then(ur"the caret is in an element with no attributes")
+@then(r"the caret is in an element with no attributes")
 def step_impl(context):
     actual = context.driver.execute_script("""
     const caret = wed_editor.caretManager.getDataCaret(true);

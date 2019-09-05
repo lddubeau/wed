@@ -14,15 +14,15 @@ from nose.tools import assert_equal, assert_true, \
 
 import wedutil
 
-from ..util import Trigger, get_element_parent_and_parent_text, \
-    get_real_siblings
+from selenium_test.util import Trigger, get_element_parent_and_parent_text, \
+    get_real_siblings, scroll_into_view
 
 step_matcher("re")
 
 
 @Given("that a context menu is open")
 def context_menu_is_open(context):
-    context.execute_steps(u"""
+    context.execute_steps("""
     When the user uses the mouse to bring up the context menu on text
     Then a context menu appears
     """)
@@ -88,10 +88,10 @@ def context_menu_on_start_label_of_element(context):
     context.context_menu_for = parent
 
 
-@given(u'that the user has brought up the context menu over the '
-       u'(?P<which>start|end) label of an element')
+@given('that the user has brought up the context menu over the '
+       '(?P<which>start|end) label of an element')
 def step_impl(context, which):
-    context.execute_steps(u"""
+    context.execute_steps("""
     When the user brings up the context menu on the {0} label of an element
     Then a context menu is visible close to where the user invoked it
     """.format(which))
@@ -170,6 +170,7 @@ def context_menu_on_uneditable_text(context):
 
     element, parent, _ = get_element_parent_and_parent_text(
         driver, ".ref>._phantom._text")
+    scroll_into_view(driver, element)
     ActionChains(driver)\
         .move_to_element(element)\
         .context_click()\
@@ -178,7 +179,7 @@ def context_menu_on_uneditable_text(context):
     context.context_menu_trigger = Trigger(util, element)
     context.context_menu_for = parent
 
-    context.execute_steps(u"""
+    context.execute_steps("""
     Then a context menu is visible close to where the user invoked it
     """)
 
@@ -352,8 +353,8 @@ def step_impl(context):
                 "the menu would otherwise overflow")
 
 
-@When(ur"the user uses the keyboard to bring up the context menu on "
-      ur"(?P<choice>a placeholder|text)")
+@When(r"the user uses the keyboard to bring up the context menu on "
+      r"(?P<choice>a placeholder|text)")
 def step_impl(context, choice):
     driver = context.driver
     util = context.util
@@ -397,8 +398,8 @@ def step_impl(context, choice):
     context.context_menu_for = parent
 
 
-@when(ur"the user brings up the context menu")
-@when(ur"the user uses the keyboard to bring up the context menu")
+@when(r"the user brings up the context menu")
+@when(r"the user uses the keyboard to bring up the context menu")
 def step_impl(context):
     driver = context.driver
     util = context.util
@@ -415,19 +416,19 @@ def step_impl(context):
     util.ctrl_equivalent_x("/")
 
 
-@then(ur"the user can bring up a context menu with the keyboard\.?")
+@then(r"the user can bring up a context menu with the keyboard\.?")
 def step_impl(context):
 
     # Reset the trigger so that we pick up a new trigger.
     context.context_menu_trigger = None
 
-    context.execute_steps(u"""
+    context.execute_steps("""
     When the user uses the keyboard to bring up the context menu
     Then a context menu is visible close to where the user invoked it
     """)
 
 
-@when(u'the user brings up the context menu on the selection')
+@when('the user brings up the context menu on the selection')
 def step_impl(context):
     driver = context.driver
 
@@ -447,9 +448,9 @@ def step_impl(context):
     context.context_menu_for = None
 
 
-@given(u'that the user has brought up the context menu over a selection')
+@given('that the user has brought up the context menu over a selection')
 def step_impl(context):
-    context.execute_steps(u"""
+    context.execute_steps("""
     When the user selects text
     And the user brings up the context menu on the selection
     Then a context menu is visible close to where the user invoked it
@@ -457,12 +458,12 @@ def step_impl(context):
     """)
 
 
-@when(ur'the user clicks (?P<choice>the first context menu option|a choice '
-      ur'for wrapping text in new elements|'
-      ur'a choice for creating an element (?:before|after) the selected '
-      ur'element|'
-      ur'a choice for creating a new (?P<new>.*)|'
-      ur'the choice named "(?P<name>.*)")')
+@when(r'the user clicks (?P<choice>the first context menu option|a choice '
+      r'for wrapping text in new elements|'
+      r'a choice for creating an element (?:before|after) the selected '
+      r'element|'
+      r'a choice for creating a new (?P<new>.*)|'
+      r'the choice named "(?P<name>.*)")')
 def step_impl(context, choice, new=None, name=None):
     util = context.util
     driver = context.driver
@@ -524,7 +525,7 @@ def step_impl(context, choice, new=None, name=None):
     link.click()
 
 
-@then(u'the first context menu option is "(?P<text>.*?)"')
+@then('the first context menu option is "(?P<text>.*?)"')
 def step_impl(context, text):
     driver = context.driver
 
@@ -535,8 +536,8 @@ def step_impl(context, text):
     assert_equal(actual, text)
 
 
-@when(u'the user moves with the keyboard to a choice '
-      u'for wrapping text in new elements')
+@when('the user moves with the keyboard to a choice '
+      'for wrapping text in new elements')
 def step_impl(context):
     driver = context.driver
     util = context.util
@@ -553,8 +554,8 @@ def step_impl(context):
         util.get_text_excluding_children(link).strip()
 
 
-@When(ur"the user clicks on a placeholder that will serve to bring up "
-      ur"a context menu")
+@When(r"the user clicks on a placeholder that will serve to bring up "
+      r"a context menu")
 def step_impl(context):
     driver = context.driver
     util = context.util
@@ -573,8 +574,8 @@ items_re = re.compile(r"(?:\s*,\s*|\s+and\s+)")
 items_cleanup_re = re.compile(r"(?:^['\"]|['\"]$)")
 
 
-@then(ur"the context menu contains options of the (?:(?P<what>kind|type)s? "
-      ur"(?P<items>.*?)|other (?P<other>kind|type))\.?")
+@then(r"the context menu contains options of the (?:(?P<what>kind|type)s? "
+      r"(?P<items>.*?)|other (?P<other>kind|type))\.?")
 def step_impl(context, what=None, items=None, other=None):
     util = context.util
     expected = set((items_cleanup_re.sub('', i)
@@ -605,8 +606,8 @@ FILTER_TO_INDEX = ["transform", "add", "delete", "wrap", "unwrap",
                    "other", "element", "attribute", "other"]
 
 
-@when(ur'the user clicks on the filter to show only options of '
-      ur'(?P<what>kind|type) (?P<item>.*?)')
+@when(r'the user clicks on the filter to show only options of '
+      r'(?P<what>kind|type) (?P<item>.*?)')
 def step_impl(context, item, what):
     driver = context.driver
     item = items_cleanup_re.sub('', item)
@@ -625,7 +626,7 @@ def step_impl(context, item, what):
     buttons[index].click()
 
 
-@then(ur'the context menu contains only the option "(?P<option>.*?)"')
+@then(r'the context menu contains only the option "(?P<option>.*?)"')
 def step_impl(context, option):
 
     def cond(driver):
@@ -643,7 +644,7 @@ def step_impl(context, option):
     context.util.wait(cond)
 
 
-@then(ur'the context menu contains (?P<choice>more than one option|'
+@then(r'the context menu contains (?P<choice>more than one option|'
       '3 options)')
 def step_impl(context, choice):
 

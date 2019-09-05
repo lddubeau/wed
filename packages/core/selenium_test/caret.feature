@@ -70,9 +70,9 @@ Scenario: select text when there is no label
   Then the text "abcd" is selected
 
 Scenario: clicking on uneditable text
-  When the user clicks on uneditable text whose parent does not contain "A"
+  When the user clicks on uneditable text whose grandparent does not contain "A"
   And the user types "A"
-  Then the uneditable text's parent contains "A"
+  Then the uneditable text's grandparent contains "A"
 
 Scenario: selecting text on a label
   When the user selects text on an element's label

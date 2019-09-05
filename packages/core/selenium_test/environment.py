@@ -1,12 +1,12 @@
 import os
 import time
-from urlparse import urljoin
+from urllib.parse import urljoin
 import subprocess
 import atexit
 import signal
 import threading
 import datetime
-import httplib
+import http.client
 
 from slugify import slugify
 import requests
@@ -28,7 +28,7 @@ conf_path = os.path.join(os.path.dirname(_dirname),
 
 def dump_config(builder):
     print("***")
-    print(builder.config)
+    print((builder.config))
     print("***")
 
 
@@ -43,7 +43,7 @@ def cleanup(context, failed):
     if driver:
         try:
             builder.set_test_status(not (failed or context.failed))
-        except httplib.HTTPException:
+        except http.client.HTTPException:
             # Ignore cases where we can't set the status.
             pass
 
@@ -55,7 +55,7 @@ def cleanup(context, failed):
             except:
                 pass
         elif selenium_quit == "on-enter":
-            raw_input("Hit enter to quit")
+            input("Hit enter to quit")
             try:
                 driver.quit()
             except:
@@ -271,7 +271,7 @@ def dump_javascript_log(context):
         print("")
         if logs:
             print("JavaScript log:")
-            print("\n".join(repr(x) for x in logs))
+            print(("\n".join(repr(x) for x in logs)))
         else:
             print("JavaScript log empty")
         print("")
@@ -305,15 +305,6 @@ def before_feature(context, feature):
         # used.
         context.top.initial_window_size = {"width": 1020, "height": 700}
         context.top.initial_window_handle = driver.current_window_handle
-
-        # IE and Chrome must use nativeEvents. Firefox no longer supports
-        # them. It is unclear whether Edge will...
-        if util.chrome:
-            assert_true(
-                driver.desired_capabilities["nativeEvents"],
-                "Wed's test suite require that native events be available; "
-                "you may have to use a different version of your browser, "
-                "one for which Selenium supports native events.")
 
     # Drop some values into the context object itself for ease of access.
     context.util = context.top.util
@@ -353,7 +344,7 @@ def after_feature(context, feature):
             except:
                 pass
         elif selenium_quit == "on-enter":
-            raw_input("Hit enter to quit")
+            input("Hit enter to quit")
             try:
                 driver.quit()
             except:
@@ -479,14 +470,14 @@ def after_step(context, step):
                                     step.name) + ".png")
         driver.save_screenshot(name)
         print("")
-        print("Captured screenshot:", name)
+        print(("Captured screenshot:", name))
         print("")
 
     dump_javascript_log(context)
 
 
 def after_all(context):
-    print("Elapsed between before_all and after_all:",
-          str(datetime.timedelta(seconds=time.time() - context.start_time)))
+    print(("Elapsed between before_all and after_all:",
+           str(datetime.timedelta(seconds=time.time() - context.start_time))))
     cleanup(context, False)
     dump_config(context.builder)

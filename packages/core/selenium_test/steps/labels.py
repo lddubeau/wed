@@ -18,7 +18,7 @@ def get_element_label_stats(driver):
     """)
 
 
-@Given(ur"the label visiblity level is at (?P<level>\d+).?")
+@Given(r"the label visiblity level is at (?P<level>\d+).?")
 def step_impl(context, level):
     driver = context.driver
     util = context.util
@@ -33,8 +33,8 @@ def step_impl(context, level):
     context.number_of_visible_labels = n_displayed
 
 
-@When(ur"(?:the user )?(?P<choice>decreases|increases) the label visibility "
-      ur"level")
+@When(r"(?:the user )?(?P<choice>decreases|increases) the label visibility "
+      r"level")
 def step_impl(context, choice):
     driver = context.driver
     util = context.util
@@ -59,7 +59,7 @@ def step_impl(context, choice):
 
     else:
         # On OSX, we have to use the toolbar.
-        context.execute_steps(u"""\
+        context.execute_steps("""\
 When the user clicks the toolbar button "{}"
         """.format({
             "decreases": "Decrease label visibility level",

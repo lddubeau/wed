@@ -70,7 +70,7 @@ if suffix:
     name += ": " + suffix
 
 # Grab the current build number.
-describe = subprocess.check_output(["git", "describe"])
+describe = subprocess.check_output(["git", "describe"]).decode("utf8").strip()
 # Grab the current reported version of wed
 with open("package.json") as pk:
     version_data = json.load(pk)

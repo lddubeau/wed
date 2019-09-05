@@ -154,3 +154,8 @@ def wait_for_editor(context, tooltips=False):
             .move_to_element_with_offset(body, 1, 1) \
             .click() \
             .perform()
+
+
+def scroll_into_view(driver, el):
+    # Should be removable when Chrome 77 becomes the standard version to test.
+    driver.execute_script("arguments[0].scrollIntoView()", el)

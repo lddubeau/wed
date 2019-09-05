@@ -13,7 +13,7 @@ import wedutil
 # pylint: disable=E0102
 
 
-@when(u'the user deletes all text letter by letter in an element')
+@when('the user deletes all text letter by letter in an element')
 def step_impl(context):
     driver = context.driver
     element, context.emptied_element = driver.execute_script("""
@@ -29,9 +29,9 @@ def step_impl(context):
         .perform()
 
 
-@given(u'that the user has deleted all the text in an element')
+@given('that the user has deleted all the text in an element')
 def step_impl(context):
-    context.execute_steps(u"""
+    context.execute_steps("""
     When the user deletes all text letter by letter in an element
     Then a placeholder is present in the element
     """)
@@ -53,7 +53,7 @@ def step_impl(context):
 #         .perform()
 
 
-@when(u'the user types "{text}"')
+@when('the user types "{text}"')
 def step_impl(context, text):
     driver = context.driver
     ActionChains(driver)\
@@ -61,7 +61,7 @@ def step_impl(context, text):
         .perform()
 
 
-@then(u'a placeholder is present in the element')
+@then('a placeholder is present in the element')
 def step_impl(context):
     driver = context.driver
     util = context.util
@@ -70,7 +70,7 @@ def step_impl(context):
     util.wait(lambda *_: element.find_element(By.CLASS_NAME, "_placeholder"))
 
 
-@then(u'"{text}" is in the text')
+@then('"{text}" is in the text')
 def step_impl(context, text):
     driver = context.driver
     util = context.util
@@ -84,18 +84,18 @@ def step_impl(context, text):
 step_matcher('re')
 
 
-@then(u'ESCAPE is not in the text')
+@then('ESCAPE is not in the text')
 def step_impl(context):
     util = context.util
 
     def condition(*_):
         el_text = util.get_text_excluding_children(
             context.element_to_test_for_text)
-        return el_text.find(u"\u001b") == -1
+        return el_text.find("\u001b") == -1
     util.wait(condition)
 
 
-@when(u'the user types (?P<choice>ENTER|ESCAPE|DELETE|BACKSPACE|F1)')
+@when('the user types (?P<choice>ENTER|ESCAPE|DELETE|BACKSPACE|F1)')
 def step_impl(context, choice):
     driver = context.driver
     key = getattr(Keys, choice)
@@ -104,12 +104,12 @@ def step_impl(context, choice):
         .perform()
 
 
-@when(u'the user undoes')
+@when('the user undoes')
 def step_impl(context):
     context.util.ctrl_equivalent_x("z")
 
 
-@then(u'the last letter of the element\'s text is deleted')
+@then('the last letter of the element\'s text is deleted')
 def step_impl(context):
     driver = context.driver
     util = context.util
@@ -123,8 +123,8 @@ def step_impl(context):
     assert_equal(initial[:-1], final, "edited text")
 
 
-@then(ur'the (?P<ordinal>first|second) (?P<what>".*?"|paragraph) in body has '
-      ur'the text "(?P<text>.*)"')
+@then(r'the (?P<ordinal>first|second) (?P<what>".*?"|paragraph) in body has '
+      r'the text "(?P<text>.*)"')
 def step_impl(context, ordinal, what, text):
     util = context.util
     index = 0 if ordinal == "first" else 1
@@ -135,7 +135,7 @@ def step_impl(context, ordinal, what, text):
         what = what[1:-1]  # drop the quotes.
 
     els = util.find_elements((By.CSS_SELECTOR, ".body ." +
-                              what.replace(":", ur"\:")))
+                              what.replace(":", r"\:")))
 
     def cond(*_):
         return util.get_text_excluding_children(els[index]) == text

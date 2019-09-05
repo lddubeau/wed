@@ -6,17 +6,17 @@ import wedutil
 step_matcher("re")
 
 
-@when(u"the user cuts")
+@when("the user cuts")
 def step_impl(context):
     wedutil.cut(context.util)
 
 
-@when(u'the user cut-adds')
+@when('the user cut-adds')
 def step_impl(context):
     wedutil.cut_add(context.util)
 
 
-@then(u"the text is (?P<negation>not )?cut")
+@then("the text is (?P<negation>not )?cut")
 def step_impl(context, negation=None):
     util = context.util
     parent = context.selection_parent
@@ -27,7 +27,7 @@ def step_impl(context, negation=None):
               lambda *_: len(util.get_text_excluding_children(parent)))
 
 
-@then(u"the attribute contains no text")
+@then("the attribute contains no text")
 def step_impl(context):
     result = context.driver.execute_script("""
     const { node } = wed_editor.caretManager.getDataCaret();

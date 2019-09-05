@@ -8,7 +8,7 @@ import wedutil
 step_matcher('re')
 
 
-@step(ur'a modal is(?P<visible> not|) visible')
+@step(r'a modal is(?P<visible> not|) visible')
 def step_impl(context, visible):
     visible_modals = \
         context.driver.find_elements_by_css_selector(".modal.show")
@@ -23,7 +23,7 @@ def step_impl(context, visible):
     assert_equal(len(visible_modals), expected, message)
 
 
-@given(ur'the user has brought up a (?P<kind>draggable|resizable) modal')
+@given(r'the user has brought up a (?P<kind>draggable|resizable) modal')
 def step_impl(context, kind):
     util = context.util
     driver = context.driver
@@ -34,14 +34,14 @@ def step_impl(context, kind):
         .perform()
     wedutil.wait_for_caret_to_be_in(util, element)
 
-    context.execute_steps(u"""
+    context.execute_steps("""
     When the user uses the keyboard to bring up the context menu
     Then a context menu is visible close to where the user invoked it
     When the user clicks the choice named "Test {0}"
     """.format(kind))
 
 
-@given(ur'the modal has a max height of (?P<height>\d+)px')
+@given(r'the modal has a max height of (?P<height>\d+)px')
 def step_impl(context, height):
     driver = context.driver
 
@@ -54,7 +54,7 @@ def step_impl(context, height):
     """, int(height))
 
 
-@then(ur'the user can drag the modal')
+@then(r'the user can drag the modal')
 def step_impl(context):
     util = context.util
     driver = context.driver
@@ -78,7 +78,7 @@ def step_impl(context):
                  "the left position should be 10 more than it was")
 
 
-@then(ur'the user can resize the modal')
+@then(r'the user can resize the modal')
 def step_impl(context):
     (orig_size, new_size) = resize(context, -10, 10)
 
@@ -88,7 +88,7 @@ def step_impl(context):
                  "the width should be 10 less than it was")
 
 
-@then(ur'the user resizes the height by (?P<height>\d+)px')
+@then(r'the user resizes the height by (?P<height>\d+)px')
 def step_impl(context, height):
     height = int(height)
     resize(context, 0, height)

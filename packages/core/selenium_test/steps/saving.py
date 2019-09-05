@@ -1,4 +1,4 @@
-from urlparse import urljoin
+from urllib.parse import urljoin
 import json
 import re
 
@@ -20,17 +20,17 @@ def step_impl(context):
 
 last_obj_re = re.compile('.*}{')
 
-flip_rend_style_re = re.compile(ur'(style="[^"]*?") (rend="[^"]*?")')
-flip_xmlns_re = re.compile(ur'(xmlns:math="[^"]*?") (xmlns="[^"]*?")')
+flip_rend_style_re = re.compile(r'(style="[^"]*?") (rend="[^"]*?")')
+flip_xmlns_re = re.compile(r'(xmlns:math="[^"]*?") (xmlns="[^"]*?")')
 flip_div_attrs_re = re.compile(
-    ur'(type="[^"]*?") (rend="[^"]*?") (rendition="[^"]*?") '
-    ur'(subtype="[^"]*?")')
+    r'(type="[^"]*?") (rend="[^"]*?") (rendition="[^"]*?") '
+    r'(subtype="[^"]*?")')
 
-flip_moo_re = re.compile(ur'(moo="[^"]*?") (MOO="[^"]*?")')
+flip_moo_re = re.compile(r'(moo="[^"]*?") (MOO="[^"]*?")')
 
 _SCENARIO_TO_EXPECTED_DATA = {
     "serializes namespaces properly":
-    u"""\
+    """\
 <TEI xmlns="http://www.tei-c.org/ns/1.0"><teiHeader><fileDesc>\
 <titleStmt><title>abcd</title></titleStmt><publicationStmt><p/>\
 </publicationStmt><sourceDesc><p MOO="a" moo="b"/>\
@@ -79,8 +79,8 @@ def step_impl(context):
     util = context.util
 
     expected = {
-        u'command': u'save',
-        u'data': _SCENARIO_TO_EXPECTED_DATA[context.scenario.name]
+        'command': 'save',
+        'data': _SCENARIO_TO_EXPECTED_DATA[context.scenario.name]
     }
 
     def cond(_driver):
@@ -91,20 +91,20 @@ def step_impl(context):
         actual = json.loads(text)
         # We don't care about the version here.
         del actual["version"]
-        if u"data" in actual:
+        if "data" in actual:
             if util.ie:
-                actual[u"data"] =  \
-                    flip_rend_style_re.sub(ur'\2 \1', actual[u"data"])
-                actual[u"data"] = \
-                    flip_xmlns_re.sub(ur'\2 \1', actual[u"data"])
-                actual[u"data"] = \
-                    flip_div_attrs_re.sub(ur'\1 \4 \2 \3', actual[u"data"])
+                actual["data"] =  \
+                    flip_rend_style_re.sub(r'\2 \1', actual["data"])
+                actual["data"] = \
+                    flip_xmlns_re.sub(r'\2 \1', actual["data"])
+                actual["data"] = \
+                    flip_div_attrs_re.sub(r'\1 \4 \2 \3', actual["data"])
             elif util.edge:
-                actual[u"data"] =  \
-                    flip_rend_style_re.sub(ur'\2 \1', actual[u"data"])
-                actual[u"data"] = \
-                    flip_div_attrs_re.sub(ur'\1 \4 \2 \3', actual[u"data"])
-                actual[u"data"] = flip_moo_re.sub(ur'\2 \1', actual[u"data"])
+                actual["data"] =  \
+                    flip_rend_style_re.sub(r'\2 \1', actual["data"])
+                actual["data"] = \
+                    flip_div_attrs_re.sub(r'\1 \4 \2 \3', actual["data"])
+                actual["data"] = flip_moo_re.sub(r'\2 \1', actual["data"])
 
         return Result(actual == expected, [actual, expected])
 

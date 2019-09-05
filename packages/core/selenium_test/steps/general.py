@@ -1,4 +1,6 @@
-import urllib
+import urllib.request
+import urllib.parse
+import urllib.error
 import os
 
 from slugify import slugify
@@ -12,7 +14,8 @@ from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import NoAlertPresentException
 
 import wedutil
-from ..util import get_element_parent_and_parent_text, wait_for_editor
+from selenium_test.util import get_element_parent_and_parent_text, \
+    wait_for_editor
 
 # Don't complain about redefined functions
 # pylint: disable=E0102
@@ -38,7 +41,7 @@ def load_and_wait_for_editor(context, text=None, options=None,
     if schema is not None:
         query["schema"] = schema
 
-    server += urllib.urlencode(query)
+    server += urllib.parse.urlencode(query)
 
     driver.get(server)
     wait_for_editor(context, tooltips)
@@ -199,9 +202,9 @@ def step_impl(context):
     context.window_scroll_left = util.window_scroll_left()
 
 
-@given(u"wait {x} seconds")
-@when(u"wait {x} seconds")
-@then(u"wait {x} seconds")
+@given("wait {x} seconds")
+@when("wait {x} seconds")
+@then("wait {x} seconds")
 def step_impl(context, x):
     import time
     time.sleep(float(x))
@@ -257,15 +260,15 @@ def step_impl(context):
                      "the scroll top should not have changed")
 
 
-@given(ur"a document containing a top level element, a p element, "
-       ur"and text\.?")
+@given(r"a document containing a top level element, a p element, "
+       r"and text\.?")
 def open_simple_doc(context):
     load_and_wait_for_editor(
         context,
         text="lib/tests/wed_test_data/source_converted.xml")
 
 
-@given(ur"a document that has multiple top namespaces\.?")
+@given(r"a document that has multiple top namespaces\.?")
 def open_simple_doc(context):
     load_and_wait_for_editor(
         context,
@@ -273,7 +276,7 @@ def open_simple_doc(context):
         schema="@math")
 
 
-@given(ur"a document with tooltips on")
+@given(r"a document with tooltips on")
 def step_impl(context):
     load_and_wait_for_editor(
         context,
@@ -288,28 +291,28 @@ def step_impl(context):
             .perform()
 
 
-@given(ur"a complex document without errors?")
+@given(r"a complex document without errors?")
 def open_simple_doc(context):
     load_and_wait_for_editor(
         context,
         text="lib/tests/wed_test_data/complex_converted.xml")
 
 
-@given(ur'a document without "hi"')
+@given(r'a document without "hi"')
 def open_simple_doc(context):
     load_and_wait_for_editor(
         context,
         text="lib/tests/wed_test_data/nohi_converted.xml")
 
 
-@given(ur'a document without "text"')
+@given(r'a document without "text"')
 def open_simple_doc(context):
     load_and_wait_for_editor(
         context,
         text="lib/tests/wed_test_data/notext_converted.xml")
 
 
-@given(ur'a document with readonly elements')
+@given(r'a document with readonly elements')
 def open_simple_doc(context):
     load_and_wait_for_editor(
         context,
@@ -317,15 +320,15 @@ def open_simple_doc(context):
         text="lib/tests/wed_test_data/wildcard_converted.xml")
 
 
-@given(ur'a document for testing unit selection mode')
+@given(r'a document for testing unit selection mode')
 def open_simple_doc(context):
     load_and_wait_for_editor(
         context,
         text="lib/tests/wed_test_data/unit_selection_converted.xml")
 
 
-@when(ur"the user scrolls the window (?P<choice>completely down|down "
-      ur"by (?P<by>\d+))")
+@when(r"the user scrolls the window (?P<choice>completely down|down "
+      r"by (?P<by>\d+))")
 def step_impl(context, choice, by):
     driver = context.driver
     util = context.util
@@ -342,7 +345,7 @@ def step_impl(context, choice, by):
     context.window_scroll_left = util.window_scroll_left()
 
 
-@then(ur"the window's contents does not move\.?")
+@then(r"the window's contents does not move\.?")
 def step_impl(context):
     util = context.util
 
@@ -393,9 +396,9 @@ def step_impl(context):
     config = context.builder.config
     context.driver.get(context.builder.WED_UNOPTIMIZED_SERVER +
                        "/platform_test.html?platform=" +
-                       urllib.quote(config.platform) +
-                       "&browser=" + urllib.quote(config.browser) +
-                       "&version=" + urllib.quote(config.version))
+                       urllib.parse.quote(config.platform) +
+                       "&browser=" + urllib.parse.quote(config.browser) +
+                       "&version=" + urllib.parse.quote(config.version))
 
 
 @when('the input field is focused')
@@ -436,5 +439,5 @@ def step_impl(context, name):
                          slugify(name) + ".png")
     context.driver.save_screenshot(fname)
     print("")
-    print("Captured screenshot:", fname)
+    print(("Captured screenshot:", fname))
     print("")

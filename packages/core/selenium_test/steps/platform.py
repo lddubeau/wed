@@ -17,7 +17,7 @@ XML_CASES = [
 step_matcher("re")
 
 
-@then(u"the innerHTML field of XML nodes produces valid values")
+@then("the innerHTML field of XML nodes produces valid values")
 def step_impl(context):
     driver = context.driver
 
@@ -36,7 +36,7 @@ def step_impl(context):
         assert_equal(output, case.output)
 
 
-@then(u"normalize is a polyfill")
+@then("normalize is a polyfill")
 def step_impl(context):
     driver = context.driver
 
@@ -45,7 +45,7 @@ def step_impl(context):
     """), "normalize should be a polyfill")
 
 
-@then(u"normalize joins adjacent text nodes")
+@then("normalize joins adjacent text nodes")
 def step_impl(context):
     driver = context.driver
 
@@ -71,7 +71,7 @@ def step_impl(context):
     assert_equal(results[3], "ab")
 
 
-@then(u"normalize deletes empty text nodes")
+@then("normalize deletes empty text nodes")
 def step_impl(context):
     driver = context.driver
 
@@ -90,7 +90,7 @@ def step_impl(context):
     assert_equal(results[1], 0, "the p element should have no children")
 
 
-@then(u"String.prototype.repeat works")
+@then("String.prototype.repeat works")
 def step_impl(context):
     results = context.driver.execute_script("""
     return [

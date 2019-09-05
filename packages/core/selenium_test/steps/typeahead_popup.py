@@ -6,8 +6,8 @@ from selenic.util import Result, Condition
 step_matcher("re")
 
 
-@when(ur"(?P<step>the user opens the typeahead popup"
-      ur"(?P<where> at the end of the title text)?)")
+@when(r"(?P<step>the user opens the typeahead popup"
+      r"(?P<where> at the end of the title text)?)")
 @given("(?P<step>that a typeahead popup is open)")
 def step_impl(context, step, where=None):
     driver = context.driver
@@ -41,7 +41,7 @@ def step_impl(context, step, where=None):
     util.ctrl_equivalent_x("/")
 
     context.context_menu_for = element
-    context.execute_steps(u"""
+    context.execute_steps("""
     When the user clicks the choice named "Test typeahead"
     """)
 
@@ -87,7 +87,7 @@ def step_impl(context, is_):
     assert_equal(util.get_text_excluding_children(element), expected)
 
 
-@when(ur"the user clicks the first typeahead choice")
+@when(r"the user clicks the first typeahead choice")
 def step_impl(context):
     util = context.util
 
@@ -96,7 +96,7 @@ def step_impl(context):
     element.click()
 
 
-@when(ur"the user clicks outside the typeahead")
+@when(r"the user clicks outside the typeahead")
 def step_impl(context):
     util = context.util
 
@@ -106,7 +106,7 @@ def step_impl(context):
         .perform()
 
 
-@then(ur"the typeahead popup's choice list has a vertical scrollbar")
+@then(r"the typeahead popup's choice list has a vertical scrollbar")
 def step_impl(context):
     def check(driver):
         return driver.execute_script("""
@@ -125,7 +125,7 @@ def step_impl(context):
     context.util.wait(check)
 
 
-@then(ur"the typeahead popup is visible and completely inside the window")
+@then(r"the typeahead popup is visible and completely inside the window")
 def step_impl(context):
     util = context.util
 
@@ -134,7 +134,7 @@ def step_impl(context):
                 "menu is completely visible")
 
 
-@then(ur'the typeahead popup overflows the editor pane')
+@then(r'the typeahead popup overflows the editor pane')
 def step_impl(context):
     driver = context.driver
 
@@ -147,7 +147,7 @@ def step_impl(context):
     """), "the typeahead should overflow the editor pane")
 
 
-@when(ur"the user clicks the last visible completion")
+@when(r"the user clicks the last visible completion")
 def step_impl(context):
     driver = context.driver
 
@@ -162,19 +162,19 @@ def step_impl(context):
         .perform()
 
 
-@then(ur"dump caret position")
+@then(r"dump caret position")
 def step_impl(context):
     driver = context.driver
-    print(driver.execute_script("""
+    print((driver.execute_script("""
     var caret = wed_editor.caretManager.caret;
     if (!caret)
       return "no caret!"
     return [caret.node.innerHTML, caret.offset];
-    """))
+    """)))
     print("")
 
 
-@then(ur"the typeahead popup shows suggestions")
+@then(r"the typeahead popup shows suggestions")
 def step_impl(context):
     util = context.util
 

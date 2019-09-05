@@ -4,12 +4,12 @@ from selenic.util import Condition, Result
 import wedutil
 
 
-@when(u'the user pastes')
+@when('the user pastes')
 def step_impl(context):
     wedutil.paste(context.util)
 
 
-@then(u'the text is pasted')
+@then('the text is pasted')
 def step_impl(context):
     util = context.util
     parent = context.selection_parent
@@ -19,7 +19,7 @@ def step_impl(context):
     util.wait(lambda *_: util.get_text_excluding_children(parent) == text)
 
 
-@then(ur'the text is pasted into the new paragraph')
+@then(r'the text is pasted into the new paragraph')
 def step_impl(context):
 
     def cond(driver):

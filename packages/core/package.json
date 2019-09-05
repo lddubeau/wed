@@ -83,7 +83,7 @@
     "version": "versync -b sync -a",
     "clean": "rm -rf build gh-pages",
     "distclean": "npm run clean && rm -rf node_modules",
-    "venv": "[ -e .wed-venv ] || virtualenv .wed-venv",
+    "venv": "[ -e .wed-venv ] || python3 -m venv .wed-venv",
     "dev-venv": "npm run venv && .wed-venv/bin/pip install -r dev_requirements.txt"
   }
 }
