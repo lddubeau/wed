@@ -13,7 +13,6 @@ describe("key", () => {
   let frameWindow: Window;
 
   const browsers = {
-    CHROME_31: false,
     OSX: false,
     __esModule: true,
   };
