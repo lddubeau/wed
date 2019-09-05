@@ -1373,6 +1373,9 @@ supported:
   from Chrome 34. It was reintroduced in Chrome 35. We'll probably never have
   support for Chrome 34.
 
+* Firefox 24: there was a bug in Firefox 24 that required special
+  handling. The special code path has been removed, and won't come back.
+
 * Antique browsers.
 
 * Oddball browsers or other software or hardware systems that present web

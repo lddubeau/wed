@@ -6,8 +6,6 @@
  */
 import $ from "jquery";
 
-import * as browsers from "@wedxml/common/browsers";
-
 import { ActionKind, ActionNodeType, UnspecifiedAction,
          UnspecifiedActionInvocation } from "../action";
 import * as keyMod from "../key";
@@ -347,18 +345,8 @@ extends ContextMenu<UnspecifiedActionInvocation> {
       this.filters.kind = null;
       this.filters.type = null;
       this.actionTextFilter = "";
-      // For some reason, on FF 24, stopping propagation and
-      // preventing the default is not enough.
-      if (!browsers.FIREFOX_24) {
-        this.actionFilterInput.value = "";
-        this.refreshItemList();
-      }
-      else {
-        setTimeout(() => {
-          this.actionFilterInput.value = "";
-          this.refreshItemList();
-        }, 0);
-      }
+      this.actionFilterInput.value = "";
+      this.refreshItemList();
       ev.stopPropagation();
       ev.preventDefault();
       return false;

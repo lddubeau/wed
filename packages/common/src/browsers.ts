@@ -46,11 +46,6 @@ export const CHROME = !EDGE && agent.indexOf(" Chrome/") !== -1;
 export const FIREFOX = agent.indexOf(" Firefox/") !== -1;
 
 /**
- * True if the browser is Firefox 24. This is an ESR version.
- */
-export const FIREFOX_24 = agent.indexOf(" Firefox/24") !== -1;
-
-/**
  * True if the browser is Gecko-based.
  */
 export const GECKO = agent.indexOf(" Gecko/") !== -1;
