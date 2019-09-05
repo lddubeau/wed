@@ -5,8 +5,6 @@
  */
 import { first } from "rxjs/operators";
 
-import * as browsers from "@wedxml/common/browsers";
-
 import { CaretManager } from "wed/caret-manager";
 import { DLoc } from "wed/dloc";
 import { childByClass, firstDescendantOrSelf, indexOf } from "wed/domutil";
@@ -599,12 +597,7 @@ AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
                   Math.round(caretManager.mark.getBoundingClientRect().top));
   });
 
-  // tslint:disable-next-line:mocha-no-side-effect-code
-  const itNoIE = browsers.MSIE ? it.skip : it;
-
-  // We cannot right now run this on IE.
-  // tslint:disable-next-line:mocha-no-side-effect-code
-  itNoIE("proper caret position for elements that span lines", () => {
+  it("proper caret position for elements that span lines", () => {
     const p = editor.dataRoot.querySelectorAll("body>p")[5];
 
     // Check that we are testing what we want to test. The end label for the hi

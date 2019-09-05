@@ -41,28 +41,6 @@ export const EDGE = agent.indexOf(" Edge/") !== -1;
 export const CHROME = !EDGE && agent.indexOf(" Chrome/") !== -1;
 
 /**
- * True if the browser is Internet Explorer up to version 10.
- */
-export const MSIE_TO_10 = agent.indexOf(" MSIE ") !== -1;
-
-/**
- * True if the browser is Internet Explorer from version 11 and up.
- */
-//
-// This may be overbroad but at this point, we don't care.  The string "like
-// Gecko" appears in a number of user agent strings but AFAIK it is only IE 11
-// that puts it at the end. We might want to refine this eventually.
-//
-const MSIE_11_MARK = " like Gecko";
-export const MSIE_11_AND_UP = agent.indexOf(
-  MSIE_11_MARK, navigator.userAgent.length - MSIE_11_MARK.length) !== -1;
-
-/**
- * True if the browser is Internet Explorer, any version.
- */
-export const MSIE = MSIE_11_AND_UP || MSIE_TO_10;
-
-/**
  * True if the browser is Firefox.
  */
 export const FIREFOX = agent.indexOf(" Firefox/") !== -1;
@@ -88,4 +66,4 @@ export const OSX = navigator.platform.lastIndexOf("Mac", 0) === 0;
 // We don't care about old platforms or oddball Windows platforms.
 export const WINDOWS = navigator.platform === "Win32";
 
-//  LocalWords:  MPL wed's MSIE
+//  LocalWords:  MPL wed's

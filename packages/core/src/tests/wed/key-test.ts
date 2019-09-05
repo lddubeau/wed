@@ -14,7 +14,6 @@ describe("key", () => {
 
   const browsers = {
     CHROME_31: false,
-    MISE: false,
     OSX: false,
     __esModule: true,
   };

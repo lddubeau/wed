@@ -3,8 +3,6 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import * as browsers from "@wedxml/common/browsers";
-
 import { domtypeguards, keyConstants, SelectionMode } from "wed";
 import { CaretManager } from "wed/caret-manager";
 import { Clipboard } from "wed/clipboard";
@@ -155,11 +153,7 @@ describe("wed paste-copy-cut:", () => {
         getData: () => `${toPaste}\u200B`,
       });
       editor.$guiRoot.trigger(event);
-      let expected = toPaste + initialValue;
-      if (browsers.MSIE) {
-        expected = expected.replace(` xmlns="http://www.tei-c.org/ns/1.0"`, "");
-      }
-      assert.equal(p.innerHTML, expected);
+      assert.equal(p.innerHTML, toPaste + initialValue);
       dataCaretCheck(editor, p.childNodes[2], 6, "final position");
     });
 
@@ -197,11 +191,7 @@ describe("wed paste-copy-cut:", () => {
         getData: () => toPaste,
       });
       editor.$guiRoot.trigger(event);
-      let expected = toPaste + initialValue;
-      if (browsers.MSIE) {
-        expected = expected.replace(` xmlns="http://www.tei-c.org/ns/1.0"`, "");
-      }
-      assert.equal(p.innerHTML, expected);
+      assert.equal(p.innerHTML, toPaste + initialValue);
       dataCaretCheck(editor, p.childNodes[2], 6, "final position");
     });
 

@@ -3,8 +3,6 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import * as browsers from "@wedxml/common/browsers";
-
 import { CaretManager } from "wed/caret-manager";
 import { isAttr } from "wed/domtypeguards";
 import { mustGetMirror } from "wed/domutil";
@@ -95,13 +93,7 @@ describe("wed validation errors:", () => {
                  "the number of markers should be the same");
   });
 
-  // tslint:disable-next-line:mocha-no-side-effect-code
-  const itNoIE = browsers.MSIE ? it.skip : it;
-
-  // This cannot be run on IE due to the way IE screws up the
-  // formatting of contenteditable elements.
-  // tslint:disable-next-line:mocha-no-side-effect-code
-  itNoIE("errors for inline elements in a correct position", async () => {
+  it("errors for inline elements in a correct position", async () => {
     await processRunner.onCompleted();
     const p = guiRoot.querySelectorAll(".body .p")[12];
     const dataP = editor.toDataNode(p)!;
