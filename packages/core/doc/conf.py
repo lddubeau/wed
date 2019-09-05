@@ -30,7 +30,7 @@ if not os.path.isfile(os.path.join(wed_root, "package.json")):
     raise Exception('Unable to determine project root.')
 
 current_branch = subprocess.check_output(
-    ['git', 'rev-parse', '--abbrev-ref', 'HEAD']).strip()
+    ['git', 'rev-parse', '--abbrev-ref', 'HEAD']).decode("utf8").strip()
 
 if not current_branch:
     raise Exception('Unable to determine current git branch')
@@ -82,7 +82,8 @@ copyright = u'Mangalam Research Center for Buddhist Languages'
 
 # Get current version information from the generate-build-info utility
 build_info = subprocess.check_output(
-    [os.path.join(wed_root, 'tasks/generate-build-info'), '--unclean']).strip()
+    [os.path.join(wed_root, 'tasks/generate-build-info'), '--unclean'])\
+    .decode("utf8").strip()
 
 if not build_info:
     raise Exception('Unable to determine project version.')
