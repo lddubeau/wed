@@ -34,13 +34,6 @@ const agent = navigator.userAgent;
 export const EDGE = agent.indexOf(" Edge/") !== -1;
 
 /**
- * True if the browser is Chrome.
- */
-// We have to test exclude Edge from the possibilities because Edge lies about
-// its identity.
-export const CHROME = !EDGE && agent.indexOf(" Chrome/") !== -1;
-
-/**
  * True if the browser is Firefox.
  */
 export const FIREFOX = agent.indexOf(" Firefox/") !== -1;
@@ -54,11 +47,4 @@ export const GECKO = agent.indexOf(" Gecko/") !== -1;
  * True if running on a OS X system.
  */
 export const OSX = navigator.platform.lastIndexOf("Mac", 0) === 0;
-
-/**
- * True if running on Windows.
- */
-// We don't care about old platforms or oddball Windows platforms.
-export const WINDOWS = navigator.platform === "Win32";
-
 //  LocalWords:  MPL wed's
