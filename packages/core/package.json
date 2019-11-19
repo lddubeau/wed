@@ -37,7 +37,7 @@
     "inversify": "^5.0.1",
     "js-yaml": "^3.13.1",
     "log4javascript": "^1.4.15",
-    "merge-options": "^1.0.1",
+    "merge-options": "^2.0.0",
     "rangy": "git+https://github.com/lddubeau/rangy.git#feature/custom-is-collapsed-node",
     "salve": "^9.1.2"
   },
