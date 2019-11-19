@@ -32,7 +32,7 @@
     "clean-package": "../../tasks/clean-package package.json build/dist/package.json",
     "add-modules": "cd build/dist; ln -sf ../../node_modules .",
     "build": "npm run tsc && npm run clean-package && npm run add-modules && cp -rp README.md build/dist/",
-    "lint": "tslint --format verbose -p tsconfig.json && npmPkgJsonLint package.json",
+    "lint": "tslint --format verbose -p tsconfig.json && npmPkgJsonLint ./package.json",
     "test": "true",
     "posttest": "npm run lint",
     "build-and-test": "npm run build && npm run test",
