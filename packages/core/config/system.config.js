@@ -38,7 +38,7 @@ window.systemJSConfig = {
     "rxjs/operators": "top-npm:rxjs/operators/index.js",
     "rxjs/operators/": "top-npm:rxjs/operators/",
     inversify: "top-npm:inversify",
-    interactjs: "top-npm:interactjs",
+    interactjs: "top-npm:interactjs/dist/interact.js",
     "@wedxml/": "npm:@wedxml/",
     bootstrap: "top-npm:bootstrap/dist/js/bootstrap.js",
     "popper.js": "top-npm:popper.js",

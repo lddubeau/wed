@@ -93,8 +93,8 @@ export function makeResizable($top: JQuery, minWidth: number,
         modal.ignoreBackdropClick = false;
       }, 0);
     })
-    .on("resizemove", (event: interact.InteractEvent) => {
-      const target = event.target;
+    .on("resizemove", (event: Interact.InteractEvent) => {
+      const target = event.target as HTMLElement;
 
       const change = new PseudoAtomicRectChange();
       change.updateElementRect(target, event.dx, event.dy);
@@ -115,20 +115,22 @@ export function makeDraggable($top: JQuery): void {
   let startTop: number;
   interact(header)
     .draggable({
-      restrict: {
-        restriction: {
-          left: 0,
-          top: 0,
-          right: win.innerWidth - 10,
-          bottom: win.innerHeight - 10,
-        },
-      },
+      modifiers: [
+        interact.modifiers!.restrict({
+          restriction: {
+            left: 0,
+            top: 0,
+            right: win.innerWidth - 10,
+            bottom: win.innerHeight - 10,
+          },
+        }),
+      ],
     })
     .on("dragstart", () => {
       startLeft = content.offsetLeft;
       startTop = content.offsetTop;
     })
-    .on("dragmove", (event: interact.InteractEvent) => {
+    .on("dragmove", (event: Interact.InteractEvent) => {
       content.style.left = `${startLeft + event.clientX - event.clientX0}px`;
       content.style.top = `${startTop + event.clientY - event.clientY0}px`;
     });

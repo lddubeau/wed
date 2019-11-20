@@ -62,7 +62,7 @@
     "gulp-newer": "^1.0.0",
     "html-loader": "^0.5.5",
     "husky": "^3.1.0",
-    "interactjs": "^1.7.0",
+    "interactjs": "^1.7.2",
     "inversify": "^5.0.1",
     "jq.node": "^2.1.2",
     "jquery": "^3.4.1",
