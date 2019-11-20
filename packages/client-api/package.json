@@ -22,7 +22,7 @@
   "license": "MPL-2.0",
   "main": "build/dist/index.js",
   "dependencies": {
-    "@types/jquery": "^3.4.1"
+    "@types/jquery": "^3.3.31"
   },
   "scripts": {
     "yml-to-json": "mkdir -p build && ../../tasks/yml-to-json src/options-schema.yml build/options-schema.json",
