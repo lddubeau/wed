@@ -59,7 +59,8 @@ export interface EditorInstance {
    *
    * @param options The options to use for adding the action.
    */
-  addToolbarAction(actionClass: ActionCtor, options: AddOptions): void;
+  addToolbarAction(actionClass: ActionCtor,
+                   options: AddToolbarActionOptions): void;
 
   /**
    * Triggers the resizing algorithm.

@@ -6,6 +6,9 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 
+import "jquery";
+import { Button } from "./button";
+
 export type EventWithData<Data> =  (JQuery.Event | Event) & { data: Data };
 
 /**

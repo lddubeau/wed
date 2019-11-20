@@ -20,8 +20,6 @@ import { Minibuffer } from "./gui/minibuffer";
 import { Modal, Options as ModalOptions } from "./gui/modal";
 import { Mode } from "./mode";
 import { AttributeHidingSpecs } from "./mode-tree";
-import { Options } from "./options";
-import { Runtime } from "./runtime";
 import { SelectionMode, SelectionModeChange } from "./selection-mode";
 import { StockModals } from "./stock-modals";
 import { NamedTransformationData, Transformation, TransformationData,
@@ -413,7 +411,7 @@ export interface EditorAPI extends EditorInstance {
    *
    * @param options The tooltip options to use for this tooltip.
    */
-  makeGUITreeTooltip($for: JQuery, options: TooltipOptions): void;
+  makeGUITreeTooltip($for: JQuery, options: Bootstrap.TooltipOption): void;
 
   /**
    * This is a function which performs generic bookkeeping functions prior to a
@@ -450,7 +448,7 @@ export interface EditorAPI extends EditorInstance {
    *
    * @returns A promise that resolves to the value of the prompt.
    */
-  async prompt<T extends bootprompt.PromptOptions>(options: T):
+  prompt<T extends bootprompt.PromptOptions>(options: T):
   Promise<bootprompt.PromiseValue<T>>;
 
   /**

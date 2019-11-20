@@ -9,6 +9,8 @@ import mergeOptions from "merge-options";
 import { EName, ValidationError } from "salve";
 import { ErrorData } from "salve-dom";
 
+import { Button } from "@wedxml/client-api";
+
 import { action as action_, Decorator, domutil, EditorAPI, gui, GUISelector,
          inputTriggerFactory, key, keyConstants, ModeValidator, objectCheck,
          transformation, WED_ORIGIN } from "wed";
@@ -19,7 +21,6 @@ import { GenericDecorator } from "wed/modes/generic/generic-decorator";
 import Action = action_.Action;
 import UnspecifiedAction = action_.UnspecifiedAction;
 import Template = objectCheck.Template;
-import Button = gui.button.Button;
 import ContextMenu = gui.contextMenu.ContextMenu;
 import DismissCallback = gui.contextMenu.DismissCallback;
 import Modal = gui.modal.Modal;

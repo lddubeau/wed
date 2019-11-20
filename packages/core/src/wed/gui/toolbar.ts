@@ -5,7 +5,7 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 
-import { Button } from "./button";
+import { Button } from "@wedxml/client-api";
 
 export interface AddOptions {
   /**
@@ -59,7 +59,7 @@ export class Toolbar {
    */
   addButton(buttons: ReadonlyArray<Button> | Button,
             options: AddOptions = {}): void {
-    if ((buttons instanceof Button)) {
+    if (!Array.isArray(buttons)) {
       buttons = [buttons] as ReadonlyArray<Button>;
     }
 

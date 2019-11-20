@@ -1,10 +1,10 @@
 {
   "extends": "../../tsconfig-common",
   "compilerOptions": {
-    "baseUrl": "src",
-    "paths": {
-      "options": ["../build/generated/options"]
-    },
+    "rootDirs": [
+      "src",
+      "build/generated/"
+    ],
     "outDir": "build/dist/",
     "lib": ["dom", "es6"]
   }

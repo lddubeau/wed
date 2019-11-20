@@ -9,11 +9,12 @@
 
 import { DefaultNameResolver, EName } from "salve";
 
-import { action, Decorator, domtypeguards, domutil, EditorAPI, gui,
+import { Button } from "@wedxml/client-api";
+
+import { action, Decorator, domtypeguards, domutil, EditorAPI,
          ModeValidator, WedOptions } from "wed";
 
 import UnspecifiedAction = action.UnspecifiedAction;
-import Button = gui.button.Button;
 
 /**
  * These are mode options that are supported by default by all modes. Wed is

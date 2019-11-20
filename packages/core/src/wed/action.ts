@@ -5,9 +5,9 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 
-import { Action as ActionInterface,
-         EventWithData } from "@wedxml/client-api/action";
-import { Button } from "./gui/button";
+import { Action as ActionInterface, Button,
+         EventWithData } from "@wedxml/client-api";
+import { Button as ConcreteButton } from "./gui/button";
 import { makeHTML } from "./gui/icon";
 import { EditorAPI } from "./mode-api";
 
@@ -278,7 +278,7 @@ export abstract class Action<Data extends {} | void = void>
   }
 
   makeButton(data?: Data): Button {
-    const button = new Button(
+    const button = new ConcreteButton(
       data !== undefined ? this.getDescriptionFor(data) : this.getDescription(),
       this.getAbbreviatedDescription(),
       this.getIcon());
