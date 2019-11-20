@@ -32,7 +32,8 @@ const options: Options = {
 
 describe("DefaultRuntime", () => {
   let sandbox: sinon.SinonSandbox;
-  let fetchStub: sinon.SinonStub;
+  let fetchStub: sinon.SinonStub<[RequestInfo, RequestInit?],
+  Promise<Response>>;
 
   before(() => {
     sandbox = sinon.createSandbox({
@@ -56,7 +57,7 @@ describe("DefaultRuntime", () => {
   describe("fetch", () => {
     it("returns a response", async () => {
       const resp = { ok: true };
-      fetchStub.returns(Promise.resolve(resp));
+      fetchStub.returns(Promise.resolve(resp as Response));
       const runtime = makeRuntime(options);
       expect(await runtime.fetch("foo")).to.equal(resp);
     });

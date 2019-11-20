@@ -369,7 +369,18 @@ extends ContextMenu<UnspecifiedActionInvocation> {
         if (this.filters[whichFilter] !== null) {
           continue;
         }
-        this.filters[whichFilter] = spec.filter;
+        // TS 3.7 requires this... LOL...
+        //
+        // if (spec.which === "kind") {
+        //   this.filters[spec.which] = spec.filter;
+        // }
+        // else {
+        //   this.filters[spec.which] = spec.filter;
+        // }
+
+        // Instead, we do this.
+        this.filters[spec.which] = spec.filter as any;
+
         this.refreshItemList();
         ev.stopPropagation();
         ev.preventDefault();

@@ -48,7 +48,7 @@ class FakeRuntime implements Runtime {
 }
 
 async function handleSave(input: RequestInfo,
-                          init: RequestInit): Promise<Response> {
+                          init?: RequestInit): Promise<Response> {
   const request = (input instanceof Request) ? input : new Request(input, init);
   const decoded = new URLSearchParams(await request.text());
   let status = 200;
@@ -109,7 +109,7 @@ describe("AjaxSaver", () => {
   let responses: ResponseTuple[];
 
   async function handleFetch(input: RequestInfo,
-                             init: RequestInit): Promise<Response> {
+                             init?: RequestInit): Promise<Response> {
     const request = (input instanceof Request) ? input :
       new Request(input, init);
     requests.push(request);

@@ -785,7 +785,7 @@ export class DOMListener {
     // Go over all the elements for which we have handlers
     for (const [sel, fn] of this.eventHandlers[call]) {
       if (parent.matches(sel)) {
-        ret.push(fn);
+        ret.push(fn as EventHandlerFor<T>);
       }
     }
 
@@ -941,7 +941,7 @@ export class DOMListener {
     // Go over all the elements for which we have handlers
     for (const [sel, fn] of this.eventHandlers[name]) {
       if (node.matches(sel)) {
-        ret.push(fn);
+        ret.push(fn as EventHandlerFor<T>);
       }
     }
 
@@ -965,11 +965,11 @@ export class DOMListener {
     // Go over all the elements for which we have handlers
     for (const [sel, fn] of this.eventHandlers[name]) {
       if (node.matches(sel)) {
-        ret.push({ fn, subtarget: node });
+        ret.push({ fn, subtarget: node } as ElementCallSpec<EventFor<T>>);
       }
 
       for (const subtarget of Array.from(node.querySelectorAll(sel))) {
-        ret.push({ fn, subtarget });
+        ret.push({ fn, subtarget } as ElementCallSpec<EventFor<T>>);
       }
     }
 
@@ -983,7 +983,7 @@ export class DOMListener {
     for (const pi of findProcessingInstructions(node)) {
       for (const [sel, fn] of this.eventHandlers[name]) {
         if (sel === "*" || pi.nodeName === sel) {
-          ret.push({ fn, subtarget: pi });
+          ret.push({ fn, subtarget: pi } as PICallSpec<EventFor<T>>);
         }
       }
     }

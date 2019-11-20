@@ -505,7 +505,7 @@ describe("domlistener", () => {
       listener.addHandler(
         `${incex}-element` as "included-element" | "excluding-element",
         "li",
-        ({ root: thisRoot, tree, element }) => {
+        (({ root: thisRoot, tree, element }) => {
           assert.equal(thisRoot, root, "root");
           assert.equal(element.tagName, "li");
           // The following tests are against $fragment rather than $root
@@ -519,7 +519,7 @@ describe("domlistener", () => {
             assert.equal(tree, $fragment.find("ul")[0], "tree value");
             mark.mark(`${incex} li at ul`);
           }
-        });
+        }) as EventHandler<IncludedElementEvent>);
     }
     addHandler("included");
     addHandler("excluding");
