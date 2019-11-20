@@ -294,7 +294,7 @@ export type EventNames = Events["name"];
 
 export type EventHandler<E extends Events> = (ev: E) => void;
 
-export type EventFor<N> = Extract<Events, { name: N }>;
+export type EventFor<N extends EventNames> = Extract<Events, { name: N }>;
 
 type EventNameToHandler =
   { [name in EventNames]: EventHandler<EventFor<name>> };
@@ -323,12 +323,12 @@ type IncludeExcludeEvents = "included-element" | "excluded-element" |
 type PIIncludeExcludeEvents = "included-pi" | "excluded-pi" | "excluding-pi";
 
 interface ElementCallSpec<T extends Events> {
-  fn: EventHandlerFor<T["name"]>;
+  fn: EventHandler<T>;
   subtarget: Element;
 }
 
 interface PICallSpec<T extends Events> {
-  fn: EventHandlerFor<T["name"]>;
+  fn: EventHandler<T>;
   subtarget: ProcessingInstruction;
 }
 
