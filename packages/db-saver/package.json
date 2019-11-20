@@ -1,6 +1,6 @@
 {
   "name": "@wedxml/db-saver",
-  "version": "5.0.0-alpha.29",
+  "version": "5.0.0-alpha.30",
   "private": true,
   "description": "A saver for wed that uses a DB backend to save.",
   "keywords": [
@@ -23,9 +23,9 @@
   "main": "build/dist/db-saver.js",
   "versionedSources": "src/db-saver.ts",
   "dependencies": {
-    "@wedxml/base-saver": "5.0.0-alpha.29",
-    "@wedxml/client-api": "5.0.0-alpha.29",
-    "@wedxml/common": "5.0.0-alpha.29"
+    "@wedxml/base-saver": "5.0.0-alpha.30",
+    "@wedxml/client-api": "5.0.0-alpha.30",
+    "@wedxml/common": "5.0.0-alpha.30"
   },
   "scripts": {
     "tsc": "tsc -p tsconfig.json",
