@@ -305,16 +305,7 @@ export type SelectorHandlerPair<H> = readonly [string, H];
 
 export type EventHandlerMap =
   { [name in Exclude<EventNames, "trigger">]:
-    SelectorHandlerPair<FixFn<EventHandlerFor<name>>>[] };
-
-//
-// Work around a bug in TS.
-//
-// See
-// https://github.com/Microsoft/TypeScript/issues/30889#issuecomment-482767931
-//
-type FixFn<T extends (...args: any[]) => any> =
-  (...v: Parameters<T>) => ReturnType<T>;
+    SelectorHandlerPair<EventHandlerFor<name>>[] };
 
 type ChildEvents = "added-child" | "removing-child" | "removed-child";
 type AddRemEvents = "added-element" | "removed-element" | "removing-element";
@@ -547,7 +538,7 @@ export class DOMListener {
    * @throws {Error} If an event is unrecognized.
    */
   addHandler<T extends EventNames>(eventType: T, selector: string,
-                                   handler: FixFn<EventHandlerFor<T>>): void {
+                                   handler: EventHandlerFor<T>): void {
     if (eventType === "trigger") {
       let handlers = this.triggerHandlers[selector];
       if (handlers === undefined) {
@@ -559,7 +550,7 @@ export class DOMListener {
     else {
       const pairs = this.eventHandlers[eventType as
                                        Exclude<EventNames, "trigger">] as
-      (readonly [string, FixFn<EventHandlerFor<T>>])[];
+      (readonly [string, EventHandlerFor<T>])[];
       if (pairs === undefined) {
         throw new Error(`invalid eventType: ${eventType}`);
       }
