@@ -1,5 +1,6 @@
+import chai from "chai";
 import { expect, use } from "chai";
-import { expectRejection } from "expect-rejection";
+import { expectRejection, use as erUse } from "expect-rejection";
 import { Container, injectable } from "inversify";
 import "mocha";
 // tslint:disable-next-line:match-default-export-name
@@ -7,6 +8,7 @@ import sinon from "sinon";
 import sinonChai from "sinon-chai";
 
 use(sinonChai);
+erUse(chai);
 
 import { Options } from "@wedxml/client-api";
 import { EDITOR_OPTIONS, RUNTIME } from "@wedxml/common/tokens";

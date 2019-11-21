@@ -3,12 +3,14 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
+import chai from "chai";
 import { expect, use } from "chai";
-import { expectRejection } from "expect-rejection";
+import { expectRejection, use as erUse } from "expect-rejection";
 import mergeOptions from "merge-options";
 import sinon from "sinon";
 import sinonChai from "sinon-chai";
 use(sinonChai);
+erUse(chai);
 
 import { Options } from "@wedxml/client-api";
 

@@ -1,5 +1,6 @@
+import chai from "chai";
 import { expect, use } from "chai";
-import { expectRejection } from "expect-rejection";
+import { expectRejection, use as erUse } from "expect-rejection";
 import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
 
@@ -7,6 +8,7 @@ import { Editor } from "wed/editor";
 import { ModeLoader } from "wed/mode-loader";
 
 use(sinonChai);
+erUse(chai);
 
 // tslint:disable-next-line:completed-docs
 class FakeMode {

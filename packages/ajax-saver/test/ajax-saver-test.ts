@@ -1,6 +1,7 @@
 // tslint:disable-next-line:missing-jsdoc
+import chai from "chai";
 import { expect, use } from "chai";
-import { expectRejection } from "expect-rejection";
+import { expectRejection, use as erUse } from "expect-rejection";
 import * as fetchiest from "fetchiest";
 import "mocha";
 import { first } from "rxjs/operators";
@@ -8,6 +9,7 @@ import sinon from "sinon";
 import sinonChai from "sinon-chai";
 
 use(sinonChai);
+erUse(chai);
 
 import { SaverOptions } from "@wedxml/base-saver";
 import { makeSaverTests } from "@wedxml/base-saver/test/saver-tests";

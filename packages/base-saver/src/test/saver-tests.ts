@@ -1,11 +1,13 @@
+import chai from "chai";
 import { expect, use } from "chai";
-import { expectRejection } from "expect-rejection";
+import { expectRejection, use as erUse } from "expect-rejection";
 import "mocha";
 import { first } from "rxjs/operators";
 import sinon from "sinon";
 import sinonChai from "sinon-chai";
 
 use(sinonChai);
+erUse(chai);
 
 import { SaveKind } from "@wedxml/client-api";
 

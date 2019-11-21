@@ -1,8 +1,11 @@
+import chai from "chai";
 import { expect } from "chai";
 import Dexie from "dexie";
-import { expectRejection } from "expect-rejection";
+import { expectRejection, use } from "expect-rejection";
 import { Container } from "inversify";
 import "mocha";
+
+use(chai);
 
 import { EDITOR_OPTIONS, RUNTIME } from "@wedxml/common/tokens";
 import { DefaultRuntime,
