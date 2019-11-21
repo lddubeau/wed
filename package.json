@@ -106,7 +106,7 @@
     "typeahead.js-bootstrap4-css": "^1.0.0",
     "typedoc": "^0.15.2",
     "typescript": "^3.7.2",
-    "versync": "^4.1.0",
+    "versync": "^5.0.0",
     "vinyl-fs": "^3.0.3",
     "webpack": "^4.41.2",
     "webpack-cli": "^3.3.10",
