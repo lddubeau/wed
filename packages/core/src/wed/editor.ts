@@ -396,14 +396,6 @@ export class Editor implements EditorAPI {
     this.window = doc.defaultView!;
     this.modals = new StockModals(this);
 
-    // ignore_module_config allows us to completely ignore the module config. In
-    // some case, it may be difficult to just override individual values.
-    // tslint:disable-next-line:no-any strict-boolean-expressions
-    if ((options as any).ignore_module_config) {
-      // tslint:disable-next-line:no-console
-      console.warn("the option ignore_module_config is no longer useful");
-    }
-
     const ajv = new Ajv();
     const optionsValidator = ajv.compile(optionsSchema);
 

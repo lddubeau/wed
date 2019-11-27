@@ -205,6 +205,9 @@ Miscelaneous changes
   ``kind`` like ``Transformation`` used to. (And transformation itself now
   delegates the selection of a default icon to ``Action``.)
 
+* The ``ignore_module_config`` options ha been removed. It had been deprecated
+  in version 0.29.0.
+
 Notable Bootstrap Changes
 =========================
 
