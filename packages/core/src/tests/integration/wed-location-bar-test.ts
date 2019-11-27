@@ -17,16 +17,15 @@ describe("wed location bar", () => {
   let caretManager: CaretManager;
   let locationBar: HTMLElement;
 
-  before(() => {
+  before(async () => {
     setup = new EditorSetup(`${dataPath}/wed_test_data/source_converted.xml`,
                             globalConfig.config,
                             document);
     ({ editor } = setup);
-    return setup.init().then(() => {
-      caretManager = editor.caretManager;
-      // tslint:disable-next-line:no-any
-      locationBar = (editor as any).wedLocationBar;
-    });
+    await setup.init();
+    caretManager = editor.caretManager;
+    // tslint:disable-next-line:no-any
+    locationBar = (editor as any).wedLocationBar;
   });
 
   afterEach(() => {

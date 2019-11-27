@@ -7,7 +7,8 @@
 import Ajv from "ajv";
 
 import { ComplexAttributesSpec, WedOptions } from "./wed-options";
-import * as wedOptionsSchema from "./wed-options-schema.json";
+// tslint:disable-next-line:import-name
+import wedOptionsSchema from "./wed-options-schema.json";
 
 export interface CleanedWedOptions extends WedOptions {
   attributes: ComplexAttributesSpec;

@@ -21,18 +21,18 @@ describe("wed transformation:", () => {
   let ps: NodeListOf<Element>;
   let guiRoot: Element;
 
-  before(() => {
+  before(async () => {
     setup = new EditorSetup(`${dataPath}/wed_test_data/source_converted.xml`,
                             globalConfig.config,
                             document);
     ({ editor } = setup);
-    return setup.init().then(() => {
-      // tslint:disable-next-line:no-any
-      (editor.validator as any)._validateUpTo(editor.dataRoot, -1);
-      caretManager = editor.caretManager;
-      guiRoot = editor.guiRoot;
-      ps = guiRoot.querySelectorAll(".body .p");
-    });
+    await setup.init();
+
+    // tslint:disable-next-line:no-any
+    (editor.validator as any)._validateUpTo(editor.dataRoot, -1);
+    caretManager = editor.caretManager;
+    guiRoot = editor.guiRoot;
+    ps = guiRoot.querySelectorAll(".body .p");
   });
 
   afterEach(() => {

@@ -6,7 +6,7 @@
  */
 
 import { OSX } from "@wedxml/common/browsers";
-import * as buildInfo from "./build-info";
+import buildInfo from "./build-info";
 import { Modal } from "./gui/modal";
 
 export interface ModalMaker {

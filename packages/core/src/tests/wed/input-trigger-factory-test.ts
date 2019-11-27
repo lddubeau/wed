@@ -50,12 +50,11 @@ describe("input_trigger_factory", () => {
     // tslint:disable-next-line:no-http-string
     { "": "http://www.tei-c.org/ns/1.0" });
 
-  beforeEach(() => {
+  beforeEach(async () => {
     setup = new EditorSetup(srcStack[0], options, document);
     ({ editor } = setup);
-    return setup.init().then(() => {
-      mode = editor.modeTree.getMode(editor.guiRoot);
-    });
+    await setup.init();
+    mode = editor.modeTree.getMode(editor.guiRoot);
   });
 
   afterEach(() => {

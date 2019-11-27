@@ -10,7 +10,8 @@ import { EName } from "salve";
 import { Metadata } from "./metadata";
 import { Metadata as MetadataInterface } from "./metadata-as-json";
 import { MetadataJSONReader } from "./metadata-json-reader";
-import * as metadataSchema from "./metadata-schema.json";
+// tslint:disable-next-line:import-name
+import metadataSchema from "./metadata-schema.json";
 
 // tslint:disable-next-line:completed-docs
 export abstract class MetadataBase implements Metadata {

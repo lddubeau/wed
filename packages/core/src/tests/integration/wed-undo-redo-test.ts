@@ -25,18 +25,18 @@ describe("wed undo redo:", () => {
   let titles: HTMLCollectionOf<Element>;
   let subscription: Subscription | undefined;
 
-  before(() => {
+  before(async () => {
     setup = new EditorSetup(`${dataPath}/wed_test_data/source_converted.xml`,
                             globalConfig.config,
                             document);
     ({ editor } = setup);
-    return setup.init().then(() => {
-      // tslint:disable-next-line:no-any
-      (editor.validator as any)._validateUpTo(editor.dataRoot, -1);
-      caretManager = editor.caretManager;
-      ps = editor.guiRoot.querySelectorAll(".body .p");
-      titles = editor.guiRoot.getElementsByClassName("title");
-    });
+    await setup.init();
+
+    // tslint:disable-next-line:no-any
+    (editor.validator as any)._validateUpTo(editor.dataRoot, -1);
+    caretManager = editor.caretManager;
+    ps = editor.guiRoot.querySelectorAll(".body .p");
+    titles = editor.guiRoot.getElementsByClassName("title");
   });
 
   afterEach(() => {

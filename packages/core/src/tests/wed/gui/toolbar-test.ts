@@ -4,7 +4,7 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 import { expect } from "chai";
-import * as sinon from "sinon";
+import sinon from "sinon";
 
 import * as editorActions from "wed/editor-actions";
 import { Toolbar } from "wed/gui/toolbar";

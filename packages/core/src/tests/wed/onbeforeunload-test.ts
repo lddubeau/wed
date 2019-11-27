@@ -4,7 +4,7 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 "use strict";
-import * as sinon from "sinon";
+import sinon from "sinon";
 import * as onbeforeunloadMod from "wed/onbeforeunload";
 
 const assert = chai.assert;

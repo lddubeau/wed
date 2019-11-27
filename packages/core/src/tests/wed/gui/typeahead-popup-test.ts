@@ -3,7 +3,7 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import * as sinon from "sinon";
+import sinon from "sinon";
 
 import { TypeaheadPopup } from "wed/gui/typeahead-popup";
 

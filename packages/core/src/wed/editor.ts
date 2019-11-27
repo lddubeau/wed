@@ -18,7 +18,7 @@ import { ParsingError, safeParse, WorkingState,
 
 import { ActionCtor, FailedEvent, GrammarLoader, Options, Runtime, SaveEvents,
          SaveKind, Saver } from "@wedxml/client-api";
-import * as optionsSchema from "@wedxml/client-api/options-schema.json";
+import optionsSchema from "@wedxml/client-api/options-schema.json";
 import { WED_ORIGIN } from "@wedxml/common";
 import { EDITOR_OPTIONS, EDITOR_WIDGET, GRAMMAR_LOADER,
          RUNTIME, SAVER } from "@wedxml/common/tokens";

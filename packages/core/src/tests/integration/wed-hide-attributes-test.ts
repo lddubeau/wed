@@ -22,15 +22,15 @@ describe("wed hides attributes:", () => {
   let setup: EditorSetup;
   let editor: Editor;
 
-  before(() => {
+  before(async () => {
     setup = new EditorSetup(`${dataPath}/wed_test_data/source_converted.xml`,
                             mergeOptions(globalConfig.config, options),
                             document);
     ({ editor } = setup);
-    return setup.init().then(() => {
-      // tslint:disable-next-line:no-any
-      (editor.validator as any)._validateUpTo(editor.dataRoot, -1);
-    });
+    await setup.init();
+
+    // tslint:disable-next-line:no-any
+    (editor.validator as any)._validateUpTo(editor.dataRoot, -1);
   });
 
   afterEach(() => {

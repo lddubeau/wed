@@ -62,16 +62,15 @@ describe("InputTrigger", () => {
     pSelector = GUISelector.fromDataSelector("p", mappings);
   });
 
-  beforeEach(() => {
+  beforeEach(async () => {
     setup = new EditorSetup(`${dataPath}/input_trigger_test_data/\
 source_converted.xml`,
       mergeOptions(globalConfig.config, options),
       document);
     ({ editor } = setup);
-    return setup.init().then(() => {
-      mode = editor.modeTree.getMode(editor.guiRoot);
-      pInBody = editor.dataRoot.querySelector("body p")!;
-    });
+    await setup.init();
+    mode = editor.modeTree.getMode(editor.guiRoot);
+    pInBody = editor.dataRoot.querySelector("body p")!;
   });
 
   afterEach(() => {

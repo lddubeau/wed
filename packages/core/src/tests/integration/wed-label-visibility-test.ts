@@ -16,16 +16,16 @@ describe("wed label visibility level:", () => {
   let editor: Editor;
   let caretManager: CaretManager;
 
-  before(() => {
+  before(async () => {
     setup = new EditorSetup(`${dataPath}/wed_test_data/source_converted.xml`,
                             globalConfig.config,
                             document);
     ({ editor } = setup);
-    return setup.init().then(() => {
-      // tslint:disable-next-line:no-any
-      (editor.validator as any)._validateUpTo(editor.dataRoot, -1);
-      caretManager = editor.caretManager;
-    });
+    await setup.init();
+
+    // tslint:disable-next-line:no-any
+    (editor.validator as any)._validateUpTo(editor.dataRoot, -1);
+    caretManager = editor.caretManager;
   });
 
   afterEach(() => {

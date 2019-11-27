@@ -1,7 +1,7 @@
 import chai from "chai";
 import { expect, use } from "chai";
 import { expectRejection, use as erUse } from "expect-rejection";
-import * as sinon from "sinon";
+import sinon from "sinon";
 import sinonChai from "sinon-chai";
 
 import { Editor } from "wed/editor";

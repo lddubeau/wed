@@ -21,21 +21,21 @@ describe("wed file state:", () => {
   let $saveStatus: JQuery;
   let titles: HTMLCollectionOf<Element>;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     setup = new EditorSetup(`${dataPath}/wed_test_data/source_converted.xml`,
                             globalConfig.config,
                             document);
     ({ editor } = setup);
-    return setup.init().then(() => {
-      // tslint:disable-next-line:no-any
-      (editor.validator as any)._validateUpTo(editor.dataRoot, -1);
-      caretManager = editor.caretManager;
-      // tslint:disable-next-line:no-any
-      $modificationStatus = (editor as any).$modificationStatus;
-      // tslint:disable-next-line:no-any
-      $saveStatus = (editor as any).$saveStatus;
-      titles = editor.guiRoot.getElementsByClassName("title");
-    });
+    await setup.init();
+
+    // tslint:disable-next-line:no-any
+    (editor.validator as any)._validateUpTo(editor.dataRoot, -1);
+    caretManager = editor.caretManager;
+    // tslint:disable-next-line:no-any
+    $modificationStatus = (editor as any).$modificationStatus;
+    // tslint:disable-next-line:no-any
+    $saveStatus = (editor as any).$saveStatus;
+    titles = editor.guiRoot.getElementsByClassName("title");
   });
 
   afterEach(() => {
