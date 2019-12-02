@@ -17,13 +17,14 @@ describe("wed save:", () => {
   let setup: EditorSetup;
   let editor: Editor;
   let server: WedServer;
+  let wedroot: HTMLElement;
 
   beforeEach(() => {
     setup = new EditorSetup(
       `${dataPath}/wed_test_data/server_interaction_converted.xml`,
       globalConfig.config,
       document);
-    ({ editor, server } = setup);
+    ({ editor, server, wedroot } = setup);
     return setup.init();
   });
 
@@ -55,8 +56,8 @@ describe("wed save:", () => {
     // We just check the event happened.
     const prom =  editor.saver.events
       .pipe(filter(ev => ev.name === "Saved"), first()).toPromise();
-    const button = editor.widget
-      .querySelector("[data-original-title='Save']") as HTMLElement;
+    const button =
+      wedroot.querySelector("[data-original-title='Save']") as HTMLElement;
     button.click();
     return prom;
   });

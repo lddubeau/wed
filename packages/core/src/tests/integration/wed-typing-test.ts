@@ -25,12 +25,13 @@ describe("wed typing:", () => {
   let titles: HTMLCollectionOf<Element>;
   let comment: Comment;
   let pi: ProcessingInstruction;
+  let wedroot: HTMLElement;
 
   before(async () => {
     setup = new EditorSetup(`${dataPath}/wed_test_data/source_converted.xml`,
                             globalConfig.config,
                             document);
-    ({ editor } = setup);
+    ({ editor, wedroot } = setup);
     await setup.init();
 
     // tslint:disable-next-line:no-any
@@ -569,7 +570,7 @@ describe("wed typing:", () => {
     const ph = guiRoot.getElementsByClassName("_placeholder")[0];
     caretManager.setCaret(ph, 0);
     const ctrlSomething = key.makeCtrlEqKey("A");
-    $(editor.widget).on("wed-global-keydown.btw-mode", (_wedEv, ev) => {
+    $(wedroot).on("wed-global-keydown.btw-mode", (_wedEv, ev) => {
       if (ctrlSomething.matchesEvent(ev)) {
         done();
       }

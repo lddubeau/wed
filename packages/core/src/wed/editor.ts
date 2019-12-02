@@ -303,7 +303,6 @@ export class Editor implements EditorAPI {
   readonly name: string = "";
   readonly firstValidationComplete: Promise<Editor>;
   readonly initialized: Promise<Editor>;
-  readonly $widget: JQuery;
   readonly $frame: JQuery;
   readonly window: Window;
   readonly doc: Document;
@@ -368,7 +367,7 @@ export class Editor implements EditorAPI {
   editingMenuManager!: EditingMenuManager;
 
   // tslint:disable-next-line:max-func-body-length
-  constructor(@inject(EDITOR_WIDGET) readonly widget: HTMLElement,
+  constructor(@inject(EDITOR_WIDGET) private readonly widget: HTMLElement,
               @inject(EDITOR_OPTIONS) readonly options: Options,
               @inject(RUNTIME) readonly runtime: Runtime,
               @inject(SAVER) readonly saver: Saver,
@@ -384,9 +383,6 @@ export class Editor implements EditorAPI {
     });
 
     onerror.editors.push(this);
-
-    this.widget = widget;
-    this.$widget = $(this.widget);
 
     // We could be loaded in a frame in which case we should not alter anything
     // outside our frame.
@@ -1322,7 +1318,7 @@ export class Editor implements EditorAPI {
 
     // These ought to prevent jQuery leaks.
     try {
-      this.$widget.empty();
+      $(this.widget).empty();
       this.$frame.find("*").off(".wed");
       // This will also remove handlers on the window.
       $(this.window).off(".wed");
@@ -1780,8 +1776,8 @@ export class Editor implements EditorAPI {
     });
 
     // Make ourselves visible.
-    this.$widget.removeClass("loading");
-    this.$widget.css("display", "block");
+    this.widget.classList.remove("loading");
+    this.widget.style.display = "block";
 
     const namespaceError = this.initializeNamespaces();
     if (namespaceError !== undefined) {
@@ -3505,7 +3501,7 @@ cannot be cut.`, { type: "danger" });
     $top.on("hidden.bs.modal.modal", () => {
       this.afterModal();
     });
-    this.$widget.prepend($top);
+    this.widget.prepend($top[0]);
     return ret;
   }
 

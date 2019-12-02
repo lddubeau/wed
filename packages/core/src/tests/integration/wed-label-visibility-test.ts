@@ -15,12 +15,13 @@ describe("wed label visibility level:", () => {
   let setup: EditorSetup;
   let editor: Editor;
   let caretManager: CaretManager;
+  let wedroot: HTMLElement;
 
   before(async () => {
     setup = new EditorSetup(`${dataPath}/wed_test_data/source_converted.xml`,
                             globalConfig.config,
                             document);
-    ({ editor } = setup);
+    ({ editor, wedroot } = setup);
     await setup.init();
 
     // tslint:disable-next-line:no-any
@@ -44,7 +45,7 @@ describe("wed label visibility level:", () => {
   it("can be reduced using the toolbar", () => {
     // tslint:disable-next-line:no-any
     expect((editor as any).currentLabelLevel).to.equal(1);
-    const button = editor.widget
+    const button = wedroot
       .querySelector(
         "[data-original-title='Decrease label visibility level']",
       ) as HTMLElement;
@@ -56,10 +57,9 @@ describe("wed label visibility level:", () => {
   it("can be increased using the toolbar", () => {
     // tslint:disable-next-line:no-any
     expect((editor as any).currentLabelLevel).to.equal(1);
-    const button = editor.widget
-      .querySelector(
-        "[data-original-title='Increase label visibility level']",
-      ) as HTMLElement;
+    const button = wedroot.querySelector(
+      "[data-original-title='Increase label visibility level']",
+    ) as HTMLElement;
     button.click();
     // tslint:disable-next-line:no-any
     expect((editor as any).currentLabelLevel).to.equal(2);

@@ -24,12 +24,13 @@ describe("wed undo redo:", () => {
   let ps: NodeListOf<Element>;
   let titles: HTMLCollectionOf<Element>;
   let subscription: Subscription | undefined;
+  let wedroot: HTMLElement;
 
   before(async () => {
     setup = new EditorSetup(`${dataPath}/wed_test_data/source_converted.xml`,
                             globalConfig.config,
                             document);
-    ({ editor } = setup);
+    ({ editor, wedroot } = setup);
     await setup.init();
 
     // tslint:disable-next-line:no-any
@@ -271,8 +272,8 @@ describe("wed undo redo:", () => {
     editor.type("blah");
     const prom =  editor.undoEvents
       .pipe(filter(ev => ev.name === "Undo"), first()).toPromise();
-    const button = editor.widget
-      .querySelector("[data-original-title='Undo']") as HTMLElement;
+    const button =
+      wedroot.querySelector("[data-original-title='Undo']") as HTMLElement;
     button.click();
     return prom;
   });
@@ -290,8 +291,8 @@ describe("wed undo redo:", () => {
     // ... then we can redo.
     const prom =  editor.undoEvents
       .pipe(filter(ev => ev.name === "Redo"), first()).toPromise();
-    const button = editor.widget
-      .querySelector("[data-original-title='Redo']") as HTMLElement;
+    const button =
+      wedroot.querySelector("[data-original-title='Redo']") as HTMLElement;
     button.click();
     return prom;
   });

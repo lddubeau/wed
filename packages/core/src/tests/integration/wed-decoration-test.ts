@@ -17,12 +17,13 @@ describe("wed decoration:", () => {
   let setup: EditorSetup;
   let editor: Editor;
   let caretManager: CaretManager;
+  let wedroot: HTMLElement;
 
   before(async () => {
     setup = new EditorSetup(`${dataPath}/wed_test_data/source_converted.xml`,
                             globalConfig.config,
                             document);
-    ({ editor } = setup);
+    ({ editor, wedroot } = setup);
     await setup.init();
 
     // tslint:disable-next-line:no-any
@@ -137,7 +138,7 @@ describe("wed decoration:", () => {
       // Initially hidden when the caret it outside the element.
       checkHidden(div);
 
-      let button = editor.widget
+      let button = wedroot
         .querySelector(
           "[data-original-title='Toggle attribute hiding']") as HTMLElement;
       button.click();
@@ -145,7 +146,7 @@ describe("wed decoration:", () => {
       checkVisible(div);
 
       // Toggle again, and they should be all be invisible.
-      button = editor.widget
+      button = wedroot
         .querySelector(
           "[data-original-title='Toggle attribute hiding']") as HTMLElement;
       button.click();
