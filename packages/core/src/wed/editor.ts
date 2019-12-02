@@ -54,7 +54,6 @@ import { GUIRoot } from "./guiroot";
 import { Key, makeKey } from "./key";
 import * as keyConstants from "./key-constants";
 import * as log from "./log";
-import { Mode } from "./mode";
 import { CutUnitTransformationData, DocumentationActionData, EditorAPI ,
          PasteTransformationData,
          ReplaceRangeTransformationData } from "./mode-api";
@@ -1414,10 +1413,11 @@ export class Editor implements EditorAPI {
     this.modeTree = new ModeTree(this, this.options.mode);
 
     await this.modeTree.init();
-    return this.onModeChange(this.modeTree.getMode(this.guiRoot));
+    return this.onModeChange();
   }
 
-  private async onModeChange(mode: Mode): Promise<Editor> {
+  private async onModeChange(): Promise<Editor> {
+    const { modeTree } = this;
     // We purposely do not raise an error here so that calls to destroy can be
     // done as early as possible. It aborts the initialization sequence without
     // causing an error.
@@ -1425,11 +1425,11 @@ export class Editor implements EditorAPI {
       return this;
     }
 
-    this.maxLabelLevel = this.modeTree.getMaxLabelLevel();
-    this.initialLabelLevel = this.modeTree.getInitialLabelLevel();
+    this.maxLabelLevel = modeTree.getMaxLabelLevel();
+    this.initialLabelLevel = modeTree.getInitialLabelLevel();
     this.currentLabelLevel = this.initialLabelLevel;
 
-    const styles = this.modeTree.getStylesheets();
+    const styles = modeTree.getStylesheets();
     const $head = this.$frame.children("head");
     for (const style of styles) {
       $head.append(`<link rel="stylesheet" href="${style}" type="text/css" />`);
@@ -1445,7 +1445,7 @@ export class Editor implements EditorAPI {
       this.guiUpdater,
       this.caretLayer,
       this.scroller,
-      this.modeTree);
+      modeTree);
     this.editingMenuManager = new EditingMenuManager(this);
     this.caretManager.events.subscribe(this.caretChange.bind(this));
     this.resizeHandler();
@@ -1463,16 +1463,17 @@ export class Editor implements EditorAPI {
     }
 
     this.validator = new Validator(schema, this.dataRoot,
-                                   this.modeTree.getValidators());
+                                   modeTree.getValidators());
     this.validator.events.addEventListener(
       "state-update", this.onValidatorStateChange.bind(this));
     this.validator.events.addEventListener(
       "possible-due-to-wildcard-change",
       this.onPossibleDueToWildcardChange.bind(this));
+    const root = modeTree.getMode(this.guiRoot);
     this.validationController =
       new ValidationController(this,
                                this.validator,
-                               mode.getAbsoluteResolver(),
+                               root.getAbsoluteResolver(),
                                this.scroller,
                                this.guiRoot,
                                this.validationProgress,
