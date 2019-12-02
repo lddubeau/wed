@@ -14,7 +14,6 @@ import { isAttr, isComment, isDocument, isElement, isPI,
 import { closestByClass, isNotDisplayed, mustGetMirror } from "../domutil";
 import { Editor } from "../editor";
 import { ContextMenuHandler } from "../mode-api";
-import { ModeTree } from "../mode-tree";
 import { Transformation } from "../transformation";
 import { ActionContextMenu } from "./action-context-menu";
 import { CompletionMenu } from "./completion-menu";
@@ -66,7 +65,6 @@ export class EditingMenuManager {
   private readonly guiRoot: HTMLDocument | HTMLElement;
   private readonly dataRoot: Document | Element;
   private currentDropdown: ContextMenu<unknown> | undefined;
-  private readonly modeTree: ModeTree;
   private readonly doc: HTMLDocument;
   private currentTypeahead: TypeaheadPopup | undefined;
 
@@ -82,7 +80,6 @@ export class EditingMenuManager {
    */
   constructor(private readonly editor: Editor) {
     this.caretManager = editor.caretManager;
-    this.modeTree = editor.modeTree;
     this.guiRoot = editor.guiRoot;
     this.dataRoot = editor.dataRoot;
     this.doc = this.guiRoot.ownerDocument!;
@@ -588,7 +585,7 @@ export class EditingMenuManager {
       // either. However, it could be a Document, which happens if the edited
       // document is empty.
       const dataNode = treeCaret.node as Element;
-      const mode = this.modeTree.getMode(dataNode);
+      const mode = this.editor.modeTree.getMode(dataNode);
       menuItems.push(...this.makeCommonItems(dataNode));
 
       for (const action of mode.getContextualActions(["insert-comment",
@@ -630,7 +627,7 @@ export class EditingMenuManager {
           // with .has().
           return this.contains(actualNode!);
         })[0];
-      const mode = this.modeTree.getMode(transformationNode);
+      const mode = this.editor.modeTree.getMode(transformationNode);
       const actions = mode.getContextualActions(
         ["merge-with-next", "merge-with-previous", "append", "prepend"], sepFor,
         mustGetMirror(transformationNode), 0);
@@ -658,7 +655,7 @@ export class EditingMenuManager {
     const dataNode = treeCaret.node;
     menuItems.push(...this.makeCommonItems(dataNode));
 
-    const mode = this.modeTree.getMode(dataNode);
+    const mode = this.editor.modeTree.getMode(dataNode);
 
     for (const action of mode.getContextualActions(["delete-pi"], "",
                                                    dataNode, 0)) {
@@ -684,7 +681,7 @@ export class EditingMenuManager {
     const dataNode = treeCaret.node;
     menuItems.push(...this.makeCommonItems(dataNode));
 
-    const mode = this.modeTree.getMode(dataNode);
+    const mode = this.editor.modeTree.getMode(dataNode);
 
     for (const action of mode.getContextualActions(["delete-comment"], "",
                                                    dataNode, 0)) {
@@ -713,7 +710,7 @@ export class EditingMenuManager {
   getElementTransformationsAt(treeCaret: DLoc, types: string |  string[]):
   { tr: UnspecifiedAction; name?: string }[]
   {
-    const mode = this.modeTree.getMode(treeCaret.node);
+    const mode = this.editor.modeTree.getMode(treeCaret.node);
     const resolver = mode.getAbsoluteResolver();
     const ret: { tr: UnspecifiedAction; name?: string }[] = [];
     this.editor.validator.possibleAt(treeCaret).forEach(ev => {
@@ -803,7 +800,7 @@ export class EditingMenuManager {
     const menuItems: UnspecifiedActionInvocation[] = [];
     if (isElement(dataNode)) {
       const tagName = dataNode.tagName;
-      const mode = this.modeTree.getMode(dataNode);
+      const mode = this.editor.modeTree.getMode(dataNode);
       const docURL = mode.documentationLinkFor(tagName);
 
       if (docURL != null) {
@@ -838,7 +835,7 @@ export class EditingMenuManager {
     const dataNode = dataCaret.node as Attr;
 
     // First see if the mode has something to say.
-    const mode = this.modeTree.getMode(dataNode);
+    const mode = this.editor.modeTree.getMode(dataNode);
     const possible = mode.getAttributeCompletions(dataNode);
 
     if (possible.length === 0) {
