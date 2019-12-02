@@ -303,7 +303,6 @@ export class Editor implements EditorAPI {
   readonly name: string = "";
   readonly firstValidationComplete: Promise<Editor>;
   readonly initialized: Promise<Editor>;
-  readonly $frame: JQuery;
   readonly window: Window;
   readonly doc: Document;
   readonly guiRoot: HTMLElement;
@@ -384,10 +383,7 @@ export class Editor implements EditorAPI {
 
     onerror.editors.push(this);
 
-    // We could be loaded in a frame in which case we should not alter anything
-    // outside our frame.
-    this.$frame = $(this.widget.closest("html"));
-    const doc = this.doc = this.$frame[0].ownerDocument!;
+    const doc = this.doc = widget.ownerDocument!;
     this.window = doc.defaultView!;
     this.modals = new StockModals(this);
 
@@ -407,9 +403,8 @@ export class Editor implements EditorAPI {
     }
 
     this.name = options.name !== undefined ? options.name : "";
-    this.options = options;
 
-    const docURL = this.options.docURL;
+    const docURL = options.docURL;
     this.docURL = docURL == null ? "./doc/index.html" : docURL;
 
     this.preferences = new preferences.Preferences({
@@ -1319,7 +1314,7 @@ export class Editor implements EditorAPI {
     // These ought to prevent jQuery leaks.
     try {
       $(this.widget).empty();
-      this.$frame.find("*").off(".wed");
+      $(this.doc).find("*").off(".wed");
       // This will also remove handlers on the window.
       $(this.window).off(".wed");
     }
@@ -1426,9 +1421,9 @@ export class Editor implements EditorAPI {
     this.currentLabelLevel = this.initialLabelLevel;
 
     const styles = modeTree.getStylesheets();
-    const $head = this.$frame.children("head");
+    const head = this.doc.querySelector("head")!;
     for (const style of styles) {
-      $head.append(`<link rel="stylesheet" href="${style}" type="text/css" />`);
+      head.append(`<link rel="stylesheet" href="${style}" type="text/css" />`);
     }
 
     this.guiRoot.setAttribute("tabindex", "-1");

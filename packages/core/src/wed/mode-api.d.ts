@@ -172,9 +172,6 @@ export interface EditorAPI extends EditorInstance {
   /** A promise that resolves once the editor is initialized. */
   readonly initialized: Promise<EditorAPI>;
 
-  /** The &lt;html> element that holds the widget. */
-  readonly $frame: JQuery;
-
   /** The window which holds the widget. */
   readonly window: Window;
 
