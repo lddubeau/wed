@@ -10,7 +10,7 @@ import { action, DLoc, EditorAPI, transformation, WED_ORIGIN } from "wed";
 import Action = action.Action;
 import NamedTransformationData = transformation.NamedTransformationData;
 
-import { Mode } from "./generic";
+import { GenericMode } from "./generic";
 
 export interface InsertPIData {
   name?: string;
@@ -28,7 +28,7 @@ export class InsertPI extends Action<InsertPIData> {
   execute(data: InsertPIData): void {
     const { caretManager } = this.editor;
     const caret = caretManager.getDataCaret(true)!;
-    const mode = this.editor.modeTree.getMode(caret.node) as Mode<any>;
+    const mode = this.editor.modeTree.getMode(caret.node) as GenericMode<any>;
     const tr = mode.insertPITr;
 
     if (data.name !== undefined) {

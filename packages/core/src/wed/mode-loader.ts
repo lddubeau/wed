@@ -6,42 +6,38 @@
  */
 
 import { Runtime } from "@wedxml/client-api";
+import { Container, inject } from "inversify";
+import { provide } from "inversify-binding-decorators";
 
-import { Editor } from "./editor";
-import { Mode } from "./mode";
-import { EditorAPI } from "./mode-api";
+import { RUNTIME } from "@wedxml/common/tokens";
 
-type ModeConstructor = new (editor: EditorAPI, modeOptions: {}) => Mode;
+import { Binder } from "./mode";
 
 interface ModeModule {
-  Mode: ModeConstructor;
+  Binder: new () => Binder;
 }
 
 /**
  * A class that can load modes.
  */
+@provide(ModeLoader)
 export class ModeLoader {
   /**
    * @param runtime The runtime to use to load the mode module.
    */
-  constructor(private readonly editor: Editor,
-              private readonly runtime: Runtime) {}
+  constructor(@inject(RUNTIME) private readonly runtime: Runtime) {}
 
   /**
-   * Load and initialize a mode.
+   * Load and bind a mode to a container.
    *
    * @param path The path to the mode.
    *
-   * @param options The mode's options.
-   *
-   * @returns A promise that resolves to the initialized [[Mode]] object.
+   * @returns A promise that resolves once binding is done.
    */
-  async initMode(path: string, options: {} | undefined = {}): Promise<Mode> {
+  async bindMode(container: Container, path: string): Promise<void> {
     const mmodule: ModeModule = await this.loadMode(path);
-    const mode = new mmodule.Mode(this.editor, options);
-
-    await mode.init();
-    return mode;
+    const binder = new mmodule.Binder();
+    await binder.bind(container);
   }
 
   /**

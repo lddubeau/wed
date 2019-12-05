@@ -3,13 +3,13 @@
  */
 import { Container } from "inversify";
 
-import { bindEditor } from "wed";
+import { bindEditor, bindRoot, bindWidget } from "wed";
 
 import { AjaxSaver } from "@wedxml/ajax-saver";
 import { SAVER_OPTIONS } from "@wedxml/base-saver/tokens";
 import { EditorInstance, Options } from "@wedxml/client-api";
-import { EDITOR_INSTANCE, EDITOR_OPTIONS, EDITOR_WIDGET, GRAMMAR_LOADER,
-         RUNTIME, SAVER } from "@wedxml/common/tokens";
+import { EDITOR_INSTANCE, EDITOR_OPTIONS, GRAMMAR_LOADER, RUNTIME,
+         SAVER } from "@wedxml/common/tokens";
 import { DefaultRuntime } from "@wedxml/default-runtime";
 import { TrivialGrammarLoader } from "@wedxml/trivial-grammar-loader";
 
@@ -20,8 +20,9 @@ export * from "wed";
 
 // There are many ways this could be implemented. We export a makeEditor
 // function which takes parameters that are liable to change from case to case.
-export function makeEditor(wedroot: Element, options: Options,
-                           saverOptions: {}): EditorInstance {
+export function makeEditor(wedroot: HTMLElement, options: Options,
+                           saverOptions: {}): { container: Container,
+                                                editor: EditorInstance } {
   // You must create an InversifyJS container. IT IS IMPORTANT TO SET THE
   // defaultScope TO SINGLETON!!!! This way if multiple parts of wed require the
   // runtime, they all use the same runtime. If they require the grammar loader,
@@ -29,9 +30,12 @@ export function makeEditor(wedroot: Element, options: Options,
   // different instances.
   const container = new Container({ defaultScope: "Singleton" });
 
-  // The EDITOR_WIDGET is the DOM element that the editor will take over. This
-  // binding is mandatory.
-  container.bind(EDITOR_WIDGET).toConstantValue(wedroot);
+  // Bind the container to ROOT.
+  bindRoot(container);
+
+  // Bind EDITOR_WIDGET, EDITOR_DOCUMENT and EDITOR_WINDOW. These bindings are
+  // mandatory.
+  bindWidget(container, wedroot);
 
   // EDITOR_OPTIONS are the options to pass to the editor that will be
   // created. This binding is mandatory.
@@ -53,5 +57,8 @@ export function makeEditor(wedroot: Element, options: Options,
   bindEditor(container);
 
   // And this is how you get a new editor that you can use.
-  return container.get<EditorInstance>(EDITOR_INSTANCE);
+  return {
+    container,
+    editor: container.get<EditorInstance>(EDITOR_INSTANCE),
+  };
 }

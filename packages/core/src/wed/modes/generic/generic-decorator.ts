@@ -4,7 +4,10 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import { convert, Decorator, domtypeguards, EditorAPI, Mode } from "wed";
+import { inject, injectable } from "inversify";
+
+import { convert, Decorator, domtypeguards, EditorAPI, Mode,
+         tokens } from "wed";
 
 import isElement = domtypeguards.isElement;
 import isText = domtypeguards.isText;
@@ -13,11 +16,19 @@ import REAL_SELECTOR = convert.REAL_SELECTOR;
 import isRealComment = convert.isRealComment;
 import isRealPI = convert.isRealPI;
 
-import { Metadata } from "./metadata";
+import { Metadata, METADATA } from "./metadata";
+
+// tslint:disable-next-line:import-name
+import EDITOR_INSTANCE = tokens.EDITOR_INSTANCE;
+// tslint:disable-next-line:import-name
+import MODE_OPTIONS = tokens.MODE_OPTIONS;
+// tslint:disable-next-line:import-name
+import MODE = tokens.MODE;
 
 /**
  * A decorator for the generic mode.
  */
+@injectable()
 export class GenericDecorator extends Decorator {
   /**
    * @param mode The mode object.
@@ -31,10 +42,11 @@ export class GenericDecorator extends Decorator {
    *
    */
   // tslint:disable-next-line:no-any
-  constructor(mode: Mode, editor: EditorAPI,
-              protected readonly metadata: Metadata,
+  constructor(@inject(MODE) mode: Mode,
+              @inject(EDITOR_INSTANCE) editor: EditorAPI,
+              @inject(METADATA) protected readonly metadata: Metadata,
               // tslint:disable-next-line:no-any
-              protected readonly options: any) {
+              @inject(MODE_OPTIONS) protected readonly options: any) {
     super(mode, editor);
   }
 

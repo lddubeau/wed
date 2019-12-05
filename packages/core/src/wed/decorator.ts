@@ -5,7 +5,10 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 
+import { inject, injectable } from "inversify";
 import $ from "jquery";
+
+import { EDITOR_INSTANCE, MODE } from "@wedxml/common/tokens";
 
 import { isRealElement} from "./convert";
 import { DLoc } from "./dloc";
@@ -33,6 +36,7 @@ function attributeSelectorMatch(selector: string, name: string): boolean {
  * A decorator is responsible for adding decorations to a tree of DOM
  * elements. Decorations are GUI elements.
  */
+@injectable()
 export abstract class Decorator implements DecoratorAPI {
   protected readonly namespaces: Record<string, string>;
   protected readonly domlistener: DOMListener;
@@ -47,8 +51,8 @@ export abstract class Decorator implements DecoratorAPI {
    * @param guiUpdater The updater to use to modify the GUI tree. All
    * modifications to the GUI must go through this updater.
    */
-  constructor(protected readonly mode: Mode,
-              protected readonly editor: EditorAPI) {
+  constructor(@inject(MODE) protected readonly mode: Mode,
+              @inject(EDITOR_INSTANCE) protected readonly editor: EditorAPI) {
     this.domlistener = editor.domlistener;
     this.guiUpdater = editor.guiUpdater;
     this.namespaces = mode.getAbsoluteNamespaceMappings();

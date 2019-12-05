@@ -8,6 +8,7 @@
 // tslint:disable-next-line:import-name
 import md5 from "blueimp-md5";
 import { expect } from "chai";
+import { Container } from "inversify";
 import sinon from "sinon";
 
 import { DLoc, domutil, onerror, Options, SelectionMode } from "wed";
@@ -287,6 +288,7 @@ export class EditorSetup {
   public readonly server: WedServer;
   public readonly wedroot: HTMLElement;
   public readonly editor: Editor;
+  public readonly container: Container;
 
   constructor(public readonly source: string,
               options: Options, doc: Document) {
@@ -297,9 +299,10 @@ export class EditorSetup {
     this.wedroot = makeWedRoot(document);
     doc.body.appendChild(this.wedroot);
 
-    this.editor = makeEditor(this.wedroot, options, {
-      url: "/build/ajax/save.txt",
-    }) as Editor;
+    ({ editor: this.editor, container: this.container } =
+     makeEditor(this.wedroot, options, {
+       url: "/build/ajax/save.txt",
+     }) as { container: Container, editor: Editor });
   }
 
   async init(): Promise<Editor> {

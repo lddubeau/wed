@@ -208,6 +208,9 @@ Miscelaneous changes
 * The ``ignore_module_config`` options ha been removed. It had been deprecated
   in version 0.29.0.
 
+* The structure of modes is quite different from previous versions. See
+  generic.ts for an example.
+
 Notable Bootstrap Changes
 =========================
 

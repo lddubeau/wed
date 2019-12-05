@@ -51,7 +51,7 @@ function cleanNamespace(str: string): string {
 describe("InputTrigger", () => {
   let setup: EditorSetup;
   let editor: Editor;
-  let mode: Mode<{}>;
+  let mode: Mode;
   const mappings: Record<string, string> =
     // tslint:disable-next-line:no-http-string
     { "": "http://www.tei-c.org/ns/1.0" };

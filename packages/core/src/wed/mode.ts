@@ -7,12 +7,13 @@
  */
 "use strict";
 
+import { Container, injectable } from "inversify";
 import { DefaultNameResolver, EName } from "salve";
 
 import { Button } from "@wedxml/client-api";
 
-import { action, Decorator, domtypeguards, domutil, EditorAPI,
-         ModeValidator, WedOptions } from "wed";
+import { action, domtypeguards, domutil, ModeValidator, objectCheck,
+         WedOptions } from "wed";
 
 import UnspecifiedAction = action.UnspecifiedAction;
 
@@ -25,8 +26,7 @@ export interface CommonModeOptions {
   autoinsert?: boolean;
 }
 
-export interface Mode<ModeOptions extends
-CommonModeOptions = CommonModeOptions> {
+export interface Mode {
   /**
    * This is called by the editor when a mode is ready to be initialized. The
    * mode could use this to add a toolbar above the editor or add listeners to
@@ -35,11 +35,6 @@ CommonModeOptions = CommonModeOptions> {
    * @returns A promise that resolves once the mode is done initializing.
    */
   init(): Promise<void>;
-
-  /**
-   * Gets the mode options.
-   */
-  getModeOptions(): ModeOptions;
 
   /**
    * Gets the options that the mode wants wed to use with this mode.
@@ -83,11 +78,6 @@ CommonModeOptions = CommonModeOptions> {
    * @returns The resolver.
    */
   getAbsoluteResolver(): DefaultNameResolver;
-
-  /**
-   * Make a decorator that this mode will use.
-   */
-  makeDecorator(): Decorator;
 
   /**
    * Get the toolbar actions that this mode wants the editor to present.
@@ -205,7 +195,8 @@ CommonModeOptions = CommonModeOptions> {
  * A mode for wed should be implemented as a module which exports a
  * class derived from this class.
  */
-export abstract class BaseMode<ModeOptions> implements Mode<ModeOptions> {
+@injectable()
+export abstract class BaseMode implements Mode {
   protected wedOptions: WedOptions = {
     metadata: {
       name: "Base Mode (you should not be using this)",
@@ -219,23 +210,6 @@ export abstract class BaseMode<ModeOptions> implements Mode<ModeOptions> {
       initial: 1,
     },
   };
-
-  /**
-   * @param editor The editor for which this mode is created.
-   *
-   * @param options The options for the mode. Each mode defines
-   * what fields this object contains.
-   */
-  constructor(protected readonly editor: EditorAPI,
-              protected options: ModeOptions) {}
-
-  /**
-   * Gets the mode options. The returned object should be considered frozen. You
-   * may inspect it, not modify it.
-   */
-  getModeOptions(): ModeOptions {
-    return this.options;
-  }
 
   /**
    * Gets the options that the mode wants wed to use with this mode.
@@ -342,11 +316,19 @@ export abstract class BaseMode<ModeOptions> implements Mode<ModeOptions> {
   abstract getAbsoluteNamespaceMappings(): Record<string, string>;
   abstract unresolveName(name: EName): string | undefined;
   abstract getAbsoluteResolver(): DefaultNameResolver;
-  abstract makeDecorator(): Decorator;
   abstract getContextualActions(transformationType: string | string[],
                                 tag: string,
                                 container: Node,
                                 offset: number): UnspecifiedAction[];
+}
+
+export interface Binder {
+  bind(container: Container): Promise<void>;
+}
+
+export interface BinderCtor {
+  new (...args: any[]): Binder;
+  readonly optionTemplate: objectCheck.Template;
 }
 
 //  LocalWords:  autoinsertion domutil Dubeau Mangalam MPL html overriden

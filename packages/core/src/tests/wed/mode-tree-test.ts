@@ -6,6 +6,7 @@
 import chai from "chai";
 import { expect, use } from "chai";
 import { expectRejection, use as erUse } from "expect-rejection";
+import { Container } from "inversify";
 import mergeOptions from "merge-options";
 import sinon from "sinon";
 import sinonChai from "sinon-chai";
@@ -16,6 +17,7 @@ import { Options } from "@wedxml/client-api";
 
 import { Editor } from "wed/editor";
 import { ModeTree } from "wed/mode-tree";
+import { MODE_HIERARCHY_OPTIONS } from "wed/tokens";
 
 import * as globalConfig from "../base-config";
 import { dataPath, EditorSetup } from "../wed-test-util";
@@ -60,12 +62,13 @@ const options: Options = {
 describe("ModeTree", () => {
   let setup: EditorSetup;
   let editor: Editor;
+  let container: Container;
 
   before(() => {
     setup = new EditorSetup(`${dataPath}/wed_test_data/source_converted.xml`,
                             mergeOptions(globalConfig.config, options),
                             document);
-    ({ editor } = setup);
+    ({ editor, container } = setup);
     return setup.init();
   });
 
@@ -79,7 +82,8 @@ describe("ModeTree", () => {
   // tslint:disable-next-line:no-empty
   describe("#init", () => {
     it("resolves to the mode tree", async () => {
-      const tree = new ModeTree(editor, options.mode);
+      container.rebind(MODE_HIERARCHY_OPTIONS).toConstantValue(options.mode);
+      const tree = container.get<ModeTree>(ModeTree);
       const resolved = await tree.init();
       expect(resolved).to.equal(tree);
     });
@@ -89,7 +93,8 @@ describe("ModeTree", () => {
       const path = "tests/modes/failing-init";
       newOptions.path = path;
 
-      const tree = new ModeTree(editor, newOptions);
+      container.rebind(MODE_HIERARCHY_OPTIONS).toConstantValue(newOptions);
+      const tree = container.get<ModeTree>(ModeTree);
       await expectRejection(tree.init(), Error, /^failed init$/);
     });
   });
@@ -97,7 +102,8 @@ describe("ModeTree", () => {
   describe("#getMode", () => {
     let tree: ModeTree;
     beforeEach(async () => {
-      tree = new ModeTree(editor, options.mode);
+      container.rebind(MODE_HIERARCHY_OPTIONS).toConstantValue(options.mode);
+      tree = container.get<ModeTree>(ModeTree);
       await tree.init();
     });
 
@@ -158,7 +164,8 @@ describe("ModeTree", () => {
   describe("#getWedOptions", () => {
     let tree: ModeTree;
     beforeEach(async () => {
-      tree = new ModeTree(editor, options.mode);
+      container.rebind(MODE_HIERARCHY_OPTIONS).toConstantValue(options.mode);
+      tree = container.get<ModeTree>(ModeTree);
       await tree.init();
     });
 
@@ -217,7 +224,8 @@ describe("ModeTree", () => {
   describe("#getAttributeHandling", () => {
     let tree: ModeTree;
     beforeEach(async () => {
-      tree = new ModeTree(editor, options.mode);
+      container.rebind(MODE_HIERARCHY_OPTIONS).toConstantValue(options.mode);
+      tree = container.get<ModeTree>(ModeTree);
       await tree.init();
     });
 
@@ -251,7 +259,9 @@ describe("ModeTree", () => {
       // which is to hide *some* attributes.
       const localOptions: Options = mergeOptions({}, options);
       localOptions.mode.submode!.mode.options!.hide_attributes = false;
-      tree = new ModeTree(editor, localOptions.mode);
+      container.rebind(MODE_HIERARCHY_OPTIONS)
+        .toConstantValue(localOptions.mode);
+      tree = container.get<ModeTree>(ModeTree);
       await tree.init();
     });
 
@@ -281,7 +291,8 @@ describe("ModeTree", () => {
   describe("#getStylesheets", () => {
     let tree: ModeTree;
     beforeEach(async () => {
-      tree = new ModeTree(editor, options.mode);
+      container.rebind(MODE_HIERARCHY_OPTIONS).toConstantValue(options.mode);
+      tree = container.get<ModeTree>(ModeTree);
       await tree.init();
     });
 
@@ -294,7 +305,8 @@ describe("ModeTree", () => {
   describe("#getStylesheets", () => {
     let tree: ModeTree;
     beforeEach(async () => {
-      tree = new ModeTree(editor, options.mode);
+      container.rebind(MODE_HIERARCHY_OPTIONS).toConstantValue(options.mode);
+      tree = container.get<ModeTree>(ModeTree);
       await tree.init();
     });
 
@@ -307,7 +319,8 @@ describe("ModeTree", () => {
   describe("#getMaxLabelLevel", () => {
     let tree: ModeTree;
     beforeEach(async () => {
-      tree = new ModeTree(editor, options.mode);
+      container.rebind(MODE_HIERARCHY_OPTIONS).toConstantValue(options.mode);
+      tree = container.get<ModeTree>(ModeTree);
       await tree.init();
     });
 
@@ -319,7 +332,8 @@ describe("ModeTree", () => {
   describe("#getInitialLabelLevel", () => {
     let tree: ModeTree;
     beforeEach(async () => {
-      tree = new ModeTree(editor, options.mode);
+      container.rebind(MODE_HIERARCHY_OPTIONS).toConstantValue(options.mode);
+      tree = container.get<ModeTree>(ModeTree);
       await tree.init();
     });
 
@@ -331,7 +345,8 @@ describe("ModeTree", () => {
   describe("#getValidators", () => {
     let tree: ModeTree;
     beforeEach(async () => {
-      tree = new ModeTree(editor, options.mode);
+      container.rebind(MODE_HIERARCHY_OPTIONS).toConstantValue(options.mode);
+      tree = container.get<ModeTree>(ModeTree);
       await tree.init();
     });
 
@@ -353,7 +368,8 @@ describe("ModeTree", () => {
     });
 
     beforeEach(async () => {
-      tree = new ModeTree(editor, options.mode);
+      container.rebind(MODE_HIERARCHY_OPTIONS).toConstantValue(options.mode);
+      tree = container.get<ModeTree>(ModeTree);
       await tree.init();
     });
 
@@ -393,7 +409,8 @@ describe("ModeTree", () => {
     });
 
     beforeEach(async () => {
-      tree = new ModeTree(editor, options.mode);
+      container.rebind(MODE_HIERARCHY_OPTIONS).toConstantValue(options.mode);
+      tree = container.get<ModeTree>(ModeTree);
       await tree.init();
     });
 

@@ -4,6 +4,7 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
+import { inject, injectable } from "inversify";
 import $ from "jquery";
 import mergeOptions from "merge-options";
 import { EName, ValidationError } from "salve";
@@ -11,12 +12,13 @@ import { ErrorData } from "salve-dom";
 
 import { Button } from "@wedxml/client-api";
 
-import { action as action_, Decorator, domutil, EditorAPI, gui, GUISelector,
-         inputTriggerFactory, key, keyConstants, ModeValidator, objectCheck,
-         transformation, WED_ORIGIN } from "wed";
-import { GenericModeOptions,
-         Mode as GenericMode } from "wed/modes/generic/generic";
+import { action as action_, Decorator, domutil, EditorAPI, gui,
+         GUISelector, inputTriggerFactory, key, keyConstants, ModeValidator,
+         objectCheck, tokens, transformation, WED_ORIGIN } from "wed";
+import { GenericBinder, GenericMode,
+         GenericModeOptions } from "wed/modes/generic/generic";
 import { GenericDecorator } from "wed/modes/generic/generic-decorator";
+import { Metadata, METADATA } from "wed/modes/generic/metadata";
 
 import Action = action_.Action;
 import UnspecifiedAction = action_.UnspecifiedAction;
@@ -24,6 +26,11 @@ import Template = objectCheck.Template;
 import ContextMenu = gui.contextMenu.ContextMenu;
 import DismissCallback = gui.contextMenu.DismissCallback;
 import Modal = gui.modal.Modal;
+
+// tslint:disable-next-line:import-name
+import EDITOR_INSTANCE = tokens.EDITOR_INSTANCE;
+// tslint:disable-next-line:import-name
+import MODE_OPTIONS = tokens.MODE_OPTIONS;
 
 const { childrenByClass, closestByClass, indexOf } = domutil;
 
@@ -68,6 +75,7 @@ class CustomMenu extends ContextMenu<ActionSpec> {
 }
 
 // tslint:disable-next-line:completed-docs
+@injectable()
 export class TestDecorator extends GenericDecorator {
   private readonly elementLevel: Record<string, number> = {
     term: 2,
@@ -375,6 +383,7 @@ class PromptAction extends Action<{}> {
  * This mode is purely designed to help test wed, and nothing
  * else. Don't derive anything from it and don't use it for editing.
  */
+@injectable()
 export class TestMode extends GenericMode<TestModeOptions> {
   private typeaheadAction: TypeaheadAction;
   private draggableAction: DraggableModalAction;
@@ -382,19 +391,10 @@ export class TestMode extends GenericMode<TestModeOptions> {
   private draggableResizableAction: DraggableResizableModalAction;
   private promptAction: PromptAction;
 
-  readonly optionTemplate: Template = {
-    metadata: true,
-    autoinsert: false,
-    ambiguous_fileDesc_insert: false,
-    fileDesc_insert_needs_input: false,
-    hide_attributes: false,
-    // We use nameSuffix to vary the name given to multiple instances.
-    nameSuffix: false,
-    stylesheets: false,
-  };
-
-  constructor(editor: EditorAPI, options: TestModeOptions) {
-    super(editor, options);
+  constructor(@inject(EDITOR_INSTANCE) editor: EditorAPI,
+              @inject(METADATA) metadata: Metadata,
+              @inject(MODE_OPTIONS) options: TestModeOptions) {
+    super(editor, metadata, options);
     this.wedOptions = mergeOptions({}, this.wedOptions);
     const suffix = options.nameSuffix != null ? options.nameSuffix : "";
     this.wedOptions.metadata = {
@@ -491,10 +491,6 @@ export class TestMode extends GenericMode<TestModeOptions> {
     return ret;
   }
 
-  makeDecorator(): GenericDecorator {
-    return new TestDecorator(this, this.editor, this.metadata, this.options);
-  }
-
   getAttributeCompletions(attr: Attr): string[] {
     if (attr.name === "n") {
       return ["completion1", "completion2"];
@@ -508,7 +504,23 @@ export class TestMode extends GenericMode<TestModeOptions> {
   }
 }
 
-export { TestMode as Mode };
+class TestBinder extends GenericBinder {
+  static readonly mode: new (...args: any[]) => TestMode = TestMode;
+  static readonly decorator: new (...args: any[]) => TestDecorator =
+    TestDecorator;
+
+  static readonly optionTemplate: Template = {
+    ...GenericBinder.optionTemplate,
+    ambiguous_fileDesc_insert: false,
+    fileDesc_insert_needs_input: false,
+    hide_attributes: false,
+    // We use nameSuffix to vary the name given to multiple instances.
+    nameSuffix: false,
+    stylesheets: false,
+  };
+}
+
+export { TestBinder as Binder };
 
 //  LocalWords:  Dubeau MPL Mangalam tei domutil btn getLabelFor tabindex href
 //  LocalWords:  li nameSuffix subtype typeahead fw draggable resizable

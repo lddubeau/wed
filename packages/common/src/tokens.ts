@@ -7,14 +7,49 @@
  */
 
 /**
+ * The token representing the root of the container hierarchy.
+ */
+export const ROOT = Symbol("ROOT");
+
+/**
+ * The token representing the current container.
+ */
+export const CONTAINER = Symbol("CONTAINER");
+
+/**
  * The token representing the editor's widget.
  */
 export const EDITOR_WIDGET = Symbol("EDITOR_WIDGET");
 
 /**
+ * The token representing the HTML document which contains the editor.
+ */
+export const EDITOR_DOCUMENT = Symbol("EDITOR_DOCUMENT");
+
+/**
+ * The token representing the DOM Window which contains the editor.
+ */
+export const EDITOR_WINDOW = Symbol("EDITOR_WINDOW");
+
+/**
  * The token representing the editor's options.
  */
 export const EDITOR_OPTIONS = Symbol("EDITOR_OPTIONS");
+
+/**
+ * The token representing a mode.
+ */
+export const MODE = Symbol("MODE");
+
+/**
+ * The token representing a decorator.
+ */
+export const DECORATOR = Symbol("DECORATOR");
+
+/**
+ * The token representing the options of the current mode.
+ */
+export const MODE_OPTIONS = Symbol("MODE_OPTIONS");
 
 /**
  * The token corresponding to the [["@wedxml/client-api".Runtime]] interface.

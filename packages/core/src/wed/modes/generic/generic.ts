@@ -5,20 +5,32 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 
+import { Container, inject, injectable } from "inversify";
 import mergeOptions from "merge-options";
 import { DefaultNameResolver, EName } from "salve";
 
-import { action, BaseMode, CommonModeOptions, Decorator, EditorAPI, objectCheck,
-         transformation } from "wed";
+import { action, BaseMode, Binder, BinderCtor, CommonModeOptions,
+         EditorAPI, objectCheck, Runtime, tokens, transformation } from "wed";
 import { InsertPI } from "./generic-actions";
 import { GenericDecorator } from "./generic-decorator";
 import { makeTagTr } from "./generic-tr";
-import { Metadata } from "./metadata";
+import { Metadata, METADATA } from "./metadata";
 import { MetadataMultiversionReader } from "./metadata-multiversion-reader";
 
 import Action = action.Action;
 import Transformation = transformation.Transformation;
 import NamedTransformationData = transformation.NamedTransformationData;
+
+// tslint:disable-next-line:import-name
+import EDITOR_INSTANCE = tokens.EDITOR_INSTANCE;
+// tslint:disable-next-line:import-name
+import MODE_OPTIONS = tokens.MODE_OPTIONS;
+// tslint:disable-next-line:import-name
+import MODE = tokens.MODE;
+// tslint:disable-next-line:import-name
+import DECORATOR = tokens.DECORATOR;
+// tslint:disable-next-line:import-name
+import RUNTIME = tokens.RUNTIME;
 
 export interface GenericModeOptions extends CommonModeOptions {
   metadata: string;
@@ -46,27 +58,20 @@ export interface GenericModeOptions extends CommonModeOptions {
  *   could contain ``a`` or ``b``, then the mode won't add any children. This
  *   option is ``true`` by default.
  */
-class GenericMode<Options extends GenericModeOptions> extends
-BaseMode<Options> {
+@injectable()
+export class GenericMode<Options extends GenericModeOptions =
+  GenericModeOptions> extends BaseMode {
   protected resolver!: DefaultNameResolver;
-  protected metadata!: Metadata;
   protected readonly tagTr:
   Record<string, Transformation<NamedTransformationData>>;
   protected readonly insertPIAction: InsertPI;
 
   readonly insertPITr: Transformation<NamedTransformationData>;
 
-  /**
-   * The template that [[checkOptions]] uses to check the options passed
-   * to this mode. Consider this object to be immutable.
-   */
-  readonly optionTemplate: objectCheck.Template = {
-    metadata: true,
-    autoinsert: false,
-  };
-
-  constructor(editor: EditorAPI, options: Options) {
-    super(editor, options);
+  constructor(@inject(EDITOR_INSTANCE) protected readonly editor: EditorAPI,
+              @inject(METADATA) protected readonly metadata: Metadata,
+              @inject(MODE_OPTIONS) protected readonly options: Options) {
+    super();
 
     this.insertPIAction = new InsertPI(editor);
     if (this.constructor === GenericMode) {
@@ -85,46 +90,16 @@ BaseMode<Options> {
     // else it is up to the derived class to set it.
 
     this.wedOptions.attributes = "edit";
-    this.tagTr = makeTagTr(editor);
+    this.tagTr = makeTagTr(editor, !!options.autoinsert);
     this.insertPITr = this.tagTr["insert-pi"];
   }
 
   async init(): Promise<void> {
-    this.checkOptions(this.options);
-
-    if (this.options.autoinsert === undefined) {
-      this.options.autoinsert = true;
-    }
-
-    this.metadata = await this.makeMetadata();
-
     this.resolver = new DefaultNameResolver();
     const mappings = this.metadata.getNamespaceMappings();
     for (const key of Object.keys(mappings)) {
       this.resolver.definePrefix(key, mappings[key]);
     }
-  }
-
-  /**
-   * Check that the options are okay. This method will throw if there are any
-   * unexpected options or mandatory options are missing.
-   *
-   * @param options The options to check.
-   */
-  checkOptions(options: GenericModeOptions): void {
-    objectCheck.assertExtensively(this.optionTemplate, options);
-  }
-
-  /**
-   * Make a [[Metadata]] object for use with this mode. The default
-   * implementation requires that there be a ``metadata`` option set and
-   * uses that to load a metadata file. Derived classes can override
-   * this as needed.
-   */
-  async makeMetadata(): Promise<Metadata> {
-    return new MetadataMultiversionReader()
-      .read(JSON.parse(await this.editor.runtime
-                       .resolveToString(this.options.metadata)));
   }
 
   getAbsoluteNamespaceMappings(): Record<string, string> {
@@ -139,10 +114,6 @@ BaseMode<Options> {
 
   getAbsoluteResolver(): DefaultNameResolver {
     return this.resolver;
-  }
-
-  makeDecorator(): Decorator {
-    return new GenericDecorator(this, this.editor, this.metadata, this.options);
   }
 
   /**
@@ -215,6 +186,61 @@ BaseMode<Options> {
   }
 }
 
-export { GenericMode as Mode };
+export interface GenericBinderCtor extends BinderCtor {
+  readonly mode: new (...args: any[]) => GenericMode;
+  readonly decorator: new (...args: any[]) => GenericDecorator;
+}
+
+type GenericModeCtor = new (...args: any[]) => GenericMode<any>;
+type GenericDecoratorCtor = new (...args: any[]) => GenericDecorator;
+
+export class GenericBinder implements Binder {
+  static readonly mode: GenericModeCtor = GenericMode;
+  static readonly decorator: GenericDecoratorCtor = GenericDecorator;
+
+  /**
+   * The template that [[checkOptions]] uses to check the options passed
+   * to this mode. Consider this object to be immutable.
+   */
+  static readonly optionTemplate: objectCheck.Template = {
+    metadata: true,
+    autoinsert: false,
+  };
+
+  get ctor(): GenericBinderCtor {
+    return this.constructor as GenericBinderCtor;
+  }
+
+  async bind(container: Container): Promise<void> {
+    const options = container.get<GenericModeOptions>(MODE_OPTIONS);
+    objectCheck.assertExtensively(this.ctor.optionTemplate, options);
+    if (options.autoinsert === undefined) {
+      options.autoinsert = true;
+    }
+
+    container.bind(METADATA).toConstantValue(await this.getMetadata(container));
+    container.bind(MODE).to(await this.getMode(container));
+    container.bind(DECORATOR).to(await this.getDecorator(container));
+  }
+
+  protected async getMetadata(container: Container): Promise<Metadata> {
+    const options = container.get<GenericModeOptions>(MODE_OPTIONS);
+    const runtime = container.get<Runtime>(RUNTIME);
+    return new MetadataMultiversionReader()
+      .read(JSON.parse(await runtime
+                       .resolveToString(options.metadata)));
+  }
+
+  protected async getMode(_container: Container): Promise<GenericModeCtor> {
+    return this.ctor.mode;
+  }
+
+  protected async getDecorator(_container: Container):
+  Promise<GenericDecoratorCtor> {
+    return this.ctor.decorator;
+  }
+}
+
+export { GenericBinder as Binder };
 
 //  LocalWords:  gui jquery Mangalam MPL Dubeau metadata's

@@ -6,12 +6,13 @@
 import mergeOptions from "merge-options";
 
 import { EditorAPI } from "wed";
-import { Mode as TestMode, TestModeOptions } from "wed/modes/test/test-mode";
+import { Metadata } from "wed/modes/generic/metadata";
+import { TestMode, TestModeOptions } from "wed/modes/test/test-mode";
 
 // tslint:disable-next-line:completed-docs
 class FakeMode extends TestMode {
-  constructor(editor: EditorAPI, options: TestModeOptions) {
-    super(editor, options);
+  constructor(editor: EditorAPI, metadata: Metadata, options: TestModeOptions) {
+    super(editor, metadata, options);
     this.wedOptions = mergeOptions({}, this.wedOptions);
     // Oh god, that as "hide" bit is funny as hell. Anyway we need it to
     // purposely put a crap value there.

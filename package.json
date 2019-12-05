@@ -64,6 +64,7 @@
     "husky": "^3.1.0",
     "interactjs": "^1.7.2",
     "inversify": "^5.0.1",
+    "inversify-binding-decorators": "^4.0.0",
     "jq.node": "^2.1.2",
     "jquery": "^3.4.1",
     "js-yaml": "^3.13.1",

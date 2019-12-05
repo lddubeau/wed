@@ -87,7 +87,7 @@ define(function f(require) {
           var finalOptions = mergeOptions({}, globalConfig.config, options);
           window.wed_editor = wed.makeEditor(widget, finalOptions, {
             url: "/build/ajax/save.txt",
-          });
+          }).editor;
           window.wed_editor.init(text);
         });
       });

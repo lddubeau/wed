@@ -7,7 +7,8 @@
 import Ajv from "ajv";
 import * as bootprompt from "bootprompt";
 import "bootstrap";
-import { inject, injectable } from "inversify";
+import { Container, inject, injectable } from "inversify";
+import { buildProviderModule } from "inversify-binding-decorators";
 import $ from "jquery";
 import * as log4javascript from "log4javascript";
 import { Observable, Subject } from "rxjs";
@@ -20,8 +21,9 @@ import { ActionCtor, FailedEvent, GrammarLoader, Options, Runtime, SaveEvents,
          SaveKind, Saver } from "@wedxml/client-api";
 import optionsSchema from "@wedxml/client-api/options-schema.json";
 import { WED_ORIGIN } from "@wedxml/common";
-import { EDITOR_OPTIONS, EDITOR_WIDGET, GRAMMAR_LOADER,
-         RUNTIME, SAVER } from "@wedxml/common/tokens";
+import { EDITOR_DOCUMENT, EDITOR_OPTIONS, EDITOR_WIDGET, EDITOR_WINDOW,
+         GRAMMAR_LOADER, ROOT, RUNTIME,
+         SAVER } from "@wedxml/common/tokens";
 
 import { Action } from "./action";
 import { CaretChange, CaretManager } from "./caret-manager";
@@ -65,6 +67,7 @@ import * as preferences from "./preferences";
 import { SelectionMode, SelectionModeChange } from "./selection-mode";
 import { StockModals } from "./stock-modals";
 import { Task, TaskRunner } from "./task-runner";
+import { MODE_HIERARCHY_OPTIONS } from "./tokens";
 import { insertElement, mergeWithNextHomogeneousSibling,
          mergeWithPreviousHomogeneousSibling, NamedTransformationData,
          removeMarkup, splitNode, Transformation, TransformationData,
@@ -303,8 +306,6 @@ export class Editor implements EditorAPI {
   readonly name: string = "";
   readonly firstValidationComplete: Promise<Editor>;
   readonly initialized: Promise<Editor>;
-  readonly window: Window;
-  readonly doc: Document;
   readonly guiRoot: HTMLElement;
   readonly $guiRoot: JQuery;
   readonly $errorList: JQuery;
@@ -366,11 +367,15 @@ export class Editor implements EditorAPI {
   editingMenuManager!: EditingMenuManager;
 
   // tslint:disable-next-line:max-func-body-length
-  constructor(@inject(EDITOR_WIDGET) private readonly widget: HTMLElement,
+  constructor(@inject(ROOT) private readonly rootContainer: Container,
+              @inject(EDITOR_WIDGET) private readonly widget: HTMLElement,
+              @inject(EDITOR_DOCUMENT) readonly doc: Document,
+              @inject(EDITOR_WINDOW) readonly window: Window,
               @inject(EDITOR_OPTIONS) readonly options: Options,
               @inject(RUNTIME) readonly runtime: Runtime,
               @inject(SAVER) readonly saver: Saver,
               @inject(GRAMMAR_LOADER) readonly grammarLoader: GrammarLoader) {
+    rootContainer.load(buildProviderModule());
     // tslint:disable-next-line:promise-must-complete
     this.firstValidationComplete = new Promise(resolve => {
       this.firstValidationCompleteResolve = resolve;
@@ -383,8 +388,6 @@ export class Editor implements EditorAPI {
 
     onerror.editors.push(this);
 
-    const doc = this.doc = widget.ownerDocument!;
-    this.window = doc.defaultView!;
     this.modals = new StockModals(this);
 
     const ajv = new Ajv();
@@ -1401,8 +1404,9 @@ export class Editor implements EditorAPI {
     this.domlistener = new domlistener.DOMListener(this.guiRoot,
                                                    this.guiUpdater);
 
-    this.modeTree = new ModeTree(this, this.options.mode);
-
+    this.rootContainer.bind(MODE_HIERARCHY_OPTIONS)
+      .toConstantValue(this.options.mode);
+    this.modeTree = this.rootContainer.get<ModeTree>(ModeTree);
     await this.modeTree.init();
     return this.onModeChange();
   }

@@ -87,7 +87,8 @@ function _autoinsert(el: Element, editor: EditorAPI): void {
   }
 }
 
-function executeInsert(editor: EditorAPI, data: NamedTransformationData): void {
+function executeInsert(autoinsert: boolean,
+                       editor: EditorAPI, data: NamedTransformationData): void {
   const caret = editor.caretManager.getDataCaret();
   if (caret === undefined) {
     throw new Error("inserting without a defined caret!");
@@ -115,7 +116,7 @@ function executeInsert(editor: EditorAPI, data: NamedTransformationData): void {
   }
 
   let caretNode: Node | null = el;
-  if (mode.getModeOptions().autoinsert as boolean) {
+  if (autoinsert) {
     _autoinsert(el, editor);
 
     // Set el to the deepest first child, so that the caret is put in the right
@@ -298,13 +299,14 @@ function executeDeleteAttribute(editor: EditorAPI,
 /**
  * @param forEditorAPI The editor for which to create transformations.
  */
-export function makeTagTr(forEditor: EditorAPI):
+export function makeTagTr(forEditor: EditorAPI, autoinsert: boolean):
 Record<string, Transformation<NamedTransformationData>> {
   const ret: Record<string, Transformation<NamedTransformationData>> =
     Object.create(null);
   ret.insert = new Transformation(WED_ORIGIN, forEditor, "insert",
                                   "Create new <name>",
-                                  executeInsert, { abbreviatedDesc: "" });
+                                  executeInsert.bind(undefined, autoinsert),
+                                  { abbreviatedDesc: "" });
   ret.unwrap =
     new Transformation<NamedTransformationData>(
       WED_ORIGIN, forEditor, "unwrap",

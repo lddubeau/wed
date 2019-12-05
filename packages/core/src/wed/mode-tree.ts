@@ -4,9 +4,13 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
+import { Container, inject } from "inversify";
+import { fluentProvide } from "inversify-binding-decorators";
 import mergeOptions from "merge-options";
 
 import { Mode as ModeOption } from "@wedxml/client-api";
+import { CONTAINER, DECORATOR, EDITOR_INSTANCE, MODE,
+         MODE_OPTIONS, ROOT } from "@wedxml/common/tokens";
 
 import { Decorator } from "./decorator";
 import { contains, toGUISelector } from "./domutil";
@@ -14,6 +18,7 @@ import { Editor } from "./editor";
 import { Mode } from "./mode";
 import { ModeTreeAPI } from "./mode-api";
 import { ModeLoader } from "./mode-loader";
+import { MODE_HIERARCHY_OPTIONS } from "./tokens";
 import { ModeValidator } from "./validator";
 import { CleanedWedOptions, processWedOptions } from "./wed-options-validation";
 
@@ -41,6 +46,8 @@ class ModeNode {
   private _decorator: Decorator | undefined;
 
   /**
+   * @param container The container for the mode.
+   *
    * @param mode The mode that this node holds.
    *
    * @param editor The editor for which we are holding a mode.
@@ -53,11 +60,12 @@ class ModeNode {
    * @param wedOptions The cleaned up wed options that pertain to the mode held
    * by this node.
    */
-  constructor(public readonly mode: Mode,
-              public readonly editor: Editor,
-              public readonly selector: string,
-              public readonly submodes: ModeNode[],
-              public readonly wedOptions: CleanedWedOptions) {}
+  constructor(readonly container: Container,
+              readonly mode: Mode,
+              readonly editor: Editor,
+              readonly selector: string,
+              readonly submodes: ModeNode[],
+              readonly wedOptions: CleanedWedOptions) {}
 
   /**
    * Determines whether an element matched by the selector of this ``ModeNode``
@@ -145,7 +153,7 @@ class ModeNode {
 
   get decorator(): Decorator {
     if (this._decorator === undefined) {
-      this._decorator = this.mode.makeDecorator();
+      this._decorator = this.container.get<Decorator>(DECORATOR);
     }
 
     return this._decorator;
@@ -155,9 +163,9 @@ class ModeNode {
 /**
  * A tree containing the modes configured for the current editing session.
  */
+@fluentProvide(ModeTree).inTransientScope().done()
 export class ModeTree implements ModeTreeAPI {
   private root!: ModeNode;
-  private loader: ModeLoader;
   private cachedMaxLabelNode: ModeNode | undefined;
 
   /**
@@ -166,9 +174,11 @@ export class ModeTree implements ModeTreeAPI {
    * @param option The ``mode`` option from the options passed to the wed
    * instance. This object will construct a tree from this option.
    */
-  constructor(private readonly editor: Editor,
-              private readonly option: ModeOption) {
-    this.loader = new ModeLoader(editor, editor.runtime);
+  constructor(@inject(EDITOR_INSTANCE) private readonly editor: Editor,
+              @inject(ROOT) private readonly rootContainer: Container,
+              @inject(ModeLoader) private readonly loader: ModeLoader,
+              @inject(MODE_HIERARCHY_OPTIONS)
+              private readonly options: ModeOption) {
   }
 
   /**
@@ -181,7 +191,7 @@ export class ModeTree implements ModeTreeAPI {
     const combinedErrors: string[] = [];
     this.root = await this.makeNodes(
       "",
-      this.option,
+      this.options,
       (path: string, errors: string[]) => {
         for (const error of errors) {
           combinedErrors.push(
@@ -204,7 +214,7 @@ export class ModeTree implements ModeTreeAPI {
    * @param selector The selector associated with the options passed in the 2nd
    * argument.
    *
-   * @param option The mode option being processed.
+   * @param options The mode option being processed.
    *
    * @param errorHanler The handler to call on errors in processing the wed
    * options. If this handler is called at all, then the returned value should
@@ -214,11 +224,18 @@ export class ModeTree implements ModeTreeAPI {
    * @returns A promise that resolves to the created node.
    */
   private async makeNodes(selector: string,
-                          option: ModeOption,
+                          options: ModeOption,
                           errorHandler: WedOptionsErrorCallback):
   Promise<ModeNode> {
-    const submode = option.submode;
-    const mode = await this.loader.initMode(option.path, option.options);
+    const submode = options.submode;
+    const container = this.rootContainer.createChild();
+    container.bind(CONTAINER).toConstantValue(container);
+    container.bind(MODE_OPTIONS).toConstantValue(options.options);
+    await this.loader.bindMode(container, options.path);
+
+    const mode = container.get<Mode>(MODE);
+    await mode.init();
+
     const submodes = (submode !== undefined) ?
       [await this.makeNodes(toGUISelector(submode.selector,
                                           mode.getAbsoluteNamespaceMappings()),
@@ -229,14 +246,15 @@ export class ModeTree implements ModeTreeAPI {
     const result = processWedOptions(rawOptions);
     let cleanedOptions: CleanedWedOptions;
     if (Array.isArray(result)) {
-      errorHandler(option.path, result);
+      errorHandler(options.path, result);
       // This is a lie.
       cleanedOptions = rawOptions as CleanedWedOptions;
     }
     else {
       cleanedOptions = result;
     }
-    return new ModeNode(mode, this.editor, selector, submodes, cleanedOptions);
+    return new ModeNode(container, mode, this.editor, selector, submodes,
+                        cleanedOptions);
   }
 
   getMode(node: Node): Mode {

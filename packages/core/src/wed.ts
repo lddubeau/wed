@@ -52,10 +52,45 @@ export {
  * Bind to the token ``EDITOR_INSTANCE`` the editor class implemented by this
  * package.
  *
+ * It is necessary to use this function to bind the editor class to an
+ * inversifyjs container because the class is not exported.
+ *
  * @param container The container on which to bind the editor.
  */
 export function bindEditor(container: Container): void {
   container.bind(tokens.EDITOR_INSTANCE).to(Editor);
+}
+
+/**
+ * Bind to the token ``ROOT`` the this container. It also binds ``CONTAINER`` to
+ * this container.
+ *
+ * @param container The container to bind.
+ */
+export function bindRoot(container: Container): void {
+  container.bind(tokens.ROOT).toConstantValue(container);
+  container.bind(tokens.CONTAINER).toConstantValue(container);
+}
+
+/**
+ * Bind ``widget`` to ``EDITOR_WIDGET``. Bind the document to which ``widget``
+ * belongs to ``EDITOR_DOCUMENT``, and the window which contains ``widget`` to
+ * ``EDITOR_WINDOW``.
+ *
+ * This is a utility function. It is not *necessary* to call this function to
+ * bind these tokens but in trivial cases it makes the code that sets up the
+ * container and bindings a bit simpler.
+ *
+ * @param container The container on which to bind the tokens.
+ *
+ * @param widget The widget to bind to ``EDITOR_WIDGET``.
+ */
+export function bindWidget(container: Container,
+                           widget: HTMLElement): void {
+  container.bind(tokens.EDITOR_WIDGET).toConstantValue(widget);
+  const doc = widget.ownerDocument!;
+  container.bind(tokens.EDITOR_DOCUMENT).toConstantValue(doc);
+  container.bind(tokens.EDITOR_WINDOW).toConstantValue(doc.defaultView);
 }
 
 export { Decorator } from "./wed/decorator";
@@ -64,7 +99,8 @@ export { DOMListener } from "./wed/domlistener";
 export { version } from "./wed/editor";
 export { LocalizedActionInvocation } from "./wed/gui/editing-menu-manager";
 export { GUISelector } from "./wed/gui-selector";
-export { BaseMode, CommonModeOptions, Mode } from "./wed/mode";
+export { BaseMode, Binder, BinderCtor, CommonModeOptions,
+         Mode } from "./wed/mode";
 export * from "./wed/mode-api";
 export { SelectionMode } from "./wed/selection-mode";
 export { UndoMarker } from "./wed/undo";

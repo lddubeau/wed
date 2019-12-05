@@ -7,6 +7,8 @@
 
 import { EName } from "salve";
 
+export const METADATA = Symbol("METADATA");
+
 export interface Metadata {
   /**
    * The name of the software that generated the JSON metadata used by this
