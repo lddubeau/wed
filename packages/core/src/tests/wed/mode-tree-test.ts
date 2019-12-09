@@ -109,35 +109,30 @@ describe("ModeTree", () => {
 
     it("returns the top mode for the top GUI node", () => {
       const mode = tree.getMode(editor.guiRoot);
-      expect(mode.getWedOptions()).to.have.nested.property("metadata.name")
-        .equal("Generic");
+      expect(mode.description).to.have.nested.property("name").equal("Generic");
     });
 
     it("returns the top mode for the top data node", () => {
       const mode = tree.getMode(editor.dataRoot);
-      expect(mode.getWedOptions()).to.have.nested.property("metadata.name")
-        .equal("Generic");
+      expect(mode.description).to.have.nested.property("name").equal("Generic");
     });
 
     it("returns a submode for a GUI node governed by a submode", () => {
       const p = editor.guiRoot.querySelector(".p._real._el")!;
       const mode = tree.getMode(p);
-      expect(mode.getWedOptions()).to.have.nested.property("metadata.name")
-        .equal("Test1");
+      expect(mode.description).to.have.nested.property("name").equal("Test1");
     });
 
     it("returns a submode for a data node governed by a submode", () => {
       const p = editor.dataRoot.querySelector("p")!;
       const mode = tree.getMode(p);
-      expect(mode.getWedOptions()).to.have.nested.property("metadata.name")
-        .equal("Test1");
+      expect(mode.description).to.have.nested.property("name").equal("Test1");
     });
 
     it("returns the same submode for nodes governed by same submode", () => {
       const ps = editor.dataRoot.querySelectorAll("p");
       const mode = tree.getMode(ps[0]);
-      expect(mode.getWedOptions()).to.have.nested.property("metadata.name")
-        .equal("Test1");
+      expect(mode.description).to.have.nested.property("name").equal("Test1");
       for (const p of Array.from(ps)) {
         expect(mode).to.equal(tree.getMode(p));
       }
@@ -150,8 +145,7 @@ describe("ModeTree", () => {
       // be governed by the top mode.
       const el = editor.dataRoot.querySelector("teiHeader")!;
       const mode = tree.getMode(el);
-      expect(mode.getWedOptions()).to.have.nested.property("metadata.name")
-        .equal("Generic");
+      expect(mode.description).to.have.nested.property("name").equal("Generic");
     });
 
     it("fails if the node passed was not in the GUI or data trees", () => {
@@ -171,34 +165,38 @@ describe("ModeTree", () => {
 
     it("returns the top options for the top GUI node", () => {
       const opts = tree.getWedOptions(editor.guiRoot);
-      expect(opts).to.have.nested.property("metadata.name").equal("Generic");
+      expect(opts).to.have.property("attributes").deep
+        .equal({ handling: "edit" });
     });
 
     it("returns the top options for the top data node", () => {
       const opts = tree.getWedOptions(editor.dataRoot);
-      expect(opts).to.have.nested.property("metadata.name").equal("Generic");
+      expect(opts).to.have.property("attributes").deep
+        .equal({ handling: "edit" });
     });
 
     it("returns the submode options for a GUI node governed by a submode",
        () => {
          const p = editor.guiRoot.querySelector(".p._real._el")!;
          const opts = tree.getWedOptions(p);
-         expect(opts).to.have.nested.property("metadata.name").equal("Test1");
+         expect(opts).to.have.property("attributes").deep
+           .equal({ handling: "hide" });
        });
 
     it("returns the submode options for a data node governed by a submode",
        () => {
          const p = editor.dataRoot.querySelector("p")!;
          const opts = tree.getWedOptions(p);
-         expect(opts).have.nested.property("metadata.name").equal("Test1");
+         expect(opts).to.have.property("attributes").deep
+           .equal({ handling: "hide" });
        });
 
     it("returns the same submode options for nodes governed by same submode",
        () => {
          const ps = editor.dataRoot.querySelectorAll("p");
          const opts = tree.getWedOptions(ps[0]);
-         expect(opts).to.have.nested.property("metadata.name")
-           .equal("Test1");
+         expect(opts).to.have.property("attributes").deep
+           .equal({ handling: "hide" });
          for (const p of Array.from(ps)) {
            expect(opts).to.equal(tree.getWedOptions(p));
          }
@@ -211,7 +209,8 @@ describe("ModeTree", () => {
       // be governed by the top mode.
       const el = editor.dataRoot.querySelector("teiHeader")!;
       const opts = tree.getWedOptions(el);
-      expect(opts).to.have.nested.property("metadata.name").equal("Generic");
+      expect(opts).to.have.property("attributes").deep
+        .equal({ handling: "edit" });
     });
 
     it("fails if the node passed was not in the GUI or data trees", () => {

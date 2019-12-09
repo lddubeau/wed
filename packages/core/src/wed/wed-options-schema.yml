@@ -74,29 +74,6 @@ definitions:
     required: ["handling"]
 type: object
 properties:
-  metadata:
-    description: Information describing the mode.
-    type: object
-    properties:
-      name:
-        description: "The mode's name."
-        type: string
-      authors:
-        description: The authors of the mode.
-        type: array
-        items:
-          type: string
-      description:
-        description: The description of the mode.
-        type: string
-      license:
-        description: The licence under which the mode is distributed.
-        type: string
-      copyright:
-        description: Copyright information (holders, dates, etc.)
-        type: string
-    additionalProperties: false
-    required: ["name", "authors", "description", "license", "copyright"]
   label_levels:
     description: Options regarding the levels labels may take.
     type: object
@@ -134,4 +111,4 @@ properties:
       - $ref: "#/definitions/simpleAttributesSpec"
       - $ref: "#/definitions/complexAttributesSpec"
 additionalProperties: false
-required: ["metadata", "label_levels"]
+required: ["label_levels"]

@@ -1,0 +1,32 @@
+$schema: http://json-schema.org/schema#
+$id: http://btw.mangalam-research.org/schemas/wed/mode-description.json
+title: Mode Description
+description: A schema describing the structure used to describe a Wed mode.
+type: object
+properties:
+  name:
+    description: "The mode's name."
+    type: string
+  version:
+    description: "The mode's version."
+    type: string
+  uri:
+    description: A URI that uniquely identifies the mode.
+    type: string
+  authors:
+    description: The authors of the mode.
+    type: array
+    items:
+      type: string
+  description:
+    description: The description of the mode.
+    type: string
+  license:
+    description: The licence under which the mode is distributed.
+    type: string
+  copyright:
+    description: Copyright information (holders, dates, etc.)
+    type: string
+additionalProperties: false
+required: ["name", "version", "uri", "authors", "description", "license",
+           "copyright"]

@@ -13,8 +13,9 @@ import { ErrorData } from "salve-dom";
 import { Button } from "@wedxml/client-api";
 
 import { action as action_, Decorator, domutil, EditorAPI, gui,
-         GUISelector, inputTriggerFactory, key, keyConstants, ModeValidator,
-         objectCheck, tokens, transformation, WED_ORIGIN } from "wed";
+         GUISelector, inputTriggerFactory, key, keyConstants, ModeDescription,
+         ModeValidator, objectCheck, tokens, transformation, version,
+         WED_ORIGIN } from "wed";
 import { GenericBinder, GenericMode,
          GenericModeOptions } from "wed/modes/generic/generic";
 import { GenericDecorator } from "wed/modes/generic/generic-decorator";
@@ -391,19 +392,25 @@ export class TestMode extends GenericMode<TestModeOptions> {
   private draggableResizableAction: DraggableResizableModalAction;
   private promptAction: PromptAction;
 
+  readonly description: Readonly<ModeDescription>;
+
   constructor(@inject(EDITOR_INSTANCE) editor: EditorAPI,
               @inject(METADATA) metadata: Metadata,
               @inject(MODE_OPTIONS) options: TestModeOptions) {
     super(editor, metadata, options);
-    this.wedOptions = mergeOptions({}, this.wedOptions);
+
     const suffix = options.nameSuffix != null ? options.nameSuffix : "";
-    this.wedOptions.metadata = {
+    this.description = {
       name: `Test${suffix}`,
+      version,
+      uri: WED_ORIGIN,
       authors: ["Louis-Dominique Dubeau"],
       description: "TEST MODE. DO NOT USE IN PRODUCTION!",
       license: "MPL 2.0",
       copyright: "Mangalam Research Center for Buddhist Languages",
     };
+
+    this.wedOptions = mergeOptions({}, this.wedOptions);
     this.wedOptions.label_levels = {
       max: 2,
       initial: 1,

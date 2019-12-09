@@ -12,8 +12,8 @@ import { DefaultNameResolver, EName } from "salve";
 
 import { Button } from "@wedxml/client-api";
 
-import { action, domtypeguards, domutil, ModeValidator, objectCheck,
-         WedOptions } from "wed";
+import { action, domtypeguards, domutil, ModeDescription, ModeValidator,
+         objectCheck, WedOptions } from "wed";
 
 import UnspecifiedAction = action.UnspecifiedAction;
 
@@ -42,6 +42,11 @@ export interface Mode {
    * @returns The options. Callers are not allowed to modify the value returned.
    */
   getWedOptions(): WedOptions;
+
+  /**
+   * The description of the mode.
+   */
+  readonly description: Readonly<ModeDescription>;
 
   /**
    * This method returns a mappings of prefix to namespace URI that are set to
@@ -198,13 +203,6 @@ export interface Mode {
 @injectable()
 export abstract class BaseMode implements Mode {
   protected wedOptions: WedOptions = {
-    metadata: {
-      name: "Base Mode (you should not be using this)",
-      description: "The base mode. You should not be using it directly.",
-      authors: ["Louis-Dominique Dubeau"],
-      license: "MPL 2.0",
-      copyright: "Mangalam Research Center for Buddhist Languages",
-    },
     label_levels: {
       max: 1,
       initial: 1,
@@ -313,6 +311,7 @@ export abstract class BaseMode implements Mode {
   }
 
   abstract init(): Promise<void>;
+  abstract readonly description: Readonly<ModeDescription>;
   abstract getAbsoluteNamespaceMappings(): Record<string, string>;
   abstract unresolveName(name: EName): string | undefined;
   abstract getAbsoluteResolver(): DefaultNameResolver;

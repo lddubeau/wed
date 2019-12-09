@@ -8,13 +8,6 @@ describe("wed-options-validation", () => {
   describe("processOptions", () => {
     it("returns cleaned options when done", () => {
       const options: WedOptions = {
-        metadata: {
-          name: "Test",
-          authors: ["Louis-Dominique Dubeau"],
-          description: "TEST MODE. DO NOT USE IN PRODUCTION!",
-          license: "MPL 2.0",
-          copyright: "Mangalam Research Center for Buddhist Languages",
-        },
         label_levels: {
           max: 2,
           initial: 1,
@@ -38,13 +31,6 @@ describe("wed-options-validation", () => {
 
     it("cleans a missing attributes option", () => {
       const options: WedOptions = {
-        metadata: {
-          name: "Test",
-          authors: ["Louis-Dominique Dubeau"],
-          description: "TEST MODE. DO NOT USE IN PRODUCTION!",
-          license: "MPL 2.0",
-          copyright: "Mangalam Research Center for Buddhist Languages",
-        },
         label_levels: {
           max: 2,
           initial: 1,
@@ -58,13 +44,6 @@ describe("wed-options-validation", () => {
 
     it("cleans a string attributes option", () => {
       const options: WedOptions = {
-        metadata: {
-          name: "Test",
-          authors: ["Louis-Dominique Dubeau"],
-          description: "TEST MODE. DO NOT USE IN PRODUCTION!",
-          license: "MPL 2.0",
-          copyright: "Mangalam Research Center for Buddhist Languages",
-        },
         label_levels: {
           max: 2,
           initial: 1,
@@ -79,13 +58,6 @@ describe("wed-options-validation", () => {
 
     it("reports an error if the options are not in the right format", () => {
       const options: WedOptions = {
-        metadata: {
-          name: "Test",
-          authors: ["Louis-Dominique Dubeau"],
-          description: "TEST MODE. DO NOT USE IN PRODUCTION!",
-          license: "MPL 2.0",
-          copyright: "Mangalam Research Center for Buddhist Languages",
-        },
         label_levels: {
           max: 2,
           initial: 1,
@@ -101,13 +73,6 @@ describe("wed-options-validation", () => {
 
     it("reports an error if the initial label level > the max", () => {
       const options: WedOptions = {
-        metadata: {
-          name: "Test",
-          authors: ["Louis-Dominique Dubeau"],
-          description: "TEST MODE. DO NOT USE IN PRODUCTION!",
-          license: "MPL 2.0",
-          copyright: "Mangalam Research Center for Buddhist Languages",
-        },
         label_levels: {
           max: 2,
           initial: 3,

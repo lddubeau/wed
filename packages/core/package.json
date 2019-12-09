@@ -60,7 +60,7 @@
     "copy-generated": "mkdir -p build/dist/dev/lib && (cd build/generated; cp -rp lib ../dist/dev/)",
     "copy-schemas": "mkdir -p build/schemas && cp schemas/*.js build/schemas/ && (cd schemas; cp --parents `find . -name '*.rng'` ../build/schemas)",
     "bin": "mkdir -p build/dist/bin && sed -e's;../build/dist;..;g' bin/wed-metadata > build/dist/bin/wed-metadata && chmod +x build/dist/bin/wed-metadata",
-    "yml-to-json": "mkdir -p build/dist/dev/lib/wed && ../../tasks/yml-to-json src/wed/wed-options-schema.yml build/dist/dev/lib/wed/wed-options-schema.json",
+    "yml-to-json": "mkdir -p build/dist/dev/lib/wed && ../../tasks/yml-to-json src/wed/wed-options-schema.yml build/dist/dev/lib/wed/wed-options-schema.json && ../../tasks/yml-to-json src/wed/mode-description-schema.yml build/dist/dev/lib/wed/mode-description-schema.json",
     "sass": "mkdir -p build/dist/dev/lib/wed && node-sass --output-style=expanded --include-path=src/wed/sass-inc/ src/wed/wed.scss build/dist/dev/lib/wed/wed.css",
     "generate-build-info": "mkdir -p build/dist/dev/lib/wed && tasks/generate-build-info --unclean --module > build/dist/dev/lib/wed/build-info.js",
     "build-bundled-doc": "./tasks/build-bundled-doc",

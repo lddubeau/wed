@@ -6,11 +6,11 @@
  */
 
 import { Container, inject, injectable } from "inversify";
-import mergeOptions from "merge-options";
 import { DefaultNameResolver, EName } from "salve";
 
 import { action, BaseMode, Binder, BinderCtor, CommonModeOptions,
-         EditorAPI, objectCheck, Runtime, tokens, transformation } from "wed";
+         EditorAPI, ModeDescription, objectCheck, Runtime, tokens,
+         transformation, version, WED_ORIGIN } from "wed";
 import { InsertPI } from "./generic-actions";
 import { GenericDecorator } from "./generic-decorator";
 import { makeTagTr } from "./generic-tr";
@@ -68,27 +68,26 @@ export class GenericMode<Options extends GenericModeOptions =
 
   readonly insertPITr: Transformation<NamedTransformationData>;
 
+  readonly description: Readonly<ModeDescription> = {
+    name: "Generic",
+    // The version of the generic mode is the same as the version of the
+    // editor. Other modes would use their own version numbers.
+    version,
+    // And the URI for this mode is the same as wed.
+    uri: WED_ORIGIN,
+    authors: ["Louis-Dominique Dubeau"],
+    description: `This is a basic mode bundled with wed and which can, \
+and probably should be used as the base for other modes.`,
+    license: "MPL 2.0",
+    copyright: "Mangalam Research Center for Buddhist Languages",
+  };
+
   constructor(@inject(EDITOR_INSTANCE) protected readonly editor: EditorAPI,
               @inject(METADATA) protected readonly metadata: Metadata,
               @inject(MODE_OPTIONS) protected readonly options: Options) {
     super();
 
     this.insertPIAction = new InsertPI(editor);
-    if (this.constructor === GenericMode) {
-      // Set our metadata.
-      this.wedOptions = mergeOptions({}, this.wedOptions);
-      this.wedOptions.metadata = {
-        name: "Generic",
-        authors: ["Louis-Dominique Dubeau"],
-        description:
-        "This is a basic mode bundled with wed and which can, " +
-          "and probably should be used as the base for other modes.",
-        license: "MPL 2.0",
-        copyright: "Mangalam Research Center for Buddhist Languages",
-      };
-    }
-    // else it is up to the derived class to set it.
-
     this.wedOptions.attributes = "edit";
     this.tagTr = makeTagTr(editor, !!options.autoinsert);
     this.insertPITr = this.tagTr["insert-pi"];
@@ -218,12 +217,14 @@ export class GenericBinder implements Binder {
       options.autoinsert = true;
     }
 
-    container.bind(METADATA).toConstantValue(await this.getMetadata(container));
-    container.bind(MODE).to(await this.getMode(container));
-    container.bind(DECORATOR).to(await this.getDecorator(container));
+    container.bind(METADATA)
+      .toConstantValue(await this.getMetadata(container, options));
+    container.bind(MODE).to(await this.getMode(container, options));
+    container.bind(DECORATOR).to(await this.getDecorator(container, options));
   }
 
-  protected async getMetadata(container: Container): Promise<Metadata> {
+  protected async getMetadata(container: Container,
+                              _options: GenericModeOptions): Promise<Metadata> {
     const options = container.get<GenericModeOptions>(MODE_OPTIONS);
     const runtime = container.get<Runtime>(RUNTIME);
     return new MetadataMultiversionReader()
@@ -231,11 +232,14 @@ export class GenericBinder implements Binder {
                        .resolveToString(options.metadata)));
   }
 
-  protected async getMode(_container: Container): Promise<GenericModeCtor> {
+  protected async getMode(_container: Container,
+                          _options: GenericModeOptions):
+  Promise<GenericModeCtor> {
     return this.ctor.mode;
   }
 
-  protected async getDecorator(_container: Container):
+  protected async getDecorator(_container: Container,
+                               _options: GenericModeOptions):
   Promise<GenericDecoratorCtor> {
     return this.ctor.decorator;
   }

@@ -65,4 +65,6 @@ Promise.all([
   convertJSONSchemaToTS("wed/modes/generic/metadata-schema.json",
                         "metadata-as-json.d.ts"),
   convertJSONSchemaToTS("wed/wed-options-schema.yml", "wed-options.d.ts"),
+  convertJSONSchemaToTS("wed/mode-description-schema.yml",
+                        "mode-description.d.ts"),
 ]);
